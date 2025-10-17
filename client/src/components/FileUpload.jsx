@@ -76,7 +76,7 @@ const FileUpload = ({ files, onFilesChange, maxSizeMB = 5, accept = '.pdf' }) =>
     }
     
     return preparedFiles;
-  };
+  }; 
 
   return (
     <Paper sx={{ p: 2 }}>
