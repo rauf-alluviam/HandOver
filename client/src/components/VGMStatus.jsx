@@ -141,10 +141,23 @@ const VGMStatus = () => {
   };
 
   // Handle edit request - switch to form tab with existing data
-  const handleEditRequest = (request) => {
-    setEditMode(true);
-    setExistingRequest(request);
-    setCurrentTab(1);
+  const handleEditRequest = async (request) => {
+    try {
+      // Fetch complete request details for editing
+      const response = await vgmAPI.getRequestById(request.vgmId);
+
+      // Switch to form tab with the existing request data
+      setEditMode(true);
+      setExistingRequest(response.data);
+      setCurrentTab(1);
+
+      enqueueSnackbar("Request loaded for editing", { variant: "info" });
+    } catch (error) {
+      console.error("Error loading request for editing:", error);
+      enqueueSnackbar("Failed to load request for editing", {
+        variant: "error",
+      });
+    }
   };
 
   // Handle new VGM submission - switch to form tab in create mode
@@ -441,6 +454,12 @@ const VGMStatus = () => {
                               size="small"
                               onClick={() => handleEditRequest(request)}
                               color="secondary"
+                              disabled={request.status === "Verified"} // Disable edit for verified requests
+                              title={
+                                request.status === "Verified"
+                                  ? "Cannot edit verified requests"
+                                  : "Edit Request"
+                              }
                             >
                               <EditIcon />
                             </IconButton>

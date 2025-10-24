@@ -6,6 +6,7 @@ import helmet from "helmet";
 
 import dotenv from "dotenv";
 import apiLogRoutes from "./routes/apiLogRoutes.js";
+import form13 from "./routes/form13.js";
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use("/api", apiLogRoutes);
+app.use("/api/form13", form13);
 
 // Health check
 app.get("/health", (req, res) => {

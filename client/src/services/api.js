@@ -21,6 +21,7 @@ export const vgmAPI = {
   getRequests: (filters) => api.get("/vgm/requests", { params: filters }),
   updateRequest: (vgmId, updateData) =>
     api.put(`/vgm/requests/${vgmId}`, updateData),
+  getRequestById: (vgmId) => api.get(`/vgm/requests/${vgmId}`),
 };
 
 export const logAPI = {

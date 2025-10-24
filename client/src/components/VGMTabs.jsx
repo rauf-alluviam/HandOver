@@ -1,17 +1,11 @@
-// src/components/VGM/VGMTabs.jsx
-import React, { useState } from "react";
-import {
-  Container,
-  Paper,
-  Tabs,
-  Tab,
-  Box,
-  Typography,
-} from "@mui/material";
-import VGMForm from "./VGMForm";
-import VGMStatus from "./VGMStatus";
+// src/components/VGMTabs.jsx
+import React, { useState } from 'react';
+import { Box, Tab, Tabs } from '@mui/material';
+import VGMForm from './VGMForm';
+import VGMStatus from './VGMStatus';
+import Form13 from './Form13/Form13';
 
-function TabPanel({ children, value, index, ...other }) {
+const TabPanel = ({ children, value, index, ...other }) => {
   return (
     <div
       role="tabpanel"
@@ -23,7 +17,7 @@ function TabPanel({ children, value, index, ...other }) {
       {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
     </div>
   );
-}
+};
 
 const VGMTabs = () => {
   const [tabValue, setTabValue] = useState(0);
@@ -33,35 +27,27 @@ const VGMTabs = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 2, mb: 2 }}>
-      <Paper elevation={2}>
-        <Tabs
-          value={tabValue}
-          onChange={handleTabChange}
-          aria-label="VGM tabs"
-          sx={{ borderBottom: 1, borderColor: 'divider' }}
-        >
-          <Tab 
-            label="VGM Declaration" 
-            id="vgm-tab-0"
-            aria-controls="vgm-tabpanel-0"
-          />
-          <Tab 
-            label="VGM Status Check" 
-            id="vgm-tab-1"
-            aria-controls="vgm-tabpanel-1"
-          />
+    <Box sx={{ width: '100%' }}>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Tabs value={tabValue} onChange={handleTabChange} aria-label="VGM tabs">
+          <Tab label="VGM Submission" />
+          <Tab label="VGM Status" />
+          <Tab label="Form 13" />
         </Tabs>
+      </Box>
 
-        <TabPanel value={tabValue} index={0}>
-          <VGMForm />
-        </TabPanel>
+      <TabPanel value={tabValue} index={0}>
+        <VGMForm />
+      </TabPanel>
 
-        <TabPanel value={tabValue} index={1}>
-          <VGMStatus />
-        </TabPanel>
-      </Paper>
-    </Container>
+      <TabPanel value={tabValue} index={1}>
+        <VGMStatus />
+      </TabPanel>
+
+      <TabPanel value={tabValue} index={2}>
+        <Form13 />
+      </TabPanel>
+    </Box>
   );
 };
 

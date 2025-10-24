@@ -403,10 +403,47 @@ export const getVGMRequests = async (req, res) => {
 // server/src/controllers/apiLogController.js
 
 // Update VGM request and retrigger third-party API
+// server/src/controllers/apiLogController.js
+
+// Get VGM request by ID for editing
+export const getVGMRequestById = async (req, res) => {
+  try {
+    const { vgmId } = req.params;
+
+    const log = await ApiLog.findById(vgmId).lean();
+
+    if (!log) {
+      return res.status(404).json({ error: "VGM request not found" });
+    }
+
+    // Return complete log data including original request and response
+    res.json({
+      _id: log._id,
+      vgmId: log._id,
+      ...log.request?.body,
+      status: log.status,
+      cntnrStatus: log.response?.data?.cntnrStatus || log.status,
+      response: log.response?.data,
+      createdAt: log.createdAt,
+      originalRequest: log.request?.body,
+      apiResponse: log.response?.data,
+    });
+  } catch (error) {
+    console.error("Get VGM request by ID error:", error);
+    res.status(500).json({
+      error: "Failed to fetch VGM request",
+      details: error.message,
+    });
+  }
+};
+
+// Update VGM request and retrigger third-party API
 export const updateVGMRequest = async (req, res) => {
   try {
     const { vgmId } = req.params;
     const updateData = req.body;
+
+    console.log(`Updating VGM request ${vgmId} with data:`, updateData);
 
     // Get the original VGM request
     const originalLog = await ApiLog.findById(vgmId);
@@ -414,24 +451,25 @@ export const updateVGMRequest = async (req, res) => {
       return res.status(404).json({ error: "VGM request not found" });
     }
 
-    // Update the existing log with new data
+    // Create updated request data
     const updatedRequestData = {
       ...originalLog.request.toObject(),
       body: {
         ...originalLog.request.body,
-        ...updateData, // Apply the updates
-        updatedAt: new Date(), // Add update timestamp
+        ...updateData,
       },
     };
 
-    // Update the existing log (instead of creating new one)
+    console.log("Updated request data:", updatedRequestData);
+
+    // Update the existing log
     const updatedLog = await ApiLog.findByIdAndUpdate(
       vgmId,
       {
         request: updatedRequestData,
-        status: "pending", // Reset status since we're resubmitting
+        status: "pending",
         remarks: `Updated and resubmitted on ${new Date().toISOString()}`,
-        $inc: { retryCount: 1 }, // Increment retry count
+        $inc: { retryCount: 1 },
       },
       { new: true }
     );
@@ -453,7 +491,7 @@ export const updateVGMRequest = async (req, res) => {
         success: true,
         data: result.data,
         message: "VGM request updated and resubmitted successfully",
-        vgmId: vgmId, // Return the same VGM ID
+        vgmId: vgmId,
       });
     } else {
       // Update the log with the failed response

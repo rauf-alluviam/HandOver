@@ -1,4 +1,3 @@
-// src/components/VGMForm/VGMForm.jsx
 import React, { useState, useEffect } from "react";
 import {
   Container,
@@ -19,6 +18,9 @@ import {
   Alert,
   CircularProgress,
   Divider,
+  Stepper,
+  Step,
+  StepLabel,
 } from "@mui/material";
 import { useFormik } from "formik";
 import { useSnackbar } from "notistack";
@@ -43,96 +45,142 @@ import {
   HANDOVER_LOCATIONS,
 } from "../utils/constants/masterData.js";
 
-const VGMForm = () => {
+const VGMForm = ({
+  editMode = false,
+  existingRequest = null,
+  onSuccess,
+  onCancel,
+}) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const { userData, shippers } = useAuth();
   const [loading, setLoading] = useState(false);
   const [attachments, setAttachments] = useState([]);
-  const [editMode, setEditMode] = useState(false);
-  const [existingRequest, setExistingRequest] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(editMode);
+  const [requestData, setRequestData] = useState(existingRequest);
+  const [activeStep, setActiveStep] = useState(0);
 
-  // Check if we're in edit mode when component loads
+  // Steps for the form
+  const steps = [
+    "Basic Details",
+    "Container Details",
+    "Weighbridge Details",
+    "Review & Submit",
+  ];
+
+  // Fetch request details when in edit mode
   useEffect(() => {
-    if (location.state?.editMode && location.state?.existingRequest) {
-      setEditMode(true);
-      setExistingRequest(location.state.existingRequest);
-      prefillForm(location.state.existingRequest);
-    }
-  }, [location.state]);
+    const initializeEditMode = async () => {
+      if (location.state?.editMode && location.state?.vgmId) {
+        setIsEditMode(true);
+        await fetchRequestDetails(location.state.vgmId);
+      } else if (editMode && existingRequest) {
+        setIsEditMode(true);
+        setRequestData(existingRequest);
+        prefillForm(existingRequest);
+      }
+    };
 
-  // Pre-fill form with existing request data
+    initializeEditMode();
+  }, [location.state, editMode, existingRequest]);
+
+  // Fetch complete request details from API
+  const fetchRequestDetails = async (vgmId) => {
+    try {
+      setLoading(true);
+      const response = await vgmAPI.getRequestById(vgmId);
+      setRequestData(response.data);
+      prefillForm(response.data);
+    } catch (error) {
+      console.error("Error fetching request details:", error);
+      enqueueSnackbar("Failed to load request details", { variant: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Enhanced pre-fill form with existing request data
   const prefillForm = (request) => {
     if (!request) return;
+
+    // Extract data from request body (original submission data)
+    const requestBody = request.request?.body || request;
+    const responseData = request.response?.data || {};
+
+    console.log("Prefilling form with data:", requestBody);
 
     // Transform the existing request data to match form structure
     const formValues = {
       // Basic Details
-      linerId: request.linerId || "",
-      vesselNm: request.vesselNm || "",
-      voyageNo: request.voyageNo || "",
-      bookNo: request.bookNo || "",
-      locId: request.locId || "",
-      handoverLoc: request.handoverLoc || "",
-      shipperTp: request.shipperTp || "S",
-      authPrsnNm: request.authPrsnNm || "",
-      authDesignation: request.authDesignation || "",
-      authMobNo: request.authMobNo || "",
-      odexRefNo: request.odexRefNo || userData?.pyrCode,
+      linerId: requestBody.linerId || "",
+      vesselNm: requestBody.vesselNm || "",
+      voyageNo: requestBody.voyageNo || "",
+      bookNo: requestBody.bookNo || "",
+      locId: requestBody.locId || "",
+      handoverLoc: requestBody.handoverLoc || "",
+      shipperTp: requestBody.shipperTp || "S",
+      authPrsnNm: requestBody.authPrsnNm || "",
+      authDesignation: requestBody.authDesignation || "",
+      authMobNo: requestBody.authMobNo || "",
+      odexRefNo: requestBody.odexRefNo || userData?.pyrCode,
 
       // Container & VGM Details
-      vgmEvalMethod: request.vgmEvalMethod || "M1",
-      cntnrNo: request.cntnrNo || "",
-      cntnrSize: request.cntnrSize || "",
-      cntnrTp: request.cntnrTp || "",
-      cargoTp: request.cargoTp || "GEN",
-      cscPlateMaxWtLimit: request.cscPlateMaxWtLimit || "",
-      cscPlateMaxWtUom: request.cscPlateMaxWtUom || "KG",
-      isQuickResponse: request.isQuickResponse || "N",
+      vgmEvalMethod: requestBody.vgmEvalMethod || "M1",
+      cntnrNo: requestBody.cntnrNo || "",
+      cntnrSize: requestBody.cntnrSize || "",
+      cntnrTp: requestBody.cntnrTp || "",
+      cargoTp: requestBody.cargoTp || "GEN",
+      cscPlateMaxWtLimit: requestBody.cscPlateMaxWtLimit || "",
+      cscPlateMaxWtUom: requestBody.cscPlateMaxWtUom || "KG",
+      isQuickResponse: requestBody.isQuickResponse || "N",
 
       // Weight Details
-      cargoWt: request.cargoWt || "",
-      cargoWtUom: request.cargoWtUom || "KG",
-      tareWt: request.tareWt || "",
-      tareWtUom: request.tareWtUom || "KG",
-      totWt: request.totWt || "",
-      totWtUom: request.totWtUom || "KG",
+      cargoWt: requestBody.cargoWt || "",
+      cargoWtUom: requestBody.cargoWtUom || "KG",
+      tareWt: requestBody.tareWt || "",
+      tareWtUom: requestBody.tareWtUom || "KG",
+      totWt: requestBody.totWt || "",
+      totWtUom: requestBody.totWtUom || "KG",
 
       // Hazardous Details
-      imoNo1: request.imoNo1 || "",
-      unNo1: request.unNo1 || "",
+      imoNo1: requestBody.imoNo1 || "",
+      unNo1: requestBody.unNo1 || "",
 
       // Shipper Details
-      shipId: request.shipId || "",
-      shipperNm: request.shipperNm || "",
-      shipRegTP: request.shipRegTP || "",
-      shipRegNo: request.shipRegNo || "",
+      shipId: requestBody.shipId || "",
+      shipperNm: requestBody.shipperNm || "",
+      shipRegTP: requestBody.shipRegTP || "",
+      shipRegNo: requestBody.shipRegNo || "",
 
       // Weighbridge Details
-      weighBridgeRegNo: request.weighBridgeRegNo || "",
-      weighBridgeAddrLn1: request.weighBridgeAddrLn1 || "",
-      weighBridgeAddrLn2: request.weighBridgeAddrLn2 || "",
-      weighBridgeAddrLn3: request.weighBridgeAddrLn3 || "",
-      weighBridgeSlipNo: request.weighBridgeSlipNo || "",
+      weighBridgeRegNo: requestBody.weighBridgeRegNo || "",
+      weighBridgeAddrLn1: requestBody.weighBridgeAddrLn1 || "",
+      weighBridgeAddrLn2: requestBody.weighBridgeAddrLn2 || "",
+      weighBridgeAddrLn3: requestBody.weighBridgeAddrLn3 || "",
+      weighBridgeSlipNo: requestBody.weighBridgeSlipNo || "",
       weighBridgeWtTs:
-        request.weighBridgeWtTs ||
+        requestBody.weighBridgeWtTs ||
         new Date().toISOString().slice(0, 19).replace("T", " "),
 
       // Terminal & System
-      terminalCode: request.terminalCode || "",
+      terminalCode: requestBody.terminalCode || "",
       useEncryption: false,
     };
 
     // Set form values
     Object.keys(formValues).forEach((key) => {
-      formik.setFieldValue(key, formValues[key]);
+      if (formValues[key] !== undefined) {
+        formik.setFieldValue(key, formValues[key]);
+      }
     });
 
-    // Handle attachments if any (you might need to fetch them separately)
-    if (request.attachments) {
-      setAttachments(request.attachments);
+    // Handle attachments if any
+    if (requestBody.vgmWbAttList) {
+      setAttachments(requestBody.vgmWbAttList);
     }
+
+    enqueueSnackbar("Form pre-filled with existing data", { variant: "info" });
   };
 
   // Check if selected shipper has VGM authorization
@@ -143,7 +191,7 @@ const VGMForm = () => {
 
   const formik = useFormik({
     initialValues: {
-      // Basic Details - ALL MANDATORY for Shipper/FF
+      // Basic Details
       linerId: "",
       vesselNm: "",
       voyageNo: "",
@@ -154,7 +202,8 @@ const VGMForm = () => {
       authPrsnNm: "",
       authDesignation: "",
       authMobNo: "",
-      odexRefNo: userData?.pyrCode, // Use from userData
+      odexRefNo: userData?.pyrCode,
+
       // Container & VGM Details
       vgmEvalMethod: "M1",
       cntnrNo: "",
@@ -163,7 +212,7 @@ const VGMForm = () => {
       cargoTp: "GEN",
       cscPlateMaxWtLimit: "",
       cscPlateMaxWtUom: "KG",
-      isQuickResponse: "N", // MANDATORY FIELD - Default to 'N'
+      isQuickResponse: "N",
 
       // Weight Details
       cargoWt: "",
@@ -180,10 +229,10 @@ const VGMForm = () => {
       // Shipper Details
       shipId: "",
       shipperNm: "",
-      shipRegTP: "", // Correct field name as per API
+      shipRegTP: "",
       shipRegNo: "",
 
-      // Weighbridge Details - ALL MANDATORY for Shipper sending VGM data
+      // Weighbridge Details
       weighBridgeRegNo: "",
       weighBridgeAddrLn1: "",
       weighBridgeAddrLn2: "",
@@ -202,11 +251,11 @@ const VGMForm = () => {
         // Prepare payload exactly as API expects
         const payload = {
           linerId: values.linerId,
-          vesselNm: values.vesselNm || undefined, // Optional
-          voyageNo: values.voyageNo || undefined, // Optional
+          vesselNm: values.vesselNm || undefined,
+          voyageNo: values.voyageNo || undefined,
           bookNo: values.bookNo,
           locId: values.locId,
-          handoverLoc: values.handoverLoc || undefined, // Optional
+          handoverLoc: values.handoverLoc || undefined,
           shipperTp: values.shipperTp,
           authPrsnNm: values.authPrsnNm,
           authDesignation: values.authDesignation,
@@ -214,14 +263,14 @@ const VGMForm = () => {
           vgmEvalMethod: values.vgmEvalMethod,
           cntnrNo: values.cntnrNo,
           cntnrSize: values.cntnrSize,
-          cntnrTp: values.cntnrTp || undefined, // Optional
+          cntnrTp: values.cntnrTp || undefined,
           cargoTp: values.cargoTp,
           cscPlateMaxWtLimit: values.cscPlateMaxWtLimit?.toString(),
           cscPlateMaxWtUom: values.cscPlateMaxWtUom,
-          isQuickResponse: values.isQuickResponse, // MANDATORY
+          isQuickResponse: values.isQuickResponse,
           totWt: values.totWt?.toString(),
           totWtUom: values.totWtUom,
-          terminalCode: values.terminalCode || undefined, // Conditional
+          terminalCode: values.terminalCode || undefined,
           odexRefNo: values.odexRefNo,
           weighBridgeRegNo: values.weighBridgeRegNo,
           weighBridgeAddrLn1: values.weighBridgeAddrLn1,
@@ -283,16 +332,14 @@ const VGMForm = () => {
         console.log("Submitting VGM payload:", payload);
 
         let response;
-        if (editMode && existingRequest) {
-          // Update existing request
-          response = await vgmAPI.updateRequest(existingRequest.vgmId, payload);
-          enqueueSnackbar(
-            `VGM updated successfully! VGM ID: ${existingRequest.vgmId}`,
-            {
-              variant: "success",
-              autoHideDuration: 10000,
-            }
-          );
+        if (isEditMode && requestData) {
+          // Update existing request using PATCH
+          const vgmId = requestData._id || requestData.vgmId;
+          response = await vgmAPI.updateRequest(vgmId, payload);
+          enqueueSnackbar(`VGM updated successfully! VGM ID: ${vgmId}`, {
+            variant: "success",
+            autoHideDuration: 10000,
+          });
         } else {
           // Create new request
           response = await vgmAPI.submit(payload);
@@ -309,14 +356,19 @@ const VGMForm = () => {
           // Reset form after successful submission
           formik.resetForm();
           setAttachments([]);
-          setEditMode(false);
-          setExistingRequest(null);
+          setIsEditMode(false);
+          setRequestData(null);
 
-          // Redirect back to status page after successful update
-          if (editMode) {
-            setTimeout(() => {
-              navigate("/vgm-status");
-            }, 2000);
+          // Call success callback if provided
+          if (onSuccess) {
+            onSuccess(response.data);
+          } else {
+            // Redirect back to status page after successful update
+            if (isEditMode) {
+              setTimeout(() => {
+                navigate("/vgm-status");
+              }, 2000);
+            }
           }
         }
       } catch (error) {
@@ -368,6 +420,28 @@ const VGMForm = () => {
     enqueueSnackbar("File removed successfully", { variant: "info" });
   };
 
+  // Navigation functions for stepper
+  const handleNext = () => {
+    setActiveStep((prevStep) => prevStep + 1);
+  };
+
+  const handleBack = () => {
+    setActiveStep((prevStep) => prevStep - 1);
+  };
+
+  // Handle cancel edit
+  const handleCancelEdit = () => {
+    if (onCancel) {
+      onCancel();
+    } else {
+      setIsEditMode(false);
+      setRequestData(null);
+      formik.resetForm();
+      setAttachments([]);
+      navigate("/vgm-status");
+    }
+  };
+
   // Show/hide weight fields based on VGM method
   const showMethod2Fields = formik.values.vgmEvalMethod === "M2";
 
@@ -375,17 +449,37 @@ const VGMForm = () => {
     return attachments.find((att) => att.attTitle === title);
   };
 
-  // Handle cancel edit
-  const handleCancelEdit = () => {
-    setEditMode(false);
-    setExistingRequest(null);
-    formik.resetForm();
-    setAttachments([]);
-    navigate("/vgm-status");
+  // Render form sections based on active step
+  const renderFormSection = () => {
+    switch (activeStep) {
+      case 0:
+        return renderBasicDetails();
+      case 1:
+        return renderContainerDetails();
+      case 2:
+        return renderWeighbridgeDetails();
+      case 3:
+        return renderReviewAndSubmit();
+      default:
+        return renderBasicDetails();
+    }
   };
 
+  // Handle cancel edit
+  // const handleCancelEdit = () => {
+  //   if (onCancel) {
+  //     onCancel();
+  //   } else {
+  //     setEditMode(false);
+  //     setExistingRequest(null);
+  //     formik.resetForm();
+  //     setAttachments([]);
+  //     navigate("/vgm-status");
+  //   }
+  // };
+
   return (
-    <Container maxWidth="lg" sx={{ mt: 2, mb: 2 }}>
+    <Container maxWidth="150px" sx={{ mt: 2, mb: 2 }}>
       <Alert severity="warning" sx={{ mb: 2 }}>
         <Typography variant="body2">
           <strong>Dear Customer,</strong> we would like to inform you that post
@@ -403,7 +497,7 @@ const VGMForm = () => {
         </Typography>
       </Alert>
 
-      <Paper elevation={2} sx={{ padding: 3 }}>
+
         <Typography
           variant="h5"
           gutterBottom
@@ -1432,7 +1526,7 @@ const VGMForm = () => {
             </CardContent>
           </Card>
         </Box>
-      </Paper>
+ 
     </Container>
   );
 };
