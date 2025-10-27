@@ -1,6 +1,5 @@
 // server/routes/form13.js
 import express from "express";
-import crc32 from "crc-32";
 import Form13 from "../models/Form13.js";
 import axios from "axios";
 
@@ -18,15 +17,29 @@ const ODEX_CONFIG = {
   },
 };
 
-// Helper function to generate hashkey
-const generateHashKey = (pyrCode, timestamp) => {
-  const secretKey = process.env.FORM13_SECRET_KEY;
-  return crc32.str(pyrCode + timestamp + secretKey).toString();
+// Helper function to get current timestamp in required format
+const getCurrentTimestamp = () => {
+  const now = new Date();
+  return now.toISOString().replace("T", " ").split(".")[0];
 };
 
-// Helper function to call ODeX API
+// Helper function to get hashkey from environment variable
+const getHashKey = () => {
+  const hashKey = process.env.HASHKEY;
+  if (!hashKey) {
+    throw new Error("HASHKEY environment variable is not set");
+  }
+  return hashKey;
+};
+
+// Helper function to call ODeX API with better error handling
 const callOdexAPI = async (endpoint, requestData) => {
   try {
+    console.log("Calling ODeX API:", {
+      url: `${ODEX_CONFIG.baseURL}${endpoint}`,
+      data: requestData,
+    });
+
     const response = await axios.post(
       `${ODEX_CONFIG.baseURL}${endpoint}`,
       requestData,
@@ -35,31 +48,52 @@ const callOdexAPI = async (endpoint, requestData) => {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        timeout: 30000,
+        timeout: 30000, // 30 seconds timeout
       }
     );
+
+    console.log("ODeX API Response:", response.data);
     return response.data;
   } catch (error) {
-    console.error("ODeX API Error:", error.response?.data || error.message);
+    console.error("ODeX API Error Details:", {
+      message: error.message,
+      code: error.code,
+      response: error.response?.data,
+      status: error.response?.status,
+      url: error.config?.url,
+    });
+
     throw new Error(
       `ODeX API call failed: ${error.response?.data?.message || error.message}`
     );
   }
 };
 
+// Mock data for testing when API is down
+const getMockVesselData = () => {
+  return {
+    success: true,
+    data: [
+      {
+        vesselCode: "VSL001",
+        vesselName: "MAERSK COLUMBUS",
+        voyageNo: "234W",
+        rotationNo: "ROT12345",
+      },
+      {
+        vesselCode: "VSL002",
+        vesselName: "CMA CGM AMERICA",
+        voyageNo: "567E",
+        rotationNo: "ROT12346",
+      },
+    ],
+  };
+};
+
 // Get hashkey for Form 13
 router.post("/hashkey", async (req, res) => {
   try {
-    const { pyrCode, timestamp } = req.body;
-
-    if (!pyrCode || !timestamp) {
-      return res.status(400).json({
-        success: false,
-        error: "pyrCode and timestamp are required",
-      });
-    }
-
-    const hashKey = generateHashKey(pyrCode, timestamp);
+    const hashKey = getHashKey();
 
     res.json({
       success: true,
@@ -76,31 +110,29 @@ router.post("/hashkey", async (req, res) => {
 // Vessel Master API - Calls actual ODeX API
 router.post("/vessel-master", async (req, res) => {
   try {
-    const { pyrCode, fromTs, hashKey } = req.body;
+    const { pyrCode } = req.body;
 
     // Validate required fields
-    if (!pyrCode || !fromTs) {
+    if (!pyrCode) {
       return res.status(400).json({
         success: false,
-        error: "pyrCode and fromTs are required",
+        error: "pyrCode is required",
       });
     }
 
-    // Verify hashkey
-    const expectedHash = generateHashKey(pyrCode, fromTs);
-    if (hashKey && hashKey !== expectedHash) {
-      return res.status(401).json({
-        success: false,
-        error: "Invalid hashkey",
-      });
-    }
+    // Get current timestamp and hashkey
+    // const fromTs = getCurrentTimestamp();
+    const fromTs = "2025-10-13 00:00:00";
+    const hashKey = getHashKey();
 
     // Prepare request for ODeX API
     const vesselRequest = {
       pyrCode,
       fromTs,
-      hashKey: hashKey || expectedHash,
+      hashKey,
     };
+
+    console.log("Vessel Master Request:", vesselRequest);
 
     // Call actual ODeX Vessel Master API
     const odexResponse = await callOdexAPI(
@@ -114,9 +146,20 @@ router.post("/vessel-master", async (req, res) => {
     });
   } catch (error) {
     console.error("Vessel Master API Error:", error);
+
+    // Return mock data for testing when API is down
+    if (process.env.USE_MOCK_DATA === "true") {
+      console.log("Returning mock vessel data");
+      const mockData = getMockVesselData();
+      return res.json(mockData);
+    }
+
     res.status(500).json({
       success: false,
       error: error.message,
+      timestamp: getCurrentTimestamp(),
+      suggestion:
+        "API timeout - check ODeX service availability or use mock data for testing",
     });
   }
 });
@@ -124,31 +167,30 @@ router.post("/vessel-master", async (req, res) => {
 // POD Master API - Calls actual ODeX API
 router.post("/pod-master", async (req, res) => {
   try {
-    const { pyrCode, fromTs, hashKey } = req.body;
+    const { pyrCode } = req.body;
 
     // Validate required fields
-    if (!pyrCode || !fromTs) {
+    if (!pyrCode) {
       return res.status(400).json({
         success: false,
-        error: "pyrCode and fromTs are required",
+        error: "pyrCode is required",
       });
     }
 
-    // Verify hashkey
-    const expectedHash = generateHashKey(pyrCode, fromTs);
-    if (hashKey && hashKey !== expectedHash) {
-      return res.status(401).json({
-        success: false,
-        error: "Invalid hashkey",
-      });
-    }
+    // Get current timestamp and hashkey
+    // const fromTs = getCurrentTimestamp();
+    const fromTs = "2022-07-19 00:00:00";
+
+    const hashKey = getHashKey();
 
     // Prepare request for ODeX API
     const podRequest = {
       pyrCode,
       fromTs,
-      hashKey: hashKey || expectedHash,
+      hashKey,
     };
+
+    console.log("POD Master Request:", podRequest);
 
     // Call actual ODeX POD Master API
     const odexResponse = await callOdexAPI(
@@ -162,6 +204,19 @@ router.post("/pod-master", async (req, res) => {
     });
   } catch (error) {
     console.error("POD Master API Error:", error);
+
+    // Return mock data for testing when API is down
+    if (process.env.USE_MOCK_DATA === "true") {
+      console.log("Returning mock POD data");
+      return res.json({
+        success: true,
+        data: [
+          { portCode: "INBOM", portName: "MUMBAI" },
+          { portCode: "INSHA", portName: "SHARJAH" },
+        ],
+      });
+    }
+
     res.status(500).json({
       success: false,
       error: error.message,
@@ -186,10 +241,14 @@ router.post("/submit", async (req, res) => {
     const form13 = new Form13(formData);
     await form13.save();
 
+    // Get hashkey from environment
+    const hashKey = getHashKey();
+
     // Prepare data for ODeX API
     const submissionData = {
       ...formData,
-      timestamp: new Date().toISOString().replace("T", " ").split(".")[0],
+      hashKey,
+      timestamp: getCurrentTimestamp(),
     };
 
     // Call actual ODeX Form 13 Submission API
@@ -223,7 +282,7 @@ router.post("/submit", async (req, res) => {
 // Get Form 13 Status - Calls actual ODeX API
 router.post("/status", async (req, res) => {
   try {
-    const { pyrCode, odexRefNo, hashKey } = req.body;
+    const { pyrCode, odexRefNo } = req.body;
 
     if (!pyrCode || !odexRefNo) {
       return res.status(400).json({
@@ -232,11 +291,13 @@ router.post("/status", async (req, res) => {
       });
     }
 
-    const timestamp = new Date().toISOString().replace("T", " ").split(".")[0];
+    // Get hashkey from environment
+    const hashKey = getHashKey();
+
     const statusRequest = {
       pyrCode,
       odexRefNo,
-      hashKey: hashKey || generateHashKey(pyrCode, timestamp),
+      hashKey,
     };
 
     // Call actual ODeX Status API
@@ -261,7 +322,7 @@ router.post("/status", async (req, res) => {
 // Cancel Form 13 - Calls actual ODeX API
 router.post("/cancel", async (req, res) => {
   try {
-    const { pyrCode, odexRefNo, hashKey, reason } = req.body;
+    const { pyrCode, odexRefNo, reason } = req.body;
 
     if (!pyrCode || !odexRefNo || !reason) {
       return res.status(400).json({
@@ -270,12 +331,14 @@ router.post("/cancel", async (req, res) => {
       });
     }
 
-    const timestamp = new Date().toISOString().replace("T", " ").split(".")[0];
+    // Get hashkey from environment
+    const hashKey = getHashKey();
+
     const cancelRequest = {
       pyrCode,
       odexRefNo,
       reason,
-      hashKey: hashKey || generateHashKey(pyrCode, timestamp),
+      hashKey,
     };
 
     // Call actual ODeX Cancellation API
