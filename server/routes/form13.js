@@ -35,39 +35,48 @@ const getHashKey = () => {
 // Helper function to call ODeX API with better error handling
 const callOdexAPI = async (endpoint, requestData) => {
   try {
-    console.log("Calling ODeX API:", {
-      url: `${ODEX_CONFIG.baseURL}${endpoint}`,
-      data: requestData,
-    });
+    // Log/fix payload and headers for deep diff with postman if debugging
+    console.log('Outgoing payload:', JSON.stringify(requestData, null, 2));
 
     const response = await axios.post(
       `${ODEX_CONFIG.baseURL}${endpoint}`,
-      requestData,
+      JSON.stringify(requestData), // Ensure provided as JSON string, exactly what Postman does
       {
         headers: {
           "Content-Type": "application/json",
-          Accept: "application/json",
+          "Accept": "application/json",
+          "User-Agent": "Thunder Client (https://www.thunderclient.com)", 
         },
-        timeout: 30000, // 30 seconds timeout
+        timeout: 30000,
       }
     );
-
-    console.log("ODeX API Response:", response.data);
+    if (typeof response.data === "string" && response.data.startsWith("<!DOCTYPE html")) {
+      throw new Error("HTML error page received from ODeX API; check request payload and endpoint.");
+    }
     return response.data;
   } catch (error) {
-    console.error("ODeX API Error Details:", {
-      message: error.message,
-      code: error.code,
-      response: error.response?.data,
-      status: error.response?.status,
-      url: error.config?.url,
-    });
-
-    throw new Error(
-      `ODeX API call failed: ${error.response?.data?.message || error.message}`
-    );
+    if (
+      error.response &&
+      typeof error.response.data === "string" &&
+      error.response.data.startsWith("<!DOCTYPE html")
+    ) {
+      // Return the HTML error for quick visual debug
+      return {
+        success: false,
+        error: "Received HTML error page from ODeX. Validate your hashkey, endpoint and payload!",
+        html: error.response.data
+      };
+    }
+    if (error.response && error.response.data) {
+      return error.response.data;
+    }
+    return {
+      success: false,
+      error: `ODeX API call failed: ${error.message}`,
+    };
   }
 };
+
 
 // Mock data for testing when API is down
 const getMockVesselData = () => {
@@ -225,11 +234,10 @@ router.post("/pod-master", async (req, res) => {
 });
 
 // Submit Form 13 - Calls actual ODeX API
+// Submit Form 13 - Calls actual ODeX API
 router.post("/submit", async (req, res) => {
   try {
     const formData = req.body;
-
-    // Validate required fields
     if (!formData.pyrCode || !formData.vesselNm || !formData.pod) {
       return res.status(400).json({
         success: false,
@@ -237,41 +245,30 @@ router.post("/submit", async (req, res) => {
       });
     }
 
-    // Save to database first
+    // Save to database (optional)
     const form13 = new Form13(formData);
     await form13.save();
 
-    // Get hashkey from environment
     const hashKey = getHashKey();
-
-    // Prepare data for ODeX API
     const submissionData = {
       ...formData,
       hashKey,
       timestamp: getCurrentTimestamp(),
     };
 
-    // Call actual ODeX Form 13 Submission API
+    // Proxy submission to ODeX
     const odexResponse = await callOdexAPI(
       ODEX_CONFIG.endpoints.submitForm13,
       submissionData
     );
 
-    // Update database with ODeX response
-    form13.form13ApiResponse = odexResponse;
-    form13.referenceNo = odexResponse.odexRefNo;
-    form13.status = "SUBMITTED";
-    await form13.save();
+    // Respond with *only one* payload!
+    // Choose one of the below (typically the first):
+    res.status(200).json(odexResponse);
+    // OR, if you want internalRef:
+    // res.status(200).json({ ...odexResponse, internalRef: form13._id });
 
-    res.json({
-      success: true,
-      data: {
-        ...odexResponse,
-        internalRef: form13._id,
-      },
-    });
   } catch (error) {
-    console.error("Form 13 Submission Error:", error);
     res.status(500).json({
       success: false,
       error: error.message,

@@ -24,6 +24,7 @@ const Form13HeaderSection = ({
   loading,
   onFormDataChange,
   onReloadMasterData,
+  validationErrors = {}, // Add this prop
 }) => {
   const {
     cargoTypes,
@@ -43,32 +44,73 @@ const Form13HeaderSection = ({
     );
   };
 
-  const getPODOptions = () => {
-    if (!formData.locId || !formData.terminalCode) return pods;
-    return pods.filter(
-      (pod) =>
-        pod.locId === formData.locId && pod.terminalId === formData.terminalCode
-    );
-  };
+const getPODOptions = () => {
+  if (!pods || !Array.isArray(pods) || !formData.locId || !formData.terminalCode) return [];
+  
+  // Find the location that matches the selected locId
+  const location = pods.find(location => location.locId === formData.locId);
+  if (!location || !location.terminal || !Array.isArray(location.terminal)) return [];
+  
+  // Find the terminal that matches the selected terminalCode
+  const terminal = location.terminal.find(
+    terminal => terminal.terminalId === formData.terminalCode
+  );
+  
+  if (!terminal || !terminal.service || !Array.isArray(terminal.service)) return [];
+  
+  // Extract all pods from all services in this terminal
+  const allPods = [];
+  terminal.service.forEach(service => {
+    if (service.pod && Array.isArray(service.pod)) {
+      allPods.push(...service.pod);
+    }
+  });
+  
+  return allPods;
+};
 
+const getAllPods = () => {
+  if (!pods || !Array.isArray(pods)) return [];
+  
+  // Extract all pods from all locations, all terminals and all services
+  const allPods = [];
+  pods.forEach(location => {
+    if (location.terminal && Array.isArray(location.terminal)) {
+      location.terminal.forEach(terminal => {
+        if (terminal.service && Array.isArray(terminal.service)) {
+          terminal.service.forEach(service => {
+            if (service.pod && Array.isArray(service.pod)) {
+              allPods.push(...service.pod);
+            }
+          });
+        }
+      });
+    }
+  });
+  return allPods;
+};
   const availableTerminalCodes = getTerminalCodes(formData.locId);
 
   return (
-    <Card>
+ <Card>
       <CardContent>
-        <Typography
-          variant="h6"
-          gutterBottom
-          sx={{ display: "flex", alignItems: "center" }}
-        >
+        <Typography variant="h6" gutterBottom sx={{ display: "flex", alignItems: "center" }}>
           <InfoIcon sx={{ mr: 1 }} />
           Header Section - Vessel & Basic Information
+          {Object.keys(validationErrors).length > 0 && (
+            <Chip 
+              label={`${Object.keys(validationErrors).length} errors`} 
+              color="error" 
+              size="small" 
+              sx={{ ml: 2 }} 
+            />
+          )}
         </Typography>
 
-        <Grid container spacing={3}>
+      <Grid container spacing={3}>
           {/* Shipping Line */}
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth required>
+            <FormControl fullWidth required error={!!validationErrors.bnfCode}>
               <InputLabel>Shipping Line</InputLabel>
               <Select
                 value={formData.bnfCode}
@@ -84,6 +126,11 @@ const Form13HeaderSection = ({
                   </MenuItem>
                 ))}
               </Select>
+              {validationErrors.bnfCode && (
+                <Typography variant="caption" color="error">
+                  {validationErrors.bnfCode}
+                </Typography>
+              )}
             </FormControl>
           </Grid>
 
@@ -137,20 +184,33 @@ const Form13HeaderSection = ({
 
           {/* VIA No */}
           <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="VIA No"
-              value={formData.viaNo}
-              onChange={(e) =>
-                onFormDataChange("header", "viaNo", e.target.value)
-              }
-              helperText="Voyage Identification Number"
-            />
+            <FormControl fullWidth required error={!!validationErrors.viaNo}>
+              <InputLabel>VIA No.</InputLabel>
+              <Select
+                value={formData.viaNo}
+                label="VIA No."
+                onChange={(e) =>
+                  onFormDataChange("header", "viaNo", e.target.value)
+                }
+                disabled={!masterDataLoaded || loading}
+              >
+                {[...new Set(vessels.map((v) => v.viaNo))].map((code) => (
+                  <MenuItem key={code} value={code}>
+                    {code}
+                  </MenuItem>
+                ))}
+              </Select>
+              {validationErrors.viaNo && (
+                <Typography variant="caption" color="error">
+                  {validationErrors.viaNo}
+                </Typography>
+              )}
+            </FormControl>
           </Grid>
 
           {/* Terminal Code */}
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth required>
+            <FormControl fullWidth required error={!!validationErrors.terminalCode}>
               <InputLabel>Terminal Code</InputLabel>
               <Select
                 value={formData.terminalCode}
@@ -158,14 +218,19 @@ const Form13HeaderSection = ({
                 onChange={(e) =>
                   onFormDataChange("header", "terminalCode", e.target.value)
                 }
-                disabled={!masterDataLoaded || loading || !formData.vesselNm}
+                disabled={!masterDataLoaded || loading}
               >
-                {availableTerminalCodes.map((terminal) => (
-                  <MenuItem key={terminal} value={terminal}>
-                    {terminal}
+                {[...new Set(vessels.map((v) => v.terminalCode))].map((code) => (
+                  <MenuItem key={code} value={code}>
+                    {code}
                   </MenuItem>
                 ))}
               </Select>
+              {validationErrors.terminalCode && (
+                <Typography variant="caption" color="error">
+                  {validationErrors.terminalCode  }
+                </Typography>
+              )}
             </FormControl>
           </Grid>
 
@@ -192,52 +257,48 @@ const Form13HeaderSection = ({
             </FormControl>
           </Grid>
 
-          {/* POD */}
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth required>
-              <InputLabel>POD</InputLabel>
-              <Select
-                value={formData.pod}
-                label="POD"
-                onChange={(e) =>
-                  onFormDataChange("header", "pod", e.target.value)
-                }
-                disabled={
-                  !masterDataLoaded ||
-                  loading ||
-                  !formData.locId ||
-                  !formData.terminalCode
-                }
-              >
-                {getPODOptions().map((pod) => (
-                  <MenuItem key={pod.podCd} value={pod.podCd}>
-                    {pod.podNm} ({pod.podCd})
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
+{/* POD */}
+<Grid item xs={12} sm={6}>
+  <FormControl fullWidth>
+    <InputLabel>POD</InputLabel>
+    <Select
+      value={formData.pod}
+      label="POD"
+      onChange={(e) =>
+        onFormDataChange("header", "pod", e.target.value)
+      }
+      disabled={!masterDataLoaded || loading}
+    >
+      {getAllPods().map((pod) => (
+        <MenuItem key={pod.podCd} value={pod.podCd}>
+          {pod.podNm} ({pod.podCd})
+        </MenuItem>
+      ))}
+    </Select>
+  </FormControl>
+</Grid>
 
-          {/* FPOD */}
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>FPOD</InputLabel>
-              <Select
-                value={formData.fpod}
-                label="FPOD"
-                onChange={(e) =>
-                  onFormDataChange("header", "fpod", e.target.value)
-                }
-                disabled={!masterDataLoaded || loading}
-              >
-                {pods.map((pod) => (
-                  <MenuItem key={pod.podCd} value={pod.podCd}>
-                    {pod.podNm} ({pod.podCd})
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
+
+{/* FPOD */}
+<Grid item xs={12} sm={6}>
+  <FormControl fullWidth>
+    <InputLabel>FPOD</InputLabel>
+    <Select
+      value={formData.fpod}
+      label="FPOD"
+      onChange={(e) =>
+        onFormDataChange("header", "fpod", e.target.value)
+      }
+      disabled={!masterDataLoaded || loading}
+    >
+      {getAllPods().map((pod) => (
+        <MenuItem key={pod.podCd} value={pod.podCd}>
+          {pod.podNm} ({pod.podCd})
+        </MenuItem>
+      ))}
+    </Select>
+  </FormControl>
+</Grid>
 
           {/* Cargo Type */}
           <Grid item xs={12} sm={6}>
@@ -347,19 +408,23 @@ const Form13HeaderSection = ({
             />
           </Grid>
 
+      {/* Mobile No with validation */}
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
-              label="Mobile No"
+              label="Mobile No *"
               value={formData.mobileNo}
               onChange={(e) =>
                 onFormDataChange("header", "mobileNo", e.target.value)
               }
               type="tel"
-              inputProps={{ maxLength: 12 }}
+              inputProps={{ maxLength: 10 }}
               required
+              error={!!validationErrors.mobileNo}
+              helperText={validationErrors.mobileNo || "10-digit mobile number"}
             />
           </Grid>
+
 
           <Grid item xs={12} sm={6}>
             <TextField
@@ -506,17 +571,6 @@ const Form13HeaderSection = ({
             </Grid>
           )}
 
-          {/* Optional Fields */}
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Shipping Instruction No"
-              value={formData.shpInstructNo}
-              onChange={(e) =>
-                onFormDataChange("header", "shpInstructNo", e.target.value)
-              }
-            />
-          </Grid>
 
           <Grid item xs={12} sm={6}>
             <TextField

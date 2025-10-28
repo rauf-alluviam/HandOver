@@ -15,8 +15,8 @@ import Dashboard from "./components/Dashboard";
 import VGMForm from "./components/VGMForm";
 import VGMStatus from "./components/VGMStatus";
 import { CircularProgress, Box } from "@mui/material";
-import VGMTabs from "./components/VGMTabs";
 import Form13 from "./components/Form13/Form13";
+import "./App.css";
 const theme = createTheme({
   palette: {
     primary: {
@@ -68,7 +68,7 @@ function App() {
                 path="/vgm"
                 element={
                   <ProtectedRoute>
-                    <VGMTabs />
+                    <VGMForm />
                   </ProtectedRoute>
                 }
               />

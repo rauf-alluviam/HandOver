@@ -26,8 +26,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Tabs,
-  Tab,
 } from "@mui/material";
 import {
   FilterList as FilterIcon,
@@ -39,22 +37,8 @@ import { useSnackbar } from "notistack";
 import { vgmAPI } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import dayjs from "dayjs";
-import VGMForm from "./VGMForm";
-
-// Tab Panel Component
-function TabPanel({ children, value, index, ...other }) {
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`vgm-tabpanel-${index}`}
-      aria-labelledby={`vgm-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-    </div>
-  );
-}
+import TopNavDropdown from './TopNavDropdown';
+import { useNavigate } from 'react-router-dom';
 
 const VGMStatus = () => {
   const { enqueueSnackbar } = useSnackbar();
@@ -70,9 +54,7 @@ const VGMStatus = () => {
     total: 0,
     pages: 0,
   });
-  const [currentTab, setCurrentTab] = useState(0);
-  const [editMode, setEditMode] = useState(false);
-  const [existingRequest, setExistingRequest] = useState(null);
+  const navigate = useNavigate();
 
   // Filters state
   const [filters, setFilters] = useState({
@@ -143,43 +125,18 @@ const VGMStatus = () => {
   // Handle edit request - switch to form tab with existing data
   const handleEditRequest = async (request) => {
     try {
-      // Fetch complete request details for editing
-      const response = await vgmAPI.getRequestById(request.vgmId);
-
-      // Switch to form tab with the existing request data
-      setEditMode(true);
-      setExistingRequest(response.data);
-      setCurrentTab(1);
-
-      enqueueSnackbar("Request loaded for editing", { variant: "info" });
+      // Navigate to submission form with edit state - VGMForm will fetch details using vgmId
+      navigate('/vgm', { state: { editMode: true, vgmId: request.vgmId } });
+      enqueueSnackbar('Opening VGM form in edit mode', { variant: 'info' });
     } catch (error) {
-      console.error("Error loading request for editing:", error);
-      enqueueSnackbar("Failed to load request for editing", {
-        variant: "error",
-      });
+      console.error('Error navigating to edit form:', error);
+      enqueueSnackbar('Failed to open edit form', { variant: 'error' });
     }
   };
 
   // Handle new VGM submission - switch to form tab in create mode
   const handleNewVGM = () => {
-    setEditMode(false);
-    setExistingRequest(null);
-    setCurrentTab(1);
-  };
-
-  // Handle form submission success
-  const handleFormSubmitSuccess = () => {
-    fetchVGMRequests(1);
-    setCurrentTab(0);
-    setEditMode(false);
-    setExistingRequest(null);
-  };
-
-  // Handle form cancellation
-  const handleFormCancel = () => {
-    setCurrentTab(0);
-    setEditMode(false);
-    setExistingRequest(null);
+    navigate('/vgm');
   };
 
   // Handle filter changes
@@ -213,22 +170,13 @@ const VGMStatus = () => {
     setDetailDialogOpen(true);
   };
 
-  // Handle tab change
-  const handleTabChange = (event, newValue) => {
-    setCurrentTab(newValue);
-    if (newValue === 0) {
-      setEditMode(false);
-      setExistingRequest(null);
-    }
-  };
-
   // Initial load
   useEffect(() => {
     fetchVGMRequests(1);
   }, []);
-
   return (
-    <Box>
+    <Paper elevation={3} sx={{ p: 4, maxWidth: 2000, margin: "auto" }}>
+      <TopNavDropdown />
       <Typography
         variant="h5"
         gutterBottom
@@ -238,18 +186,8 @@ const VGMStatus = () => {
         VGM Management
       </Typography>
 
-      {/* Tabs */}
-      <Paper elevation={1} sx={{ mb: 3 }}>
-        <Tabs value={currentTab} onChange={handleTabChange} centered>
-          <Tab label="VGM Status Dashboard" />
-          <Tab label={editMode ? "Edit VGM Request" : "Submit New VGM"} />
-        </Tabs>
-      </Paper>
-
-      {/* Status Tab */}
-      <TabPanel value={currentTab} index={0}>
-        {/* Filters Section */}
-        <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
+      {/* Filters Section */}
+      <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
           <Typography
             variant="h6"
             gutterBottom
@@ -498,17 +436,6 @@ const VGMStatus = () => {
             or invalid data
           </Typography>
         </Alert>
-      </TabPanel>
-
-      {/* Form Tab */}
-      <TabPanel value={currentTab} index={1}>
-        <VGMForm
-          editMode={editMode}
-          existingRequest={existingRequest}
-          onSuccess={handleFormSubmitSuccess}
-          onCancel={handleFormCancel}
-        />
-      </TabPanel>
 
       {/* Request Details Dialog */}
       <Dialog
@@ -617,7 +544,7 @@ const VGMStatus = () => {
           <Button onClick={() => setDetailDialogOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </Paper>
   );
 };
 

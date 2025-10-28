@@ -1,65 +1,45 @@
 // src/components/Form13/Form13.jsx
+
 import React, { useState, useEffect } from "react";
 import {
+  Container,
   Box,
   Paper,
   Typography,
-  Grid,
-  TextField,
   Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Stepper,
-  Step,
-  StepLabel,
-  Card,
-  CardContent,
   Alert,
   CircularProgress,
   Divider,
-  IconButton,
-  Tooltip,
-  Chip,
+  Fab,
+  Snackbar,
 } from "@mui/material";
-import {
-  Refresh as RefreshIcon,
-  Info as InfoIcon,
-  CheckCircle as CheckCircleIcon,
-} from "@mui/icons-material";
+import { Save as SaveIcon, Send as SendIcon } from "@mui/icons-material";
 import { useAuth } from "../../context/AuthContext";
 import { form13API } from "../../services/form13API";
 import Form13HeaderSection from "./Form13HeaderSection";
 import Form13ContainerSection from "./Form13ContainerSection";
 import Form13ShippingBillSection from "./Form13ShippingBillSection";
 import Form13AttachmentSection from "./Form13AttachmentSection";
-import Form13ReviewSection from "./Form13ReviewSection";
-
-const steps = [
-  "Master Data",
-  "Form Details",
-  "Containers",
-  "Shipping Bills",
-  "Attachments",
-  "Review & Submit",
-];
 
 const Form13 = () => {
   const { userData } = useAuth();
-  const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [validationErrors, setValidationErrors] = useState({});
 
   // Master Data States
   const [vessels, setVessels] = useState([]);
   const [pods, setPods] = useState([]);
   const [masterDataLoaded, setMasterDataLoaded] = useState(false);
 
-  // Form Data States
+  // Form Data State - Complete structure matching API requirements
+  // HARDCODE YOUR HASHKEY HERE
+
   const [formData, setFormData] = useState({
     // Header Section
+    odexRefNo: "",
+    reqId: "",
     pyrCode: userData?.pyrCode || "",
     bnfCode: "",
     locId: "",
@@ -87,12 +67,22 @@ const Form13 = () => {
     formType: "F13",
     IsEarlyGateIn: "N",
     ShipperCity: "",
+    shipperCd: "",
     FFCode: "",
     IECode: "",
     CHACode: "",
     Notify_TO: "",
+    stuffTp: "",
+    icdLoadingPort: "",
+    voyageNo: "",
+    haulageTp: "",
+    railOperator: "",
+    bookLinId: "",
+    placeOfDel: "",
+    contactPerson: "",
+    outsideWindowIssue: false,
 
-    // Container Section
+    // Container Section (cntrList in API)
     containers: [
       {
         cntnrReqId: "",
@@ -104,8 +94,8 @@ const Form13 = () => {
         vgmWt: "",
         vgmViaODeX: "N",
         doNo: "",
-        temp: "",
-        volt: "",
+        temp: "0",
+        volt: "0",
         imoNo1: "",
         unNo1: "",
         imoNo2: "",
@@ -114,11 +104,11 @@ const Form13 = () => {
         unNo3: "",
         imoNo4: "",
         unNo4: "",
-        rightDimensions: "",
-        topDimensions: "",
-        backDimensions: "",
-        leftDimensions: "",
-        frontDimensions: "",
+        rightDimensions: "0.00",
+        topDimensions: "0.00",
+        backDimensions: "0.00",
+        leftDimensions: "0.00",
+        frontDimensions: "0.00",
         odcUnits: "",
         chaRemarks: "",
         vehicleNo: "",
@@ -127,27 +117,30 @@ const Form13 = () => {
         haulier: "",
         spclStow: "",
         spclStowRemark: "",
-        status: "",
-        SHIP_INSTRUCT_NO: "",
+        status: "REQUESTED",
+        shpInstructNo: "",
+        cntnrTareWgt: 0,
+        cargoVal: 0,
+        commodityName: "",
+        hsnCode: "",
+        // Shipping Bill Details embedded in container
+        sbDtlsVo: [
+          {
+            shipBillInvNo: "",
+            shipBillDt: "",
+            leoNo: "",
+            leoDt: "",
+            chaNm: userData?.pyrName || "",
+            chaPan: "",
+            exporterNm: "",
+            exporterIec: "",
+            noOfPkg: 0,
+          },
+        ],
       },
     ],
 
-    // Shipping Bill Section
-    shippingBills: [
-      {
-        shipBillInvNo: "",
-        shipBillDt: "",
-        leoNo: "",
-        leoDt: "",
-        chaNm: userData?.pyrName || "",
-        chaPan: "",
-        exporterNm: "",
-        exporterIec: "",
-        noOfPkg: "",
-      },
-    ],
-
-    // Attachment Section
+    // Attachments Section (attList in API)
     attachments: [],
   });
 
@@ -155,19 +148,14 @@ const Form13 = () => {
   useEffect(() => {
     loadMasterData();
   }, []);
-  // src/components/Form13/Form13.jsx (Updated loadMasterData function)
+
   const loadMasterData = async () => {
     try {
       setLoading(true);
       setError("");
 
-      // Get pyrCode from localStorage (from AuthContext)
       const userData = JSON.parse(localStorage.getItem("odex_auth"));
       const pyrCode = userData?.userData?.pyrCode;
-      console.log(
-        "Using pyrCode for master data load:",
-        userData?.userData?.pyrCode
-      );
 
       if (!pyrCode) {
         throw new Error("Payor code not found. Please login again.");
@@ -178,7 +166,7 @@ const Form13 = () => {
         .replace("T", " ")
         .split(".")[0];
 
-      // Get hashkey first
+      // Get hashkey
       const hashKeyResponse = await form13API.getHashKey({
         pyrCode: pyrCode,
         timestamp,
@@ -186,74 +174,536 @@ const Form13 = () => {
 
       const hashKey = hashKeyResponse.data.hashKey;
 
-      // Load Vessel Master Data from actual ODeX API
+      // Load Vessel Master Data
       const vesselRequest = {
         pyrCode: pyrCode,
         fromTs: timestamp,
         hashKey,
       };
 
-      console.log("Calling ODeX Vessel Master API...", vesselRequest);
       const vesselResponse = await form13API.getVesselMaster(vesselRequest);
       setVessels(vesselResponse.data || []);
-      console.log("Vessel Master Data:", vesselResponse.data);
 
-      // Load POD Master Data from actual ODeX API
+      // Load POD Master Data
       const podRequest = {
         pyrCode: pyrCode,
         fromTs: timestamp,
         hashKey,
       };
 
-      console.log("Calling ODeX POD Master API...", podRequest);
       const podResponse = await form13API.getPODMaster(podRequest);
       setPods(podResponse.data || []);
-      console.log("POD Master Data:", podResponse.data);
 
       setMasterDataLoaded(true);
-      setSuccess("Master data loaded successfully from ODeX");
+      setSuccess("Master data loaded successfully");
     } catch (err) {
       console.error("Master data loading error:", err);
       setError(
-        `Failed to load master data from ODeX: ${
+        `Failed to load master data: ${
           err.response?.data?.error || err.message
         }`
       );
-
-      // Fallback to mock data if ODeX API fails
-      if (err.response?.status === 500 || err.message.includes("timeout")) {
-        setError("ODeX API temporarily unavailable. Using demo data.");
-        // You can set mock data here as fallback
-        setTimeout(() => {
-          setMasterDataLoaded(true);
-        }, 1000);
-      }
     } finally {
       setLoading(false);
     }
   };
-  const handleNext = () => {
-    setActiveStep((prevStep) => prevStep + 1);
+
+  // Comprehensive Validation Function
+  const validateForm = () => {
+    const errors = {};
+
+    // Header Validations - Mandatory Fields
+    if (!formData.bnfCode) errors.bnfCode = "Shipping Line is required";
+    if (!formData.locId) errors.locId = "Location is required";
+    if (!formData.vesselNm) errors.vesselNm = "Vessel Name is required";
+    if (!formData.terminalCode)
+      errors.terminalCode = "Terminal Code is required";
+    if (!formData.service) errors.service = "Service is required";
+    if (!formData.pod) errors.pod = "POD is required";
+    if (!formData.cargoTp) errors.cargoTp = "Cargo Type is required";
+    if (!formData.origin) errors.origin = "Origin is required";
+    if (!formData.shipperNm) errors.shipperNm = "Shipper Name is required";
+    if (!formData.cntnrStatus)
+      errors.cntnrStatus = "Container Status is required";
+    if (!formData.formType) errors.formType = "Form Type is required";
+
+    // Mobile Number Validation (12 digits max)
+    if (!formData.mobileNo) {
+      errors.mobileNo = "Mobile No. is required";
+    } else if (!/^\d{10,12}$/.test(formData.mobileNo)) {
+      errors.mobileNo = "Mobile No. must be 10-12 digits";
+    }
+
+    // Location-Specific Validations
+    const locationSpecificLocs = [
+      "INMAA1", // Chennai
+      "INPRT1", // Paradip
+      "INKAT1", // Kattupalli
+      "INCCU1", // Kolkata
+      "INENN1", // Ennore
+      "INMUN1", // Mundra
+    ];
+
+    if (locationSpecificLocs.includes(formData.locId)) {
+      if (!formData.consigneeNm)
+        errors.consigneeNm = "Consignee Name is required for this location";
+      if (!formData.consigneeAddr)
+        errors.consigneeAddr = "Consignee Address is required for this location";
+      if (!formData.cargoDesc)
+        errors.cargoDesc = "Cargo Description is required for this location";
+      if (!formData.terminalLoginId)
+        errors.terminalLoginId = "Terminal Login ID is required for this location";
+    }
+
+    // FPOD Validation
+    if (
+      ["INMAA1", "INPRT1", "INKAT1", "INCCU1", "INENN1"].includes(
+        formData.locId
+      ) &&
+      !formData.fpod
+    ) {
+      errors.fpod = "FPOD is required for this location";
+    }
+
+    // Nhavasheva (INNSA1) - One of CHA/FF/IE Code required
+    if (formData.locId === "INNSA1") {
+      if (!formData.CHACode && !formData.FFCode && !formData.IECode) {
+        errors.CHACode = "One of CHA Code, FF Code, or IE Code is required for Nhavasheva";
+      }
+    }
+
+    // Tuticorin Specific (INTUT1)
+    if (formData.locId === "INTUT1" && formData.terminalCode === "DBGT") {
+      if (!formData.ShipperCity) {
+        errors.ShipperCity = "Shipper City is required for Tuticorin DBGT terminal";
+      }
+    }
+
+    // Shipping Line Specific Validations
+    // MSC Specific
+    if (formData.bnfCode === "MSCU" && !formData.bookNo) {
+      errors.bookNo = "Booking No is mandatory for MSC";
+    }
+
+    // Hapag Lloyd Specific
+    if (
+      formData.bnfCode === "Hapag Llyod" &&
+      formData.cargoTp !== "REF" &&
+      !formData.bookCopyBlNo
+    ) {
+      errors.bookCopyBlNo = "BL Number is required for Hapag Lloyd (non-reefer cargo)";
+    }
+
+    // Origin-Based Validations
+    // Dock Destuff requires CFS
+    if (formData.origin === "C" && !formData.cfsCode) {
+      errors.cfsCode = "CFS is required when Origin is Dock Destuff";
+    }
+
+    // Factory Stuffed or ICD by Road requires Vehicle No for Mundra
+    if (
+      formData.locId === "INMUN1" &&
+      (formData.origin === "F" || formData.origin === "R")
+    ) {
+      formData.containers.forEach((container, index) => {
+        if (!container.vehicleNo) {
+          errors[`container_${index}_vehicleNo`] =
+            `Container ${index + 1}: Vehicle No is required for Factory Stuffed/ICD by Road at Mundra`;
+        }
+      });
+    }
+
+    // VIA No Validation
+    if (!formData.viaNo) {
+      errors.viaNo = "VIA No. is required";
+    }
+
+    // Container Validations
+    formData.containers.forEach((container, index) => {
+      // Mandatory container fields
+      if (!container.cntnrNo) {
+        errors[`container_${index}_cntnrNo`] =
+          `Container ${index + 1}: Container No is required`;
+      } else if (!/^[A-Z]{4}\d{7}$/.test(container.cntnrNo.toUpperCase())) {
+        errors[`container_${index}_cntnrNo`] =
+          `Container ${index + 1}: Invalid format (4 letters + 7 numbers)`;
+      }
+
+      if (!container.cntnrSize) {
+        errors[`container_${index}_cntnrSize`] =
+          `Container ${index + 1}: Container Size is required`;
+      }
+
+      if (!container.iso) {
+        errors[`container_${index}_iso`] =
+          `Container ${index + 1}: ISO Code is required`;
+      }
+
+      if (!container.agentSealNo) {
+        errors[`container_${index}_agentSealNo`] =
+          `Container ${index + 1}: Agent Seal No is required`;
+      }
+
+      if (!container.customSealNo) {
+        errors[`container_${index}_customSealNo`] =
+          `Container ${index + 1}: Custom Seal No is required`;
+      }
+
+      if (!container.driverNm) {
+        errors[`container_${index}_driverNm`] =
+          `Container ${index + 1}: Driver Name is required`;
+      }
+
+      // VGM Validation
+      if (container.vgmViaODeX === "N" && !container.vgmWt) {
+        errors[`container_${index}_vgmWt`] =
+          `Container ${index + 1}: VGM Weight is required when not via ODeX`;
+      }
+
+      // Cargo Type Specific Validations
+      // Hazardous Cargo
+      if (formData.cargoTp === "HAZ" || formData.cargoTp.includes("HAZ")) {
+        if (!container.imoNo1) {
+          errors[`container_${index}_imoNo1`] =
+            `Container ${index + 1}: IMO No 1 is required for hazardous cargo`;
+        }
+        if (!container.unNo1) {
+          errors[`container_${index}_unNo1`] =
+            `Container ${index + 1}: UN No 1 is required for hazardous cargo`;
+        }
+      }
+
+      // Reefer Cargo
+      if (formData.cargoTp === "REF" || formData.cargoTp.includes("REF")) {
+        if (!container.temp || container.temp === "0") {
+          errors[`container_${index}_temp`] =
+            `Container ${index + 1}: Temperature is required for reefer cargo`;
+        }
+      }
+
+      // ODC Cargo
+      if (formData.cargoTp === "ODC" || formData.cargoTp.includes("ODC")) {
+        if (!container.rightDimensions || container.rightDimensions === "0.00") {
+          errors[`container_${index}_rightDimensions`] =
+            `Container ${index + 1}: Right Dimensions required for ODC`;
+        }
+        if (!container.topDimensions || container.topDimensions === "0.00") {
+          errors[`container_${index}_topDimensions`] =
+            `Container ${index + 1}: Top Dimensions required for ODC`;
+        }
+        if (!container.backDimensions || container.backDimensions === "0.00") {
+          errors[`container_${index}_backDimensions`] =
+            `Container ${index + 1}: Back Dimensions required for ODC`;
+        }
+        if (!container.leftDimensions || container.leftDimensions === "0.00") {
+          errors[`container_${index}_leftDimensions`] =
+            `Container ${index + 1}: Left Dimensions required for ODC`;
+        }
+        if (!container.frontDimensions || container.frontDimensions === "0.00") {
+          errors[`container_${index}_frontDimensions`] =
+            `Container ${index + 1}: Front Dimensions required for ODC`;
+        }
+        if (!container.odcUnits) {
+          errors[`container_${index}_odcUnits`] =
+            `Container ${index + 1}: ODC Units required for ODC`;
+        }
+      }
+
+      // Special Stow for NSICT/NSIGT/BMCT/CCTL/ICT terminals
+      if (
+        formData.locId === "INNSA1" &&
+        ["NSICT", "NSIGT", "BMCT", "CCTL", "ICT"].includes(formData.terminalCode)
+      ) {
+        if (!container.spclStow) {
+          errors[`container_${index}_spclStow`] =
+            `Container ${index + 1}: Special Stow is required for this terminal`;
+        }
+        if (!container.spclStowRemark) {
+          errors[`container_${index}_spclStowRemark`] =
+            `Container ${index + 1}: Special Stow Remark is required for this terminal`;
+        }
+      }
+
+      // MSC Shipping Instruction Number validation
+      if (formData.bnfCode === "MSCU" && !container.shpInstructNo) {
+        errors[`container_${index}_shpInstructNo`] =
+          `Container ${index + 1}: Shipping Instruction No is mandatory for MSC`;
+      }
+
+      // Shipping Bill Validations (embedded in container)
+      const sbDetails = container.sbDtlsVo && container.sbDtlsVo[0];
+      if (sbDetails) {
+        if (!sbDetails.shipBillInvNo) {
+          errors[`container_${index}_shipBillInvNo`] =
+            `Container ${index + 1}: Shipping Bill No is required`;
+        }
+        if (!sbDetails.shipBillDt) {
+          errors[`container_${index}_shipBillDt`] =
+            `Container ${index + 1}: Shipping Bill Date is required`;
+        }
+        if (!sbDetails.chaNm) {
+          errors[`container_${index}_chaNm`] =
+            `Container ${index + 1}: CHA Name is required`;
+        }
+        if (!sbDetails.chaPan) {
+          errors[`container_${index}_chaPan`] =
+            `Container ${index + 1}: CHA PAN is required`;
+        } else if (!/^[A-Z]{5}\d{4}[A-Z]{1}$/.test(sbDetails.chaPan)) {
+          errors[`container_${index}_chaPan`] =
+            `Container ${index + 1}: Invalid CHA PAN format (5 letters + 4 digits + 1 letter)`;
+        }
+        if (!sbDetails.exporterNm) {
+          errors[`container_${index}_exporterNm`] =
+            `Container ${index + 1}: Exporter Name is required`;
+        }
+        if (!sbDetails.exporterIec) {
+          errors[`container_${index}_exporterIec`] =
+            `Container ${index + 1}: Exporter IEC is required`;
+        } else if (!/^\d{10}$/.test(sbDetails.exporterIec)) {
+          errors[`container_${index}_exporterIec`] =
+            `Container ${index + 1}: Exporter IEC must be 10 digits`;
+        }
+        if (!sbDetails.noOfPkg || sbDetails.noOfPkg <= 0) {
+          errors[`container_${index}_noOfPkg`] =
+            `Container ${index + 1}: Number of Packages is required`;
+        }
+      }
+    });
+
+    // Attachment Validations
+    const requiredAttachments = getRequiredAttachments();
+    requiredAttachments.forEach((reqAtt) => {
+      const hasAttachment = formData.attachments.some(
+        (att) => att.title === reqAtt.code
+      );
+      if (reqAtt.required && !hasAttachment) {
+        errors[`attachment_${reqAtt.code}`] = `${reqAtt.name} is required`;
+      }
+    });
+
+    return errors;
   };
 
-  const handleBack = () => {
-    setActiveStep((prevStep) => prevStep - 1);
+  useEffect(() => { console.log(validationErrors); }, [validationErrors]);
+
+  // Get Required Attachments based on location, cargo type, and origin
+  const getRequiredAttachments = () => {
+    const required = [];
+    const { locId, cargoTp, origin, terminalCode } = formData;
+
+    // BOOKING_COPY - Mandatory for all locations
+    required.push({
+      code: "BOOKING_COPY",
+      name: "Booking Copy",
+      required: true,
+    });
+
+    // Location-specific mandatory attachments
+    const chennaiKattupalli_EnoreLocations = ["INMAA1", "INKAT1", "INENN1"];
+    if (
+      chennaiKattupalli_EnoreLocations.includes(locId) &&
+      ["HAZ", "ODC", "GEN", "ONION", "REF"].includes(cargoTp)
+    ) {
+      required.push({
+        code: "BOOK_CNFRM_CPY",
+        name: "Booking Confirmation Copy",
+        required: true,
+      });
+      required.push({ code: "CHK_LIST", name: "Check List", required: true });
+      if (["HAZ", "ODC"].includes(cargoTp)) {
+        required.push({
+          code: "FIRE_OFC_CRTFCT",
+          name: "Fire Office Certificate",
+          required: true,
+        });
+        required.push({
+          code: "MMD_APPRVL",
+          name: "MMD Approval",
+          required: true,
+        });
+        required.push({
+          code: "MSDS_SHEET",
+          name: "MSDS Sheet",
+          required: true,
+        });
+        required.push({
+          code: "SURVY_RPRT",
+          name: "Survey Report",
+          required: true,
+        });
+      }
+    }
+
+    // Nhava Sheva, Mundra, and other major port requirements
+    const majorPorts = [
+      "INNSA1",
+      "INMUN1",
+      "INMAA5",
+      "INTUT1",
+      "INCCU1",
+      "INPAV1",
+      "INHZR1",
+      "INMRM1",
+      "INCOK1",
+      "INVTZ1",
+      "INHLD1",
+      "INKRI1",
+      "INKND1",
+    ];
+
+    if (majorPorts.includes(locId)) {
+      // Clean Certificate for HAZ + Empty container
+      if (cargoTp === "HAZ" && formData.cntnrStatus === "EMPTY") {
+        required.push({
+          code: "CLN_CRTFCT",
+          name: "Cleaning Certificate",
+          required: true,
+        });
+      }
+
+      // Container Load Plan for Dock Stuff
+      if (origin === "D") {
+        required.push({
+          code: "CNTNR_LOAD_PLAN",
+          name: "Container Load Plan",
+          required: true,
+        });
+      }
+
+      // Customs Examination Report for On Wheel
+      if (origin === "W") {
+        required.push({
+          code: "CUSTOMS_EXAM_REPORT",
+          name: "Customs Examination Report",
+          required: true,
+        });
+      }
+
+      // DG Declaration for HAZ/ODC
+      if (["HAZ", "ODC"].includes(cargoTp)) {
+        required.push({
+          code: "DG_DCLRTION",
+          name: "DG Declaration",
+          required: true,
+        });
+        required.push({
+          code: "HAZ_DG_DECLARATION",
+          name: "HAZ DG Declaration",
+          required: true,
+        });
+        required.push({
+          code: "LASHING_CERTIFICATE",
+          name: "Lashing Certificate",
+          required: true,
+        });
+        required.push({ code: "MSDS", name: "MSDS", required: true });
+        required.push({
+          code: "ODC_SURVEYOR_REPORT_PHOTOS",
+          name: "ODC Surveyor Report + Photos",
+          required: true,
+        });
+      }
+
+      // Delivery Order for Factory Stuff, Dock Stuff, Empty Tank
+      if (["F", "D", "E"].includes(origin)) {
+        required.push({
+          code: "DLVRY_ORDER",
+          name: "Delivery Order",
+          required: true,
+        });
+      }
+
+      // Invoice for Factory Stuff, Empty Tank
+      if (["F", "E"].includes(origin)) {
+        required.push({ code: "INVOICE", name: "Invoice", required: true });
+      }
+
+      // Packing List for Factory Stuff
+      if (origin === "F") {
+        required.push({
+          code: "PACK_LIST",
+          name: "Packing List",
+          required: true,
+        });
+      }
+
+      // Shipping Bill for Dock Stuff, Factory Stuff, On Wheel, Empty Tank
+      if (["D", "F", "W", "E"].includes(origin)) {
+        required.push({
+          code: "SHIP_BILL",
+          name: "Shipping Bill",
+          required: true,
+        });
+      }
+
+      // VGM Annexure 1
+      if (["D", "F", "W", "E"].includes(origin)) {
+        required.push({
+          code: "VGM_ANXR1",
+          name: "VGM-Annexure 1",
+          required: true,
+        });
+      }
+    }
+
+    // Vishakapatnam specific
+    if (locId === "INVTZ1") {
+      if (["D", "F"].includes(origin) && origin === "W") {
+        required.push({
+          code: "BOOKING_CONF_COPY",
+          name: "Booking Confirmation Copy",
+          required: true,
+        });
+      }
+      if (["D", "F", "W", "E"].includes(origin)) {
+        required.push({
+          code: "SHIPPING_INSTRUCTION",
+          name: "Shipping Instruction (SI)",
+          required: true,
+        });
+      }
+    }
+
+    // Chennai specific
+    if (locId === "INMAA1") {
+      required.push({
+        code: "PRE_EGM",
+        name: "Pre-EGM",
+        required: false,
+      });
+    }
+
+    return required;
   };
 
+  // Form Data Change Handler
   const handleFormDataChange = (section, field, value, index = null) => {
     setFormData((prev) => {
-      if (index !== null) {
-        // For array fields (containers, shippingBills)
-        const updatedArray = [...prev[section]];
-        updatedArray[index] = { ...updatedArray[index], [field]: value };
-        return { ...prev, [section]: updatedArray };
-      } else {
-        // For single fields
+      if (section === "header") {
         return { ...prev, [field]: value };
+      } else if (section === "containers") {
+        const newContainers = [...prev.containers];
+        if (index !== null) {
+          newContainers[index] = { ...newContainers[index], [field]: value };
+        }
+        return { ...prev, containers: newContainers };
+      } else if (section === "shippingBills") {
+        const newShippingBills = [...prev.containers];
+        if (index !== null && newShippingBills[index].sbDtlsVo) {
+          newShippingBills[index].sbDtlsVo[0] = {
+            ...newShippingBills[index].sbDtlsVo[0],
+            [field]: value,
+          };
+        }
+        return { ...prev, containers: newShippingBills };
+      } else if (section === "attachments") {
+        return { ...prev, attachments: value };
       }
+      return prev;
     });
   };
 
+  // Add Container
   const handleAddContainer = () => {
     setFormData((prev) => ({
       ...prev,
@@ -269,8 +719,8 @@ const Form13 = () => {
           vgmWt: "",
           vgmViaODeX: "N",
           doNo: "",
-          temp: "",
-          volt: "",
+          temp: "0",
+          volt: "0",
           imoNo1: "",
           unNo1: "",
           imoNo2: "",
@@ -279,11 +729,11 @@ const Form13 = () => {
           unNo3: "",
           imoNo4: "",
           unNo4: "",
-          rightDimensions: "",
-          topDimensions: "",
-          backDimensions: "",
-          leftDimensions: "",
-          frontDimensions: "",
+          rightDimensions: "0.00",
+          topDimensions: "0.00",
+          backDimensions: "0.00",
+          leftDimensions: "0.00",
+          frontDimensions: "0.00",
           odcUnits: "",
           chaRemarks: "",
           vehicleNo: "",
@@ -292,13 +742,31 @@ const Form13 = () => {
           haulier: "",
           spclStow: "",
           spclStowRemark: "",
-          status: "",
-          SHIP_INSTRUCT_NO: "",
+          status: "REQUESTED",
+          shpInstructNo: "",
+          cntnrTareWgt: 0,
+          cargoVal: 0,
+          commodityName: "",
+          hsnCode: "",
+          sbDtlsVo: [
+            {
+              shipBillInvNo: "",
+              shipBillDt: "",
+              leoNo: "",
+              leoDt: "",
+              chaNm: userData?.pyrName || "",
+              chaPan: "",
+              exporterNm: "",
+              exporterIec: "",
+              noOfPkg: 0,
+            },
+          ],
         },
       ],
     }));
   };
 
+  // Remove Container
   const handleRemoveContainer = (index) => {
     if (formData.containers.length > 1) {
       setFormData((prev) => ({
@@ -308,55 +776,213 @@ const Form13 = () => {
     }
   };
 
+  // Convert file to Base64
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        // Remove the data:application/pdf;base64, prefix
+        const base64String = reader.result.split(",")[1];
+        resolve(base64String);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  // Submit Form
   const handleSubmit = async () => {
     try {
       setLoading(true);
       setError("");
+      setSuccess("");
 
-      // Get hashkey for submission
-      const timestamp = new Date()
-        .toISOString()
-        .replace("T", " ")
-        .split(".")[0];
-      const hashKeyResponse = await form13API.getHashKey({
-        pyrCode: userData.pyrCode,
-        timestamp,
-      });
+      // Validate form
+      const errors = validateForm();
+      if (Object.keys(errors).length > 0) {
+        setValidationErrors(errors);
+        setError(
+          `Please fix ${Object.keys(errors).length} validation error(s) before submitting`
+        );
+        setLoading(false);
+        return;
+      }
 
-      const submissionData = {
-        ...formData,
-        hashKey: hashKeyResponse.data.hashKey,
-        timestamp,
+      setValidationErrors({});
+
+      // Prepare attachments with base64 encoding
+      const attList = await Promise.all(
+        formData.attachments.map(async (file) => ({
+          attReqId: "",
+          attNm: file.name,
+          attData: await fileToBase64(file),
+          attTitle: file.title || "BOOKING_COPY",
+        }))
+      );
+      const hardcodedHashKey = "5XRMN8PVXKQT";
+
+
+      // Prepare API payload
+      const payload = {
+          hashKey: hardcodedHashKey,
+        odexRefNo: formData.odexRefNo,
+        reqId: formData.reqId,
+        bookNo: formData.bookNo,
+        bnfCode: formData.bnfCode,
+        locId: formData.locId,
+        vesselNm: formData.vesselNm,
+        viaNo: formData.viaNo,
+        terminalCode: formData.terminalCode,
+        service: formData.service,
+        pod: formData.pod,
+        fpod: formData.fpod,
+        cargoTp: formData.cargoTp,
+        origin: formData.origin,
+        shpInstructNo: formData.shpInstructNo,
+        cntnrStatus: formData.cntnrStatus,
+        mobileNo: formData.mobileNo,
+        issueTo: formData.issueTo,
+        shipperNm: formData.shipperNm,
+        pyrCode: formData.pyrCode,
+        consigneeNm: formData.consigneeNm,
+        consigneeAddr: formData.consigneeAddr,
+        cargoDesc: formData.cargoDesc,
+        terminalLoginId: formData.terminalLoginId,
+        stuffTp: formData.stuffTp,
+        icdLoadingPort: formData.icdLoadingPort,
+        voyageNo: formData.voyageNo,
+        haulageTp: formData.haulageTp,
+        isEarlyGateIn: formData.IsEarlyGateIn,
+        shipperCd: formData.shipperCd,
+        railOperator: formData.railOperator,
+        shipperCity: formData.ShipperCity,
+        ffCode: formData.FFCode,
+        ieCode: formData.IECode,
+        bookLinId: formData.bookLinId,
+        notifyTo: formData.Notify_TO,
+        chaCode: formData.CHACode,
+        placeOfDel: formData.placeOfDel,
+        contactPerson: formData.contactPerson,
+        outsideWindowIssue: formData.outsideWindowIssue,
+        cntrList: formData.containers.map((container) => ({
+          cntnrReqId: container.cntnrReqId,
+          cntnrNo: container.cntnrNo,
+          cntnrSize: container.cntnrSize,
+          iso: container.iso,
+          agentSealNo: container.agentSealNo,
+          customSealNo: container.customSealNo,
+          vgmWt: container.vgmWt,
+          vgmViaODeX: container.vgmViaODeX,
+          doNo: container.doNo,
+          temp: container.temp,
+          volt: container.volt,
+          chaRemarks: container.chaRemarks,
+          vehicleNo: container.vehicleNo,
+          driverLicNo: container.driverLicNo,
+          driverNm: container.driverNm,
+          haulier: container.haulier,
+          imoNo1: container.imoNo1,
+          unNo1: container.unNo1,
+          imoNo2: container.imoNo2,
+          unNo2: container.unNo2,
+          imoNo3: container.imoNo3,
+          unNo3: container.unNo3,
+          imoNo4: container.imoNo4,
+          unNo4: container.unNo4,
+          rightDimensions: container.rightDimensions,
+          topDimensions: container.topDimensions,
+          backDimensions: container.backDimensions,
+          leftDimensions: container.leftDimensions,
+          frontDimensions: container.frontDimensions,
+          odcUnits: container.odcUnits,
+          status: container.status,
+          spclStow: container.spclStow,
+          spclStowRemark: container.spclStowRemark,
+          cntnrTareWgt: container.cntnrTareWgt,
+          cargoVal: container.cargoVal,
+          commodityName: container.commodityName,
+          shpInstructNo: container.shpInstructNo,
+          sbDtlsVo: container.sbDtlsVo,
+        })),
+        attList: attList,
       };
 
-      const response = await form13API.submitForm13(submissionData);
+      // Call API
+      const response = await form13API.submitForm13(payload);
 
-      setSuccess("Form 13 submitted successfully!");
-      console.log("Form 13 Response:", response.data);
-
-      // Reset form or navigate to status page
-      setTimeout(() => {
-        // You can navigate to status page or reset the form
-        setActiveStep(0);
-        setFormData({
-          ...formData,
-          containers: [formData.containers[0]],
-          shippingBills: [formData.shippingBills[0]],
-          attachments: [],
-        });
-      }, 2000);
+      if (response.data.success) {
+        setSuccess(
+          `Form 13 submitted successfully! Reference No: ${response.data.odexRefNo}`
+        );
+        // Optionally reset form or redirect
+      } else {
+        setError(
+          response.data.message || "Form submission failed. Please try again."
+        );
+      }
     } catch (err) {
-      setError(`Form 13 submission failed: ${err.message}`);
-      console.error("Form 13 submission error:", err);
+      console.error("Form submission error:", err);
+      setError(
+        `Failed to submit form: ${err.response?.data?.message || err.message}`
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const renderStepContent = (step) => {
-    switch (step) {
-      case 0:
-        return (
+  return (
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Paper elevation={3} sx={{ p: 4 }}>
+        {/* Header */}
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h4" gutterBottom fontWeight="bold">
+            FORM 13 - Export Gate Pass
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Submit Form 13 for export container gate-in authorization at Indian
+            ports
+          </Typography>
+        </Box>
+
+        <Divider sx={{ mb: 3 }} />
+
+        {/* Alerts */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
+            {error}
+          </Alert>
+        )}
+
+        {success && (
+          <Alert
+            severity="success"
+            sx={{ mb: 2 }}
+            onClose={() => setSuccess("")}
+          >
+            {success}
+          </Alert>
+        )}
+
+        {Object.keys(validationErrors).length > 0 && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            Please fix {Object.keys(validationErrors).length} validation
+            error(s) before submitting
+          </Alert>
+        )}
+
+        {/* Master Data Loading Status */}
+        {!masterDataLoaded && (
+          <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+            <CircularProgress size={20} sx={{ mr: 2 }} />
+            <Typography>
+              Loading master data (Vessels, PODs, Terminals)...
+            </Typography>
+          </Box>
+        )}
+
+        {/* Continuous Scroll Form */}
+        <Box>
+          {/* Section 1: Header Information */}
           <Form13HeaderSection
             formData={formData}
             vessels={vessels}
@@ -365,152 +991,77 @@ const Form13 = () => {
             loading={loading}
             onFormDataChange={handleFormDataChange}
             onReloadMasterData={loadMasterData}
+            validationErrors={validationErrors}
           />
-        );
 
-      case 1:
-        return (
+          <Divider sx={{ my: 4 }} />
+
+          {/* Section 2: Container Information */}
           <Form13ContainerSection
             formData={formData}
             onFormDataChange={handleFormDataChange}
             onAddContainer={handleAddContainer}
             onRemoveContainer={handleRemoveContainer}
+            validationErrors={validationErrors}
           />
-        );
 
-      case 2:
-        return (
-          <Form13ShippingBillSection
-            formData={formData}
-            onFormDataChange={handleFormDataChange}
-          />
-        );
+          <Divider sx={{ my: 4 }} />
 
-      case 3:
-        return (
+          {/* Section 3: Shipping Bill Information (per container) */}
+          {formData.containers.map((container, index) => (
+            <Box key={index} sx={{ mb: 3 }}>
+              <Form13ShippingBillSection
+                formData={formData}
+                containerIndex={index}
+                onFormDataChange={handleFormDataChange}
+                validationErrors={validationErrors}
+              />
+            </Box>
+          ))}
+
+          <Divider sx={{ my: 4 }} />
+
+          {/* Section 4: Attachments */}
           <Form13AttachmentSection
             formData={formData}
             onFormDataChange={handleFormDataChange}
+            requiredAttachments={getRequiredAttachments()}
+            validationErrors={validationErrors}
           />
-        );
 
-      case 4:
-        return (
-          <Form13ReviewSection
-            formData={formData}
-            vessels={vessels}
-            pods={pods}
-          />
-        );
-
-      default:
-        return <Typography>Unknown step</Typography>;
-    }
-  };
-
-  return (
-    <Paper elevation={3} sx={{ p: 4, maxWidth: 1200, margin: "auto" }}>
-      <Box sx={{ mb: 4, textAlign: "center" }}>
-        <Typography component="h1" variant="h4" gutterBottom color="primary">
-          FORM 13 - Export Gate Pass
-        </Typography>
-        <Typography variant="body1" color="textSecondary">
-          Submit Form 13 for export container gate-in authorization
-        </Typography>
-      </Box>
-
-      {/* Master Data Status */}
-      <Card
-        sx={{
-          mb: 3,
-          bgcolor: masterDataLoaded ? "success.light" : "warning.light",
-        }}
-      >
-        <CardContent
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            {masterDataLoaded ? (
-              <CheckCircleIcon sx={{ mr: 1, color: "success.main" }} />
-            ) : (
-              <CircularProgress size={20} sx={{ mr: 1 }} />
-            )}
-            <Typography variant="body1">
-              {masterDataLoaded
-                ? "Master data loaded"
-                : "Loading master data..."}
-            </Typography>
-          </Box>
-          <Tooltip title="Reload Master Data">
-            <IconButton onClick={loadMasterData} disabled={loading}>
-              <RefreshIcon />
-            </IconButton>
-          </Tooltip>
-        </CardContent>
-      </Card>
-
-      {/* Alerts */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
-          {error}
-        </Alert>
-      )}
-      {success && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess("")}>
-          {success}
-        </Alert>
-      )}
-
-      {/* Stepper */}
-      <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-        {steps.map((label) => (
-          <Step key={label}>
-            <StepLabel>{label}</StepLabel>
-          </Step>
-        ))}
-      </Stepper>
-
-      {/* Step Content */}
-      <Box sx={{ mb: 4 }}>{renderStepContent(activeStep)}</Box>
-
-      {/* Navigation Buttons */}
-      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Button
-          onClick={handleBack}
-          disabled={activeStep === 0 || loading}
-          variant="outlined"
-        >
-          Back
-        </Button>
-
-        <Box>
-          {activeStep === steps.length - 1 ? (
+          {/* Submit Button */}
+          <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
             <Button
+              variant="contained"
+              size="large"
               onClick={handleSubmit}
               disabled={loading || !masterDataLoaded}
-              variant="contained"
-              color="primary"
-              size="large"
+              startIcon={loading ? <CircularProgress size={20} /> : <SendIcon />}
+              sx={{ minWidth: 200 }}
             >
-              {loading ? <CircularProgress size={24} /> : "Submit Form 13"}
+              {loading ? "Submitting..." : "Submit Form 13"}
             </Button>
-          ) : (
-            <Button
-              onClick={handleNext}
-              disabled={loading || !masterDataLoaded}
-              variant="contained"
-            >
-              Next
-            </Button>
-          )}
+          </Box>
         </Box>
-      </Box>
-    </Paper>
+
+        {/* Floating Action Button for Quick Submit */}
+        <Fab
+          color="primary"
+          aria-label="submit"
+          sx={{
+            position: "fixed",
+            bottom: 16,
+            right: 16,
+          }}
+          onClick={handleSubmit}
+          disabled={loading || !masterDataLoaded}
+        >
+          <SendIcon />
+        </Fab>
+      </Paper>
+    </Container>
   );
 };
+
 
 export default Form13;

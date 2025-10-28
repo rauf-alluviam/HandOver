@@ -286,6 +286,18 @@ const Form13ContainerSection = ({
                 </>
               )}
 
+                                        {/* Optional Fields */}
+                          <Grid item xs={12} sm={6}>
+                            <TextField
+                              fullWidth
+                              label="Shipping Instruction No"
+                              value={container.shpInstructNo}
+                              onChange={(e) =>
+                                onFormDataChange("containers", "shpInstructNo", e.target.value, index)
+                              }
+                            />
+                          </Grid>
+
             {/* Hazardous Fields (conditional) */}
             {formData.cargoTp.includes("HAZ") && (
               <>
@@ -459,6 +471,7 @@ const Form13ContainerSection = ({
                     required
                   />
                 </Grid>
+
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth

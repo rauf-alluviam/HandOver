@@ -26,6 +26,7 @@ import { useFormik } from "formik";
 import { useSnackbar } from "notistack";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import TopNavDropdown from './TopNavDropdown';
 import { vgmAPI } from "../services/api.js";
 import { vgmValidationSchema } from "../utils/validation.js";
 import { generateVGMHash } from "../utils/hashUtils.js";
@@ -479,7 +480,8 @@ const VGMForm = ({
   // };
 
   return (
-    <Container maxWidth="150px" sx={{ mt: 2, mb: 2 }}>
+    <Paper elevation={3} sx={{ p: 4, maxWidth: 2000, margin: "auto" }}>
+      <TopNavDropdown />
       <Alert severity="warning" sx={{ mb: 2 }}>
         <Typography variant="body2">
           <strong>Dear Customer,</strong> we would like to inform you that post
@@ -1527,7 +1529,7 @@ const VGMForm = ({
           </Card>
         </Box>
  
-    </Container>
+    </Paper>
   );
 };
 
