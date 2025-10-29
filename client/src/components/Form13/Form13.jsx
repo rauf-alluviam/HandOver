@@ -13,6 +13,7 @@ import {
   Fab,
   Snackbar,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import { Save as SaveIcon, Send as SendIcon } from "@mui/icons-material";
 import { useAuth } from "../../context/AuthContext";
 import { form13API } from "../../services/form13API";
@@ -20,6 +21,8 @@ import Form13HeaderSection from "./Form13HeaderSection";
 import Form13ContainerSection from "./Form13ContainerSection";
 import Form13ShippingBillSection from "./Form13ShippingBillSection";
 import Form13AttachmentSection from "./Form13AttachmentSection";
+
+import TopNavDropdown from "../TopNavDropdown"; 
 
 const Form13 = () => {
   const { userData } = useAuth();
@@ -961,6 +964,7 @@ const handleSubmit = async () => {
           <Typography variant="h4" gutterBottom fontWeight="bold">
             FORM 13 - Export Gate Pass
           </Typography>
+          <TopNavDropdown />
           <Typography variant="body1" color="text.secondary">
             Submit Form 13 for export container gate-in authorization at Indian
             ports

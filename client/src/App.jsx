@@ -17,6 +17,7 @@ import VGMStatus from "./components/VGMStatus";
 import { CircularProgress, Box } from "@mui/material";
 import Form13 from "./components/Form13/Form13";
 import "./App.css";
+import TrackF13 from "./components/Form13/TrackF13";
 const theme = createTheme({
   palette: {
     primary: {
@@ -88,7 +89,13 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route path="/track-f13" element={
+                <ProtectedRoute>
+                  <TrackF13 />
+                </ProtectedRoute>
+              } />
               <Route path="/" element={<Navigate to="/login" />} />
+              
             </Routes>
           </Router>
         </AuthProvider>
