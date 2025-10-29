@@ -766,6 +766,21 @@ const Form13 = () => {
     }));
   };
 
+  const fieldToLabel = (fieldName) => {
+  const labelMap = {
+    vesselNm: "Vessel Name",
+    viaNo: "VIA No",
+    cntnrStatus: "Container Status",
+    pod: "POD",
+    issueTo: "Issue To",
+    cfsCode: "CFS Code",
+    CHACode: "CHA Code",
+    // Add more mappings as needed
+  };
+  
+  return labelMap[fieldName] || fieldName;
+}
+
   // Remove Container
   const handleRemoveContainer = (index) => {
     if (formData.containers.length > 1) {
@@ -794,11 +809,16 @@ const Form13 = () => {
 // src/components/Form13/Form13.jsx
 
 // Update the handleSubmit function with proper error handling
+// src/components/Form13/Form13.jsx
+
+// src/components/Form13/Form13.jsx
+
 const handleSubmit = async () => {
   try {
     setLoading(true);
     setError("");
     setSuccess("");
+    setValidationErrors({});
 
     // Validate form
     const errors = validateForm();
@@ -810,8 +830,6 @@ const handleSubmit = async () => {
       setLoading(false);
       return;
     }
-
-    setValidationErrors({});
 
     // Prepare attachments with base64 encoding
     const attList = await Promise.all(
@@ -825,9 +843,9 @@ const handleSubmit = async () => {
 
     const hardcodedHashKey = "5XRMN8PVXKQT";
 
-    // Prepare API payload - MAKE SURE formType IS INCLUDED
+    // Prepare API payload
     const payload = {
-      formType: "F13", // ← CRITICAL: This was missing!
+      formType: "F13",
       hashKey: hardcodedHashKey,
       odexRefNo: formData.odexRefNo,
       reqId: formData.reqId,
@@ -911,35 +929,74 @@ const handleSubmit = async () => {
       attList: attList,
     };
 
+    console.log("📤 Sending payload:", payload);
 
-    // Call API with enhanced error handling
+    // Call API
     const response = await form13API.submitForm13(payload);
 
-    // Handle successful response
-    if (response.success) {
-      const refNo = response.odexRefNo || response.data?.odexRefNo;
+    console.log("📥 Raw API Response:", response);
+    console.log("📥 Response data:", response?.data);
+
+    // FIXED: The response data is directly at response.data level
+    const respData = response?.data || {};
+    
+    console.log("🔍 Parsed response data:", respData);
+    console.log("🔍 Business validation:", respData.business_validation);
+    console.log("🔍 Business errors:", respData.business_validations);
+
+    // Handle Business Validation Failures - Check directly in respData
+    const businessFlag = respData.business_validation;
+    const businessErrors = respData.business_validations;
+
+    console.log("🔍 Business flag:", businessFlag);
+    console.log("🔍 Business errors:", businessErrors);
+
+    if (businessFlag === "FAIL" && businessErrors) {
+      console.log("🚨 Business validation failed, processing errors...");
+      const formattedBusinessErrors = formatBusinessErrors(businessErrors);
+      setError("Business Validation Failed");
+      setValidationErrors(formattedBusinessErrors);
+      setLoading(false);
+      return;
+    }
+
+    // Handle Schema Validation Failures
+    const schemaFlag = respData.schema_validation;
+    const schemaErrors = respData.schema_validations;
+
+    if (schemaFlag === "FAIL" && schemaErrors) {
+      console.log("🚨 Schema validation failed");
+      const formattedSchemaErrors = formatSchemaErrors(schemaErrors);
+      setError("Schema Validation Failed");
+      setValidationErrors(formattedSchemaErrors);
+      setLoading(false);
+      return;
+    }
+
+    // Check if the form was actually successful
+    // Since your API returns success: true even with business validation failures,
+    // we need to check the business_validation flag instead
+    const odexRefNo = respData.odexRefNo;
+    
+    if (odexRefNo && businessFlag !== "FAIL") {
+      console.log("✅ Form submitted successfully");
       setSuccess(
-        `Form 13 submitted successfully! Reference No: ${refNo}`
+        `Form 13 submitted successfully! Reference No: ${odexRefNo}`
       );
-      
-      // Optional: Reset form after successful submission
-      // resetForm();
     } else {
-      setError(
-        response.message || "Form submission failed. Please try again."
-      );
+      console.log("❌ Form submission failed or has validation errors");
+      // Show generic error if we didn't catch specific validation errors
+      setError("Form submission failed. Please check your inputs and try again.");
     }
   } catch (err) {
-    console.error("Form submission error:", err);
+    console.error("💥 Form submission error:", err);
+    console.error("💥 Error response:", err.response);
     
-    // Enhanced error messages for different error types
     let errorMessage = err.response?.data?.error || err.message;
     
-    // Handle specific ODeX error messages
     if (errorMessage.includes("Form type is required")) {
       errorMessage = "Form Type is required. Please contact support.";
     } else if (errorMessage.includes("ODeX Error:")) {
-      // Extract the actual ODeX error message
       errorMessage = errorMessage.replace("ODeX Error: ", "");
     } else if (errorMessage.includes("Network Error") || errorMessage.includes("timeout")) {
       errorMessage = "Network connection issue. Please check your internet and try again.";
@@ -953,137 +1010,247 @@ const handleSubmit = async () => {
   }
 };
 
-  return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ p: 4 }}>
-        {/* Header */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h4" gutterBottom fontWeight="bold">
-            FORM 13 - Export Gate Pass
+// Enhanced helper function to format business errors from API response
+const formatBusinessErrors = (businessErrors) => {
+  const errors = {};
+  
+  if (!businessErrors) return errors;
+
+  console.log("🔧 Raw business errors:", businessErrors);
+
+  // Split by number pattern like "1 -", "2 -", etc.
+  const errorLines = businessErrors.split(/\d+\s*-\s*/).filter(line => line.trim());
+  
+  console.log("🔧 Parsed error lines:", errorLines);
+
+  errorLines.forEach((line, index) => {
+    const trimmedLine = line.trim();
+    
+    // Map specific error messages to form fields
+    if (trimmedLine.includes("Vessel Name or Via No. is invalid")) {
+      errors.vesselNm = "Vessel Name or Via No. is invalid";
+      errors.viaNo = "Vessel Name or Via No. is invalid";
+    }
+    
+    if (trimmedLine.includes("Container status is invalid")) {
+      errors.cntnrStatus = "Container status is invalid for the selected vessel";
+    }
+    
+    if (trimmedLine.includes("POD is Invalid")) {
+      errors.pod = "POD is invalid for the provided Booking No";
+    }
+    
+    if (trimmedLine.includes("Issue To is required")) {
+      errors.issueTo = "Issue To is required";
+    }
+    
+    if (trimmedLine.includes("CFS is required")) {
+      errors.cfsCode = "CFS is required";
+    }
+    
+    if (trimmedLine.includes("invalid CHA code")) {
+      errors.CHACode = "Invalid CHA code";
+    }
+
+    // If no specific field mapping found, add as generic error
+    if (Object.keys(errors).length === 0 && index === 0) {
+      errors.generic = businessErrors;
+    }
+  });
+
+  // If we still have no errors, add the raw business errors
+  if (Object.keys(errors).length === 0) {
+    errors.generic = businessErrors;
+  }
+
+  console.log("🔧 Formatted errors:", errors);
+  return errors;
+};
+
+// ADD THE MISSING FUNCTION - formatSchemaErrors
+const formatSchemaErrors = (schemaErrors) => {
+  const errors = {};
+  
+  if (!schemaErrors) return errors;
+
+  console.log("🔧 Raw schema errors:", schemaErrors);
+
+  try {
+    if (typeof schemaErrors === 'string') {
+      // Try to parse as JSON if it's a string
+      try {
+        const parsedErrors = JSON.parse(schemaErrors);
+        Object.keys(parsedErrors).forEach(key => {
+          errors[key] = parsedErrors[key];
+        });
+      } catch (e) {
+        // If it's not JSON, treat it as a generic error message
+        errors.generic = schemaErrors;
+      }
+    } else if (typeof schemaErrors === 'object') {
+      Object.keys(schemaErrors).forEach(key => {
+        errors[key] = schemaErrors[key];
+      });
+    }
+  } catch (e) {
+    console.warn('Could not parse schema errors:', e);
+    errors.generic = "Schema validation failed";
+  }
+
+  console.log("🔧 Formatted schema errors:", errors);
+  return errors;
+};
+return (
+  <Container maxWidth="xl" sx={{ py: 4 }}>
+    <Paper elevation={3} sx={{ p: 4 }}>
+      {/* Header */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" gutterBottom fontWeight="bold">
+          FORM 13 - Export Gate Pass
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          Submit Form 13 for export container gate-in authorization at Indian ports
+        </Typography>
+      </Box>
+
+      <Divider sx={{ mb: 3 }} />
+
+{error && (
+  <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
+    <Typography variant="subtitle1" fontWeight="bold">
+      {error}
+    </Typography>
+    {error.includes("Validation") && (
+      <Typography variant="body2" sx={{ mt: 1 }}>
+        Please check the highlighted fields below for details.
+      </Typography>
+    )}
+  </Alert>
+)}
+
+{success && (
+  <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess("")}>
+    {success}
+  </Alert>
+)}
+
+{/* API Validation Errors Summary */}
+{Object.keys(validationErrors).length > 0 && (
+  <Alert severity="warning" sx={{ mb: 2 }}>
+    <Typography variant="subtitle1" fontWeight="bold">
+      API Validation Errors ({Object.keys(validationErrors).length} found)
+    </Typography>
+    <Box component="ul" sx={{ mt: 1, mb: 0, pl: 2 }}>
+      {Object.entries(validationErrors).map(([field, message]) => (
+        <li key={field}>
+          <Typography variant="body2">
+            {field !== 'generic' ? (
+              <>
+                <strong>{fieldToLabel(field)}:</strong> {message}
+              </>
+            ) : (
+              message
+            )}
           </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Submit Form 13 for export container gate-in authorization at Indian
-            ports
+        </li>
+      ))}
+    </Box>
+  </Alert>
+)}
+
+
+
+      {/* Master Data Loading Status */}
+      {!masterDataLoaded && (
+        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+          <CircularProgress size={20} sx={{ mr: 2 }} />
+          <Typography>
+            Loading master data (Vessels, PODs, Terminals)...
           </Typography>
         </Box>
+      )}
 
-        <Divider sx={{ mb: 3 }} />
+      {/* Continuous Scroll Form */}
+      <Box>
+        {/* Section 1: Header Information */}
+        <Form13HeaderSection
+          formData={formData}
+          vessels={vessels}
+          pods={pods}
+          masterDataLoaded={masterDataLoaded}
+          loading={loading}
+          onFormDataChange={handleFormDataChange}
+          onReloadMasterData={loadMasterData}
+          validationErrors={validationErrors}
+        />
 
-        {/* Alerts */}
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
-            {error}
-          </Alert>
-        )}
+        <Divider sx={{ my: 4 }} />
 
-        {success && (
-          <Alert
-            severity="success"
-            sx={{ mb: 2 }}
-            onClose={() => setSuccess("")}
+        {/* Section 2: Container Information */}
+        <Form13ContainerSection
+          formData={formData}
+          onFormDataChange={handleFormDataChange}
+          onAddContainer={handleAddContainer}
+          onRemoveContainer={handleRemoveContainer}
+          validationErrors={validationErrors}
+        />
+
+        <Divider sx={{ my: 4 }} />
+
+        {/* Section 3: Shipping Bill Information (per container) */}
+        {formData.containers.map((container, index) => (
+          <Box key={index} sx={{ mb: 3 }}>
+            <Form13ShippingBillSection
+              formData={formData}
+              containerIndex={index}
+              onFormDataChange={handleFormDataChange}
+              validationErrors={validationErrors}
+            />
+          </Box>
+        ))}
+
+        <Divider sx={{ my: 4 }} />
+
+        {/* Section 4: Attachments */}
+        <Form13AttachmentSection
+          formData={formData}
+          onFormDataChange={handleFormDataChange}
+          requiredAttachments={getRequiredAttachments()}
+          validationErrors={validationErrors}
+        />
+
+        {/* Submit Button */}
+        <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
+          <Button
+            variant="contained"
+            size="large"
+            onClick={handleSubmit}
+            disabled={loading || !masterDataLoaded}
+            startIcon={loading ? <CircularProgress size={20} /> : <SendIcon />}
+            sx={{ minWidth: 200 }}
           >
-            {success}
-          </Alert>
-        )}
-
-        {Object.keys(validationErrors).length > 0 && (
-          <Alert severity="warning" sx={{ mb: 2 }}>
-            Please fix {Object.keys(validationErrors).length} validation
-            error(s) before submitting
-          </Alert>
-        )}
-
-        {/* Master Data Loading Status */}
-        {!masterDataLoaded && (
-          <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-            <CircularProgress size={20} sx={{ mr: 2 }} />
-            <Typography>
-              Loading master data (Vessels, PODs, Terminals)...
-            </Typography>
-          </Box>
-        )}
-
-        {/* Continuous Scroll Form */}
-        <Box>
-          {/* Section 1: Header Information */}
-          <Form13HeaderSection
-            formData={formData}
-            vessels={vessels}
-            pods={pods}
-            masterDataLoaded={masterDataLoaded}
-            loading={loading}
-            onFormDataChange={handleFormDataChange}
-            onReloadMasterData={loadMasterData}
-            validationErrors={validationErrors}
-          />
-
-          <Divider sx={{ my: 4 }} />
-
-          {/* Section 2: Container Information */}
-          <Form13ContainerSection
-            formData={formData}
-            onFormDataChange={handleFormDataChange}
-            onAddContainer={handleAddContainer}
-            onRemoveContainer={handleRemoveContainer}
-            validationErrors={validationErrors}
-          />
-
-          <Divider sx={{ my: 4 }} />
-
-          {/* Section 3: Shipping Bill Information (per container) */}
-          {formData.containers.map((container, index) => (
-            <Box key={index} sx={{ mb: 3 }}>
-              <Form13ShippingBillSection
-                formData={formData}
-                containerIndex={index}
-                onFormDataChange={handleFormDataChange}
-                validationErrors={validationErrors}
-              />
-            </Box>
-          ))}
-
-          <Divider sx={{ my: 4 }} />
-
-          {/* Section 4: Attachments */}
-          <Form13AttachmentSection
-            formData={formData}
-            onFormDataChange={handleFormDataChange}
-            requiredAttachments={getRequiredAttachments()}
-            validationErrors={validationErrors}
-          />
-
-          {/* Submit Button */}
-          <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
-            <Button
-              variant="contained"
-              size="large"
-              onClick={handleSubmit}
-              disabled={loading || !masterDataLoaded}
-              startIcon={loading ? <CircularProgress size={20} /> : <SendIcon />}
-              sx={{ minWidth: 200 }}
-            >
-              {loading ? "Submitting..." : "Submit Form 13"}
-            </Button>
-          </Box>
+            {loading ? "Submitting..." : "Submit Form 13"}
+          </Button>
         </Box>
+      </Box>
 
-        {/* Floating Action Button for Quick Submit */}
-        <Fab
-          color="primary"
-          aria-label="submit"
-          sx={{
-            position: "fixed",
-            bottom: 16,
-            right: 16,
-          }}
-          onClick={handleSubmit}
-          disabled={loading || !masterDataLoaded}
-        >
-          <SendIcon />
-        </Fab>
-      </Paper>
-    </Container>
-  );
+      {/* Floating Action Button for Quick Submit */}
+      <Fab
+        color="primary"
+        aria-label="submit"
+        sx={{
+          position: "fixed",
+          bottom: 16,
+          right: 16,
+        }}
+        onClick={handleSubmit}
+        disabled={loading || !masterDataLoaded}
+      >
+        <SendIcon />
+      </Fab>
+    </Paper>
+  </Container>
+);
 };
 
 
