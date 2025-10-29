@@ -1,4 +1,5 @@
 // src/components/Form13/Form13HeaderSection.jsx
+
 import React from "react";
 import {
   Grid,
@@ -24,7 +25,7 @@ const Form13HeaderSection = ({
   loading,
   onFormDataChange,
   onReloadMasterData,
-  validationErrors = {}, // Add this prop
+  validationErrors = {},
 }) => {
   const {
     cargoTypes,
@@ -44,55 +45,52 @@ const Form13HeaderSection = ({
     );
   };
 
-const getPODOptions = () => {
-  if (!pods || !Array.isArray(pods) || !formData.locId || !formData.terminalCode) return [];
-  
-  // Find the location that matches the selected locId
-  const location = pods.find(location => location.locId === formData.locId);
-  if (!location || !location.terminal || !Array.isArray(location.terminal)) return [];
-  
-  // Find the terminal that matches the selected terminalCode
-  const terminal = location.terminal.find(
-    terminal => terminal.terminalId === formData.terminalCode
-  );
-  
-  if (!terminal || !terminal.service || !Array.isArray(terminal.service)) return [];
-  
-  // Extract all pods from all services in this terminal
-  const allPods = [];
-  terminal.service.forEach(service => {
-    if (service.pod && Array.isArray(service.pod)) {
-      allPods.push(...service.pod);
-    }
-  });
-  
-  return allPods;
-};
+  const getPODOptions = () => {
+    if (!pods || !Array.isArray(pods) || !formData.locId || !formData.terminalCode) return [];
+    
+    const location = pods.find(location => location.locId === formData.locId);
+    if (!location || !location.terminal || !Array.isArray(location.terminal)) return [];
+    
+    const terminal = location.terminal.find(
+      terminal => terminal.terminalId === formData.terminalCode
+    );
+    
+    if (!terminal || !terminal.service || !Array.isArray(terminal.service)) return [];
+    
+    const allPods = [];
+    terminal.service.forEach(service => {
+      if (service.pod && Array.isArray(service.pod)) {
+        allPods.push(...service.pod);
+      }
+    });
+    
+    return allPods;
+  };
 
-const getAllPods = () => {
-  if (!pods || !Array.isArray(pods)) return [];
-  
-  // Extract all pods from all locations, all terminals and all services
-  const allPods = [];
-  pods.forEach(location => {
-    if (location.terminal && Array.isArray(location.terminal)) {
-      location.terminal.forEach(terminal => {
-        if (terminal.service && Array.isArray(terminal.service)) {
-          terminal.service.forEach(service => {
-            if (service.pod && Array.isArray(service.pod)) {
-              allPods.push(...service.pod);
-            }
-          });
-        }
-      });
-    }
-  });
-  return allPods;
-};
+  const getAllPods = () => {
+    if (!pods || !Array.isArray(pods)) return [];
+    
+    const allPods = [];
+    pods.forEach(location => {
+      if (location.terminal && Array.isArray(location.terminal)) {
+        location.terminal.forEach(terminal => {
+          if (terminal.service && Array.isArray(terminal.service)) {
+            terminal.service.forEach(service => {
+              if (service.pod && Array.isArray(service.pod)) {
+                allPods.push(...service.pod);
+              }
+            });
+          }
+        });
+      }
+    });
+    return allPods;
+  };
+
   const availableTerminalCodes = getTerminalCodes(formData.locId);
 
   return (
- <Card>
+    <Card>
       <CardContent>
         <Typography variant="h6" gutterBottom sx={{ display: "flex", alignItems: "center" }}>
           <InfoIcon sx={{ mr: 1 }} />
@@ -107,7 +105,7 @@ const getAllPods = () => {
           )}
         </Typography>
 
-      <Grid container spacing={3}>
+        <Grid container spacing={3}>
           {/* Shipping Line */}
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth required error={!!validationErrors.bnfCode}>
@@ -136,7 +134,7 @@ const getAllPods = () => {
 
           {/* Location */}
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth required>
+            <FormControl fullWidth required error={!!validationErrors.locId}>
               <InputLabel>Location</InputLabel>
               <Select
                 value={formData.locId}
@@ -152,12 +150,17 @@ const getAllPods = () => {
                   </MenuItem>
                 ))}
               </Select>
+              {validationErrors.locId && (
+                <Typography variant="caption" color="error">
+                  {validationErrors.locId}
+                </Typography>
+              )}
             </FormControl>
           </Grid>
 
           {/* Vessel Name */}
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth required>
+            <FormControl fullWidth required error={!!validationErrors.vesselNm}>
               <InputLabel>Vessel Name</InputLabel>
               <Select
                 value={formData.vesselNm}
@@ -179,6 +182,11 @@ const getAllPods = () => {
                   </MenuItem>
                 ))}
               </Select>
+              {validationErrors.vesselNm && (
+                <Typography variant="caption" color="error">
+                  {validationErrors.vesselNm}
+                </Typography>
+              )}
             </FormControl>
           </Grid>
 
@@ -228,7 +236,7 @@ const getAllPods = () => {
               </Select>
               {validationErrors.terminalCode && (
                 <Typography variant="caption" color="error">
-                  {validationErrors.terminalCode  }
+                  {validationErrors.terminalCode}
                 </Typography>
               )}
             </FormControl>
@@ -236,7 +244,7 @@ const getAllPods = () => {
 
           {/* Service */}
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth required>
+            <FormControl fullWidth required error={!!validationErrors.service}>
               <InputLabel>Service</InputLabel>
               <Select
                 value={formData.service}
@@ -254,55 +262,71 @@ const getAllPods = () => {
                     </MenuItem>
                   ))}
               </Select>
+              {validationErrors.service && (
+                <Typography variant="caption" color="error">
+                  {validationErrors.service}
+                </Typography>
+              )}
             </FormControl>
           </Grid>
 
-{/* POD */}
-<Grid item xs={12} sm={6}>
-  <FormControl fullWidth>
-    <InputLabel>POD</InputLabel>
-    <Select
-      value={formData.pod}
-      label="POD"
-      onChange={(e) =>
-        onFormDataChange("header", "pod", e.target.value)
-      }
-      disabled={!masterDataLoaded || loading}
-    >
-      {getAllPods().map((pod) => (
-        <MenuItem key={pod.podCd} value={pod.podCd}>
-          {pod.podNm} ({pod.podCd})
-        </MenuItem>
-      ))}
-    </Select>
-  </FormControl>
-</Grid>
+          {/* POD */}
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth required error={!!validationErrors.pod}>
+              <InputLabel>POD</InputLabel>
+              <Select
+                value={formData.pod}
+                label="POD"
+                onChange={(e) =>
+                  onFormDataChange("header", "pod", e.target.value)
+                }
+                disabled={!masterDataLoaded || loading}
+              >
+                {getAllPods().map((pod) => (
+                  <MenuItem key={pod.podCd} value={pod.podCd}>
+                    {pod.podNm} ({pod.podCd})
+                  </MenuItem>
+                ))}
+              </Select>
+              {validationErrors.pod && (
+                <Typography variant="caption" color="error">
+                  {validationErrors.pod}
+                </Typography>
+              )}
+            </FormControl>
+          </Grid>
 
-
-{/* FPOD */}
-<Grid item xs={12} sm={6}>
-  <FormControl fullWidth>
-    <InputLabel>FPOD</InputLabel>
-    <Select
-      value={formData.fpod}
-      label="FPOD"
-      onChange={(e) =>
-        onFormDataChange("header", "fpod", e.target.value)
-      }
-      disabled={!masterDataLoaded || loading}
-    >
-      {getAllPods().map((pod) => (
-        <MenuItem key={pod.podCd} value={pod.podCd}>
-          {pod.podNm} ({pod.podCd})
-        </MenuItem>
-      ))}
-    </Select>
-  </FormControl>
-</Grid>
+          {/* FPOD - Conditional for specific locations */}
+          {["INMAA1", "INPRT1", "INKAT1", "INCCU1", "INENN1"].includes(formData.locId) && (
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth required error={!!validationErrors.fpod}>
+                <InputLabel>FPOD *</InputLabel>
+                <Select
+                  value={formData.fpod}
+                  label="FPOD *"
+                  onChange={(e) =>
+                    onFormDataChange("header", "fpod", e.target.value)
+                  }
+                  disabled={!masterDataLoaded || loading}
+                >
+                  {getAllPods().map((pod) => (
+                    <MenuItem key={pod.podCd} value={pod.podCd}>
+                      {pod.podNm} ({pod.podCd})
+                    </MenuItem>
+                  ))}
+                </Select>
+                {validationErrors.fpod && (
+                  <Typography variant="caption" color="error">
+                    {validationErrors.fpod}
+                  </Typography>
+                )}
+              </FormControl>
+            </Grid>
+          )}
 
           {/* Cargo Type */}
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth required>
+            <FormControl fullWidth required error={!!validationErrors.cargoTp}>
               <InputLabel>Cargo Type</InputLabel>
               <Select
                 value={formData.cargoTp}
@@ -317,12 +341,17 @@ const getAllPods = () => {
                   </MenuItem>
                 ))}
               </Select>
+              {validationErrors.cargoTp && (
+                <Typography variant="caption" color="error">
+                  {validationErrors.cargoTp}
+                </Typography>
+              )}
             </FormControl>
           </Grid>
 
           {/* Origin */}
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth required>
+            <FormControl fullWidth required error={!!validationErrors.origin}>
               <InputLabel>Origin</InputLabel>
               <Select
                 value={formData.origin}
@@ -337,12 +366,17 @@ const getAllPods = () => {
                   </MenuItem>
                 ))}
               </Select>
+              {validationErrors.origin && (
+                <Typography variant="caption" color="error">
+                  {validationErrors.origin}
+                </Typography>
+              )}
             </FormControl>
           </Grid>
 
           {/* Form Type */}
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth required>
+            <FormControl fullWidth required error={!!validationErrors.formType}>
               <InputLabel>Form Type</InputLabel>
               <Select
                 value={formData.formType}
@@ -357,12 +391,17 @@ const getAllPods = () => {
                   </MenuItem>
                 ))}
               </Select>
+              {validationErrors.formType && (
+                <Typography variant="caption" color="error">
+                  {validationErrors.formType}
+                </Typography>
+              )}
             </FormControl>
           </Grid>
 
           {/* Container Status */}
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth required>
+            <FormControl fullWidth required error={!!validationErrors.cntnrStatus}>
               <InputLabel>Container Status</InputLabel>
               <Select
                 value={formData.cntnrStatus}
@@ -377,38 +416,49 @@ const getAllPods = () => {
                   </MenuItem>
                 ))}
               </Select>
+              {validationErrors.cntnrStatus && (
+                <Typography variant="caption" color="error">
+                  {validationErrors.cntnrStatus}
+                </Typography>
+              )}
             </FormControl>
           </Grid>
 
-          {/* Additional Fields */}
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Booking No"
-              value={formData.bookNo}
-              onChange={(e) =>
-                onFormDataChange("header", "bookNo", e.target.value)
-              }
-              required={formData.bnfCode === "MSC"}
-            />
-          </Grid>
+          {/* Booking No - Conditional for MSC */}
+          {formData.bnfCode === "MSCU" && (
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Booking No *"
+                value={formData.bookNo}
+                onChange={(e) =>
+                  onFormDataChange("header", "bookNo", e.target.value)
+                }
+                required
+                error={!!validationErrors.bookNo}
+                helperText={validationErrors.bookNo}
+              />
+            </Grid>
+          )}
 
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="BL Number"
-              value={formData.bookCopyBlNo}
-              onChange={(e) =>
-                onFormDataChange("header", "bookCopyBlNo", e.target.value)
-              }
-              required={
-                formData.bnfCode === "Hapag Llyod" &&
-                formData.cargoTp !== "Reefer"
-              }
-            />
-          </Grid>
+          {/* BL Number - Conditional for Hapag Lloyd non-reefer */}
+          {formData.bnfCode === "Hapag Llyod" && formData.cargoTp !== "REF" && (
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="BL Number *"
+                value={formData.bookCopyBlNo}
+                onChange={(e) =>
+                  onFormDataChange("header", "bookCopyBlNo", e.target.value)
+                }
+                required
+                error={!!validationErrors.bookCopyBlNo}
+                helperText={validationErrors.bookCopyBlNo}
+              />
+            </Grid>
+          )}
 
-      {/* Mobile No with validation */}
+          {/* Mobile No with validation */}
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
@@ -418,13 +468,36 @@ const getAllPods = () => {
                 onFormDataChange("header", "mobileNo", e.target.value)
               }
               type="tel"
-              inputProps={{ maxLength: 10 }}
+              inputProps={{ maxLength: 12 }}
               required
               error={!!validationErrors.mobileNo}
-              helperText={validationErrors.mobileNo || "10-digit mobile number"}
+              helperText={validationErrors.mobileNo || "10-12 digit mobile number"}
             />
           </Grid>
 
+          {/* CFS Code - Conditional for Dock Destuff */}
+          {formData.origin === "C" && (
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth required error={!!validationErrors.cfsCode}>
+                <InputLabel>CFS Code *</InputLabel>
+                <Select
+                  value={formData.cfsCode}
+                  label="CFS Code *"
+                  onChange={(e) =>
+                    onFormDataChange("header", "cfsCode", e.target.value)
+                  }
+                >
+                  <MenuItem value="CFS1">CFS 1</MenuItem>
+                  <MenuItem value="CFS2">CFS 2</MenuItem>
+                </Select>
+                {validationErrors.cfsCode && (
+                  <Typography variant="caption" color="error">
+                    {validationErrors.cfsCode}
+                  </Typography>
+                )}
+              </FormControl>
+            </Grid>
+          )}
 
           <Grid item xs={12} sm={6}>
             <TextField
@@ -435,62 +508,64 @@ const getAllPods = () => {
                 onFormDataChange("header", "shipperNm", e.target.value)
               }
               required
+              error={!!validationErrors.shipperNm}
+              helperText={validationErrors.shipperNm}
             />
           </Grid>
 
-          {/* Conditional Fields based on location */}
-          {(formData.locId === "INMAA1" ||
-            formData.locId === "INPRT1" ||
-            formData.locId === "INKAT1" ||
-            formData.locId === "INCCU1" ||
-            formData.locId === "INMUN1") && (
+          {/* Consignee Fields - Conditional for specific locations */}
+          {["INMAA1", "INPRT1", "INKAT1", "INCCU1", "INENN1", "INMUN1"].includes(formData.locId) && (
             <>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Consignee Name"
+                  label="Consignee Name *"
                   value={formData.consigneeNm}
                   onChange={(e) =>
                     onFormDataChange("header", "consigneeNm", e.target.value)
                   }
                   required
+                  error={!!validationErrors.consigneeNm}
+                  helperText={validationErrors.consigneeNm}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Consignee Address"
+                  label="Consignee Address *"
                   value={formData.consigneeAddr}
                   onChange={(e) =>
                     onFormDataChange("header", "consigneeAddr", e.target.value)
                   }
                   required
+                  error={!!validationErrors.consigneeAddr}
+                  helperText={validationErrors.consigneeAddr}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Cargo Description"
+                  label="Cargo Description *"
                   value={formData.cargoDesc}
                   onChange={(e) =>
                     onFormDataChange("header", "cargoDesc", e.target.value)
                   }
                   required
+                  error={!!validationErrors.cargoDesc}
+                  helperText={validationErrors.cargoDesc}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Terminal Login ID"
+                  label="Terminal Login ID *"
                   value={formData.terminalLoginId}
                   onChange={(e) =>
-                    onFormDataChange(
-                      "header",
-                      "terminalLoginId",
-                      e.target.value
-                    )
+                    onFormDataChange("header", "terminalLoginId", e.target.value)
                   }
                   required
+                  error={!!validationErrors.terminalLoginId}
+                  helperText={validationErrors.terminalLoginId}
                 />
               </Grid>
             </>
@@ -511,6 +586,8 @@ const getAllPods = () => {
                     onChange={(e) =>
                       onFormDataChange("header", "FFCode", e.target.value)
                     }
+                    error={!!validationErrors.CHACode}
+                    helperText={validationErrors.CHACode}
                   />
                 </Grid>
                 <Grid item xs={12} sm={4}>
@@ -537,22 +614,24 @@ const getAllPods = () => {
             </Grid>
           )}
 
-          {/* Tuticorin specific field */}
-          {formData.locId === "INTUT1" && (
+          {/* Shipper City - Conditional for Tuticorin DBGT */}
+          {formData.locId === "INTUT1" && formData.terminalCode === "DBGT" && (
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Shipper City"
+                label="Shipper City *"
                 value={formData.ShipperCity}
                 onChange={(e) =>
                   onFormDataChange("header", "ShipperCity", e.target.value)
                 }
                 required
+                error={!!validationErrors.ShipperCity}
+                helperText={validationErrors.ShipperCity}
               />
             </Grid>
           )}
 
-          {/* Early Gate In Check for CMA */}
+          {/* Early Gate In - Conditional for CMA Mundra */}
           {formData.bnfCode === "CMA" && formData.locId === "INMUN1" && (
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
@@ -570,7 +649,6 @@ const getAllPods = () => {
               </FormControl>
             </Grid>
           )}
-
 
           <Grid item xs={12} sm={6}>
             <TextField

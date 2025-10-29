@@ -16,7 +16,11 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: [
+      process.env.CLIENT_URL || "http://localhost:3000",
+      "https://8c749e4308c4.ngrok-free.app",
+   ],
+  
     credentials: true,
   })
 );

@@ -32,50 +32,43 @@ const getHashKey = () => {
   return hashKey;
 };
 
-// Helper function to call ODeX API with better error handling
-const callOdexAPI = async (endpoint, requestData) => {
-  try {
-    // Log/fix payload and headers for deep diff with postman if debugging
-    console.log('Outgoing payload:', JSON.stringify(requestData, null, 2));
+// Helper function to call ODeX API with robust error handling
 
-    const response = await axios.post(
-      `${ODEX_CONFIG.baseURL}${endpoint}`,
-      JSON.stringify(requestData), // Ensure provided as JSON string, exactly what Postman does
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "User-Agent": "Thunder Client (https://www.thunderclient.com)", 
-        },
-        timeout: 30000,
-      }
-    );
-    if (typeof response.data === "string" && response.data.startsWith("<!DOCTYPE html")) {
-      throw new Error("HTML error page received from ODeX API; check request payload and endpoint.");
-    }
-    return response.data;
+
+export const callOdexAPI = async (endpoint, requestData) => {
+  const url = `${process.env.ODEX_BASE_URL}${endpoint}`;
+  console.log("📤 ODeX Request →", url);
+  console.log("📤 Payload:", JSON.stringify(requestData, null, 2));
+
+  try {
+    const res = await axios.post(url, requestData, {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      timeout: 30000,
+    });
+
+    console.log("📥 ODeX Response:", JSON.stringify(res.data, null, 2));
+    
+    // ODeX returns JSON even for errors, so no HTML detection needed
+    return res.data;
+    
   } catch (error) {
-    if (
-      error.response &&
-      typeof error.response.data === "string" &&
-      error.response.data.startsWith("<!DOCTYPE html")
-    ) {
-      // Return the HTML error for quick visual debug
-      return {
-        success: false,
-        error: "Received HTML error page from ODeX. Validate your hashkey, endpoint and payload!",
-        html: error.response.data
-      };
+    console.error("❌ ODeX call failed:", error.message);
+    
+    if (error.response) {
+      // ODeX returned JSON error
+      const odexError = error.response.data;
+      throw new Error(odexError.responseMessage || odexError.error || 'ODeX API error');
+    } else if (error.request) {
+      throw new Error('ODeX service unavailable - no response received');
+    } else {
+      throw error;
     }
-    if (error.response && error.response.data) {
-      return error.response.data;
-    }
-    return {
-      success: false,
-      error: `ODeX API call failed: ${error.message}`,
-    };
   }
 };
+
 
 
 // Mock data for testing when API is down
@@ -141,7 +134,6 @@ router.post("/vessel-master", async (req, res) => {
       hashKey,
     };
 
-    console.log("Vessel Master Request:", vesselRequest);
 
     // Call actual ODeX Vessel Master API
     const odexResponse = await callOdexAPI(
@@ -199,7 +191,7 @@ router.post("/pod-master", async (req, res) => {
       hashKey,
     };
 
-    console.log("POD Master Request:", podRequest);
+
 
     // Call actual ODeX POD Master API
     const odexResponse = await callOdexAPI(
@@ -216,7 +208,7 @@ router.post("/pod-master", async (req, res) => {
 
     // Return mock data for testing when API is down
     if (process.env.USE_MOCK_DATA === "true") {
-      console.log("Returning mock POD data");
+
       return res.json({
         success: true,
         data: [
@@ -235,40 +227,47 @@ router.post("/pod-master", async (req, res) => {
 
 // Submit Form 13 - Calls actual ODeX API
 // Submit Form 13 - Calls actual ODeX API
+// server/routes/form13.js - Update the submit endpoint
 router.post("/submit", async (req, res) => {
   try {
     const formData = req.body;
-    if (!formData.pyrCode || !formData.vesselNm || !formData.pod) {
+    
+    // Validate required fields including formType
+    const requiredFields = ['pyrCode', 'vesselNm', 'pod', 'formType', 'hashKey'];
+    const missingFields = requiredFields.filter(field => !formData[field]);
+    
+    if (missingFields.length > 0) {
       return res.status(400).json({
         success: false,
-        error: "Missing required fields: pyrCode, vesselNm, pod",
+        error: `Missing required fields: ${missingFields.join(', ')}`,
       });
     }
 
-    // Save to database (optional)
+    // Save to database
     const form13 = new Form13(formData);
     await form13.save();
 
-    const hashKey = getHashKey();
-    const submissionData = {
-      ...formData,
-      hashKey,
-      timestamp: getCurrentTimestamp(),
-    };
-
-    // Proxy submission to ODeX
+    // Call ODeX API
     const odexResponse = await callOdexAPI(
       ODEX_CONFIG.endpoints.submitForm13,
-      submissionData
+      formData // Send the exact payload from frontend
     );
 
-    // Respond with *only one* payload!
-    // Choose one of the below (typically the first):
-    res.status(200).json(odexResponse);
-    // OR, if you want internalRef:
-    // res.status(200).json({ ...odexResponse, internalRef: form13._id });
+    // Update with ODeX reference
+    if (odexResponse.odexRefNo) {
+      form13.odexRefNo = odexResponse.odexRefNo;
+      form13.status = 'SUBMITTED';
+      await form13.save();
+    }
+
+    res.json({
+      success: true,
+      data: odexResponse,
+      internalRef: form13._id
+    });
 
   } catch (error) {
+    console.error("Form 13 Submission Error:", error);
     res.status(500).json({
       success: false,
       error: error.message,

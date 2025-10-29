@@ -17,11 +17,9 @@ const Form13ShippingBillSection = ({
   onFormDataChange,
   validationErrors = {}
 }) => {
-  // Get shipping bill data from container's sbDtlsVo array
   const container = formData.containers?.[containerIndex];
   const shippingBill = container?.sbDtlsVo?.[0] || {};
 
-  // Safety check
   if (!container) {
     return (
       <Alert severity="error">
@@ -45,7 +43,7 @@ const Form13ShippingBillSection = ({
           <Grid item xs={12} sm={6} md={4}>
             <TextField
               fullWidth
-              label="Shipping Bill/Invoice No"
+              label="Shipping Bill/Invoice No *"
               value={shippingBill.shipBillInvNo || ''}
               onChange={(e) => onFormDataChange('shippingBills', 'shipBillInvNo', e.target.value, containerIndex)}
               required
@@ -59,7 +57,7 @@ const Form13ShippingBillSection = ({
             <TextField
               fullWidth
               type="date"
-              label="Shipping Bill Date"
+              label="Shipping Bill Date *"
               value={shippingBill.shipBillDt || ''}
               onChange={(e) => onFormDataChange('shippingBills', 'shipBillDt', e.target.value, containerIndex)}
               InputLabelProps={{ shrink: true }}
@@ -77,29 +75,31 @@ const Form13ShippingBillSection = ({
               value={shippingBill.leoNo || ''}
               onChange={(e) => onFormDataChange('shippingBills', 'leoNo', e.target.value, containerIndex)}
               helperText="Let Export Order Number (Optional)"
-              error={!!validationErrors[`container_${containerIndex}_leoNo`]}
             />
           </Grid>
 
-          {/* LEO Date */}
-          <Grid item xs={12} sm={6} md={4}>
-            <TextField
-              fullWidth
-              type="date"
-              label="LEO Date"
-              value={shippingBill.leoDt || ''}
-              onChange={(e) => onFormDataChange('shippingBills', 'leoDt', e.target.value, containerIndex)}
-              InputLabelProps={{ shrink: true }}
-              helperText="Conditional - Required if LEO No provided"
-              error={!!validationErrors[`container_${containerIndex}_leoDt`]}
-            />
-          </Grid>
+          {/* LEO Date - Conditional when LEO No is provided */}
+          {shippingBill.leoNo && (
+            <Grid item xs={12} sm={6} md={4}>
+              <TextField
+                fullWidth
+                type="date"
+                label="LEO Date *"
+                value={shippingBill.leoDt || ''}
+                onChange={(e) => onFormDataChange('shippingBills', 'leoDt', e.target.value, containerIndex)}
+                InputLabelProps={{ shrink: true }}
+                required
+                error={!!validationErrors[`container_${containerIndex}_leoDt`]}
+                helperText={validationErrors[`container_${containerIndex}_leoDt`] || "Required when LEO No is provided"}
+              />
+            </Grid>
+          )}
 
           {/* CHA Name */}
           <Grid item xs={12} sm={6} md={4}>
             <TextField
               fullWidth
-              label="CHA Name"
+              label="CHA Name *"
               value={shippingBill.chaNm || ''}
               onChange={(e) => onFormDataChange('shippingBills', 'chaNm', e.target.value, containerIndex)}
               required
@@ -112,7 +112,7 @@ const Form13ShippingBillSection = ({
           <Grid item xs={12} sm={6} md={4}>
             <TextField
               fullWidth
-              label="CHA PAN"
+              label="CHA PAN *"
               value={shippingBill.chaPan || ''}
               onChange={(e) => onFormDataChange('shippingBills', 'chaPan', e.target.value.toUpperCase(), containerIndex)}
               required
@@ -129,7 +129,7 @@ const Form13ShippingBillSection = ({
           <Grid item xs={12} sm={6} md={4}>
             <TextField
               fullWidth
-              label="Exporter Name"
+              label="Exporter Name *"
               value={shippingBill.exporterNm || ''}
               onChange={(e) => onFormDataChange('shippingBills', 'exporterNm', e.target.value, containerIndex)}
               required
@@ -142,7 +142,7 @@ const Form13ShippingBillSection = ({
           <Grid item xs={12} sm={6} md={4}>
             <TextField
               fullWidth
-              label="Exporter IEC"
+              label="Exporter IEC *"
               value={shippingBill.exporterIec || ''}
               onChange={(e) => onFormDataChange('shippingBills', 'exporterIec', e.target.value, containerIndex)}
               required
@@ -160,7 +160,7 @@ const Form13ShippingBillSection = ({
             <TextField
               fullWidth
               type="number"
-              label="Number of Packages"
+              label="Number of Packages *"
               value={shippingBill.noOfPkg || ''}
               onChange={(e) => onFormDataChange('shippingBills', 'noOfPkg', parseInt(e.target.value) || 0, containerIndex)}
               required

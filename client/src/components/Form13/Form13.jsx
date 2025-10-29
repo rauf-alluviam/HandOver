@@ -791,144 +791,167 @@ const Form13 = () => {
   };
 
   // Submit Form
-  const handleSubmit = async () => {
-    try {
-      setLoading(true);
-      setError("");
-      setSuccess("");
+// src/components/Form13/Form13.jsx
 
-      // Validate form
-      const errors = validateForm();
-      if (Object.keys(errors).length > 0) {
-        setValidationErrors(errors);
-        setError(
-          `Please fix ${Object.keys(errors).length} validation error(s) before submitting`
-        );
-        setLoading(false);
-        return;
-      }
+// Update the handleSubmit function with proper error handling
+const handleSubmit = async () => {
+  try {
+    setLoading(true);
+    setError("");
+    setSuccess("");
 
-      setValidationErrors({});
-
-      // Prepare attachments with base64 encoding
-      const attList = await Promise.all(
-        formData.attachments.map(async (file) => ({
-          attReqId: "",
-          attNm: file.name,
-          attData: await fileToBase64(file),
-          attTitle: file.title || "BOOKING_COPY",
-        }))
-      );
-      const hardcodedHashKey = "5XRMN8PVXKQT";
-
-
-      // Prepare API payload
-      const payload = {
-          hashKey: hardcodedHashKey,
-        odexRefNo: formData.odexRefNo,
-        reqId: formData.reqId,
-        bookNo: formData.bookNo,
-        bnfCode: formData.bnfCode,
-        locId: formData.locId,
-        vesselNm: formData.vesselNm,
-        viaNo: formData.viaNo,
-        terminalCode: formData.terminalCode,
-        service: formData.service,
-        pod: formData.pod,
-        fpod: formData.fpod,
-        cargoTp: formData.cargoTp,
-        origin: formData.origin,
-        shpInstructNo: formData.shpInstructNo,
-        cntnrStatus: formData.cntnrStatus,
-        mobileNo: formData.mobileNo,
-        issueTo: formData.issueTo,
-        shipperNm: formData.shipperNm,
-        pyrCode: formData.pyrCode,
-        consigneeNm: formData.consigneeNm,
-        consigneeAddr: formData.consigneeAddr,
-        cargoDesc: formData.cargoDesc,
-        terminalLoginId: formData.terminalLoginId,
-        stuffTp: formData.stuffTp,
-        icdLoadingPort: formData.icdLoadingPort,
-        voyageNo: formData.voyageNo,
-        haulageTp: formData.haulageTp,
-        isEarlyGateIn: formData.IsEarlyGateIn,
-        shipperCd: formData.shipperCd,
-        railOperator: formData.railOperator,
-        shipperCity: formData.ShipperCity,
-        ffCode: formData.FFCode,
-        ieCode: formData.IECode,
-        bookLinId: formData.bookLinId,
-        notifyTo: formData.Notify_TO,
-        chaCode: formData.CHACode,
-        placeOfDel: formData.placeOfDel,
-        contactPerson: formData.contactPerson,
-        outsideWindowIssue: formData.outsideWindowIssue,
-        cntrList: formData.containers.map((container) => ({
-          cntnrReqId: container.cntnrReqId,
-          cntnrNo: container.cntnrNo,
-          cntnrSize: container.cntnrSize,
-          iso: container.iso,
-          agentSealNo: container.agentSealNo,
-          customSealNo: container.customSealNo,
-          vgmWt: container.vgmWt,
-          vgmViaODeX: container.vgmViaODeX,
-          doNo: container.doNo,
-          temp: container.temp,
-          volt: container.volt,
-          chaRemarks: container.chaRemarks,
-          vehicleNo: container.vehicleNo,
-          driverLicNo: container.driverLicNo,
-          driverNm: container.driverNm,
-          haulier: container.haulier,
-          imoNo1: container.imoNo1,
-          unNo1: container.unNo1,
-          imoNo2: container.imoNo2,
-          unNo2: container.unNo2,
-          imoNo3: container.imoNo3,
-          unNo3: container.unNo3,
-          imoNo4: container.imoNo4,
-          unNo4: container.unNo4,
-          rightDimensions: container.rightDimensions,
-          topDimensions: container.topDimensions,
-          backDimensions: container.backDimensions,
-          leftDimensions: container.leftDimensions,
-          frontDimensions: container.frontDimensions,
-          odcUnits: container.odcUnits,
-          status: container.status,
-          spclStow: container.spclStow,
-          spclStowRemark: container.spclStowRemark,
-          cntnrTareWgt: container.cntnrTareWgt,
-          cargoVal: container.cargoVal,
-          commodityName: container.commodityName,
-          shpInstructNo: container.shpInstructNo,
-          sbDtlsVo: container.sbDtlsVo,
-        })),
-        attList: attList,
-      };
-
-      // Call API
-      const response = await form13API.submitForm13(payload);
-
-      if (response.data.success) {
-        setSuccess(
-          `Form 13 submitted successfully! Reference No: ${response.data.odexRefNo}`
-        );
-        // Optionally reset form or redirect
-      } else {
-        setError(
-          response.data.message || "Form submission failed. Please try again."
-        );
-      }
-    } catch (err) {
-      console.error("Form submission error:", err);
+    // Validate form
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
       setError(
-        `Failed to submit form: ${err.response?.data?.message || err.message}`
+        `Please fix ${Object.keys(errors).length} validation error(s) before submitting`
       );
-    } finally {
       setLoading(false);
+      return;
     }
-  };
+
+    setValidationErrors({});
+
+    // Prepare attachments with base64 encoding
+    const attList = await Promise.all(
+      formData.attachments.map(async (file) => ({
+        attReqId: "",
+        attNm: file.name,
+        attData: await fileToBase64(file),
+        attTitle: file.title || "BOOKING_COPY",
+      }))
+    );
+
+    const hardcodedHashKey = "5XRMN8PVXKQT";
+
+    // Prepare API payload - MAKE SURE formType IS INCLUDED
+    const payload = {
+      formType: "F13", // ← CRITICAL: This was missing!
+      hashKey: hardcodedHashKey,
+      odexRefNo: formData.odexRefNo,
+      reqId: formData.reqId,
+      bookNo: formData.bookNo,
+      bnfCode: formData.bnfCode,
+      locId: formData.locId,
+      vesselNm: formData.vesselNm,
+      viaNo: formData.viaNo,
+      terminalCode: formData.terminalCode,
+      service: formData.service,
+      pod: formData.pod,
+      fpod: formData.fpod,
+      cargoTp: formData.cargoTp,
+      origin: formData.origin,
+      shpInstructNo: formData.shpInstructNo,
+      cntnrStatus: formData.cntnrStatus,
+      mobileNo: formData.mobileNo,
+      issueTo: formData.issueTo,
+      shipperNm: formData.shipperNm,
+      pyrCode: formData.pyrCode,
+      consigneeNm: formData.consigneeNm,
+      consigneeAddr: formData.consigneeAddr,
+      cargoDesc: formData.cargoDesc,
+      terminalLoginId: formData.terminalLoginId,
+      stuffTp: formData.stuffTp,
+      icdLoadingPort: formData.icdLoadingPort,
+      voyageNo: formData.voyageNo,
+      haulageTp: formData.haulageTp,
+      isEarlyGateIn: formData.IsEarlyGateIn,
+      shipperCd: formData.shipperCd,
+      railOperator: formData.railOperator,
+      shipperCity: formData.ShipperCity,
+      ffCode: formData.FFCode,
+      ieCode: formData.IECode,
+      bookLinId: formData.bookLinId,
+      notifyTo: formData.Notify_TO,
+      chaCode: formData.CHACode,
+      placeOfDel: formData.placeOfDel,
+      contactPerson: formData.contactPerson,
+      outsideWindowIssue: formData.outsideWindowIssue,
+      cntrList: formData.containers.map((container) => ({
+        cntnrReqId: container.cntnrReqId,
+        cntnrNo: container.cntnrNo,
+        cntnrSize: container.cntnrSize,
+        iso: container.iso,
+        agentSealNo: container.agentSealNo,
+        customSealNo: container.customSealNo,
+        vgmWt: container.vgmWt,
+        vgmViaODeX: container.vgmViaODeX,
+        doNo: container.doNo,
+        temp: container.temp,
+        volt: container.volt,
+        chaRemarks: container.chaRemarks,
+        vehicleNo: container.vehicleNo,
+        driverLicNo: container.driverLicNo,
+        driverNm: container.driverNm,
+        haulier: container.haulier,
+        imoNo1: container.imoNo1,
+        unNo1: container.unNo1,
+        imoNo2: container.imoNo2,
+        unNo2: container.unNo2,
+        imoNo3: container.imoNo3,
+        unNo3: container.unNo3,
+        imoNo4: container.imoNo4,
+        unNo4: container.unNo4,
+        rightDimensions: container.rightDimensions,
+        topDimensions: container.topDimensions,
+        backDimensions: container.backDimensions,
+        leftDimensions: container.leftDimensions,
+        frontDimensions: container.frontDimensions,
+        odcUnits: container.odcUnits,
+        status: container.status,
+        spclStow: container.spclStow,
+        spclStowRemark: container.spclStowRemark,
+        cntnrTareWgt: container.cntnrTareWgt,
+        cargoVal: container.cargoVal,
+        commodityName: container.commodityName,
+        shpInstructNo: container.shpInstructNo,
+        sbDtlsVo: container.sbDtlsVo,
+      })),
+      attList: attList,
+    };
+
+
+    // Call API with enhanced error handling
+    const response = await form13API.submitForm13(payload);
+
+    // Handle successful response
+    if (response.success) {
+      const refNo = response.odexRefNo || response.data?.odexRefNo;
+      setSuccess(
+        `Form 13 submitted successfully! Reference No: ${refNo}`
+      );
+      
+      // Optional: Reset form after successful submission
+      // resetForm();
+    } else {
+      setError(
+        response.message || "Form submission failed. Please try again."
+      );
+    }
+  } catch (err) {
+    console.error("Form submission error:", err);
+    
+    // Enhanced error messages for different error types
+    let errorMessage = err.response?.data?.error || err.message;
+    
+    // Handle specific ODeX error messages
+    if (errorMessage.includes("Form type is required")) {
+      errorMessage = "Form Type is required. Please contact support.";
+    } else if (errorMessage.includes("ODeX Error:")) {
+      // Extract the actual ODeX error message
+      errorMessage = errorMessage.replace("ODeX Error: ", "");
+    } else if (errorMessage.includes("Network Error") || errorMessage.includes("timeout")) {
+      errorMessage = "Network connection issue. Please check your internet and try again.";
+    } else if (errorMessage.includes("500")) {
+      errorMessage = "Server error. Please try again in a few moments.";
+    }
+    
+    setError(`Failed to submit form: ${errorMessage}`);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>

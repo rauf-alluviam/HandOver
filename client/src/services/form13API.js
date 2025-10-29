@@ -13,7 +13,34 @@ export const form13API = {
     api.post(`${FORM13_BASE_URL}/pod-master`, requestData),
 
   // Form 13 Submission API - Calls actual ODeX API
-  submitForm13: (formData) => api.post(`${FORM13_BASE_URL}/submit`, formData),
+  submitForm13: async (formData) => {
+    try {
+      const response = await api.post(`${FORM13_BASE_URL}/submit`, formData);
+      
+      // Handle ODeX API response structure
+      if (response.data.responseMessage && response.data.responseMessage !== "Success") {
+        // This is an ODeX error response
+        throw new Error(response.data.responseMessage);
+      }
+      
+      // If we have odexRefNo, it's successful
+      if (response.data.odexRefNo) {
+        return {
+          success: true,
+          data: response.data,
+          odexRefNo: response.data.odexRefNo
+        };
+      }
+      
+      return response;
+    } catch (error) {
+      // Enhanced error handling for ODeX responses
+      if (error.response?.data?.responseMessage) {
+        throw new Error(`ODeX Error: ${error.response.data.responseMessage}`);
+      }
+      throw error;
+    }
+  },
 
   // Get Form 13 Status API - Calls actual ODeX API
   getForm13Status: (statusData) =>
