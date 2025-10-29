@@ -793,7 +793,95 @@ const Form13 = () => {
       }));
     }
   };
+const formatBusinessErrors = (businessErrors) => {
+  const errors = {};
+  
+  if (!businessErrors) return errors;
 
+  console.log("🔧 Raw business errors:", businessErrors);
+
+  // Split by number pattern like "1 -", "2 -", etc.
+  const errorLines = businessErrors.split(/\d+\s*-\s*/).filter(line => line.trim());
+  
+  console.log("🔧 Parsed error lines:", errorLines);
+
+  errorLines.forEach((line, index) => {
+    const trimmedLine = line.trim();
+    
+    // Map specific error messages to form fields
+    if (trimmedLine.includes("Vessel Name or Via No. is invalid")) {
+      errors.vesselNm = "Vessel Name or Via No. is invalid";
+      errors.viaNo = "Vessel Name or Via No. is invalid";
+    }
+    
+    if (trimmedLine.includes("Container status is invalid")) {
+      errors.cntnrStatus = "Container status is invalid for the selected vessel";
+    }
+    
+    if (trimmedLine.includes("POD is Invalid")) {
+      errors.pod = "POD is invalid for the provided Booking No";
+    }
+    
+    if (trimmedLine.includes("Issue To is required")) {
+      errors.issueTo = "Issue To is required";
+    }
+    
+    if (trimmedLine.includes("CFS is required")) {
+      errors.cfsCode = "CFS is required";
+    }
+    
+    if (trimmedLine.includes("invalid CHA code")) {
+      errors.CHACode = "Invalid CHA code";
+    }
+
+    // If no specific field mapping found, add as generic error
+    if (Object.keys(errors).length === 0 && index === 0) {
+      errors.generic = businessErrors;
+    }
+  });
+
+  // If we still have no errors, add the raw business errors
+  if (Object.keys(errors).length === 0) {
+    errors.generic = businessErrors;
+  }
+
+  console.log("🔧 Formatted errors:", errors);
+  return errors;
+};
+
+// ADD THE MISSING FUNCTION - formatSchemaErrors
+const formatSchemaErrors = (schemaErrors) => {
+  const errors = {};
+  
+  if (!schemaErrors) return errors;
+
+  console.log("🔧 Raw schema errors:", schemaErrors);
+
+  try {
+    if (typeof schemaErrors === 'string') {
+      // Try to parse as JSON if it's a string
+      try {
+        const parsedErrors = JSON.parse(schemaErrors);
+        Object.keys(parsedErrors).forEach(key => {
+          errors[key] = parsedErrors[key];
+        });
+      } catch (e) {
+        // If it's not JSON, treat it as a generic error message
+        errors.generic = schemaErrors;
+      }
+    } else if (typeof schemaErrors === 'object') {
+      Object.keys(schemaErrors).forEach(key => {
+        errors[key] = schemaErrors[key];
+      });
+    }
+  } catch (e) {
+    console.warn('Could not parse schema errors:', e);
+    errors.generic = "Schema validation failed";
+  }
+
+  console.log("🔧 Formatted schema errors:", errors);
+  return errors;
+};
   // Convert file to Base64
   const fileToBase64 = (file) => {
     return new Promise((resolve, reject) => {
@@ -948,21 +1036,7 @@ const handleSubmit = async () => {
     console.log("🔍 Business errors:", respData.business_validations);
 
     // Handle Business Validation Failures - Check directly in respData
-    const businessFlag = respData.business_validation;
-    const businessErrors = respData.business_validations;
-
-    console.log("🔍 Business flag:", businessFlag);
-    console.log("🔍 Business errors:", businessErrors);
-
-    if (businessFlag === "FAIL" && businessErrors) {
-      console.log("🚨 Business validation failed, processing errors...");
-      const formattedBusinessErrors = formatBusinessErrors(businessErrors);
-      setError("Business Validation Failed");
-      setValidationErrors(formattedBusinessErrors);
-      setLoading(false);
-      return;
-    }
-
+   
     // Handle Schema Validation Failures
     const schemaFlag = respData.schema_validation;
     const schemaErrors = respData.schema_validations;
