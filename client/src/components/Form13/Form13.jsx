@@ -13,6 +13,7 @@ import {
   Fab,
   Snackbar,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import { Save as SaveIcon, Send as SendIcon } from "@mui/icons-material";
 import { useAuth } from "../../context/AuthContext";
 import { form13API } from "../../services/form13API";
@@ -20,6 +21,8 @@ import Form13HeaderSection from "./Form13HeaderSection";
 import Form13ContainerSection from "./Form13ContainerSection";
 import Form13ShippingBillSection from "./Form13ShippingBillSection";
 import Form13AttachmentSection from "./Form13AttachmentSection";
+
+import TopNavDropdown from "../TopNavDropdown"; 
 
 const Form13 = () => {
   const { userData } = useAuth();
@@ -1010,108 +1013,19 @@ const handleSubmit = async () => {
   }
 };
 
-// Enhanced helper function to format business errors from API response
-const formatBusinessErrors = (businessErrors) => {
-  const errors = {};
-  
-  if (!businessErrors) return errors;
-
-  console.log("🔧 Raw business errors:", businessErrors);
-
-  // Split by number pattern like "1 -", "2 -", etc.
-  const errorLines = businessErrors.split(/\d+\s*-\s*/).filter(line => line.trim());
-  
-  console.log("🔧 Parsed error lines:", errorLines);
-
-  errorLines.forEach((line, index) => {
-    const trimmedLine = line.trim();
-    
-    // Map specific error messages to form fields
-    if (trimmedLine.includes("Vessel Name or Via No. is invalid")) {
-      errors.vesselNm = "Vessel Name or Via No. is invalid";
-      errors.viaNo = "Vessel Name or Via No. is invalid";
-    }
-    
-    if (trimmedLine.includes("Container status is invalid")) {
-      errors.cntnrStatus = "Container status is invalid for the selected vessel";
-    }
-    
-    if (trimmedLine.includes("POD is Invalid")) {
-      errors.pod = "POD is invalid for the provided Booking No";
-    }
-    
-    if (trimmedLine.includes("Issue To is required")) {
-      errors.issueTo = "Issue To is required";
-    }
-    
-    if (trimmedLine.includes("CFS is required")) {
-      errors.cfsCode = "CFS is required";
-    }
-    
-    if (trimmedLine.includes("invalid CHA code")) {
-      errors.CHACode = "Invalid CHA code";
-    }
-
-    // If no specific field mapping found, add as generic error
-    if (Object.keys(errors).length === 0 && index === 0) {
-      errors.generic = businessErrors;
-    }
-  });
-
-  // If we still have no errors, add the raw business errors
-  if (Object.keys(errors).length === 0) {
-    errors.generic = businessErrors;
-  }
-
-  console.log("🔧 Formatted errors:", errors);
-  return errors;
-};
-
-// ADD THE MISSING FUNCTION - formatSchemaErrors
-const formatSchemaErrors = (schemaErrors) => {
-  const errors = {};
-  
-  if (!schemaErrors) return errors;
-
-  console.log("🔧 Raw schema errors:", schemaErrors);
-
-  try {
-    if (typeof schemaErrors === 'string') {
-      // Try to parse as JSON if it's a string
-      try {
-        const parsedErrors = JSON.parse(schemaErrors);
-        Object.keys(parsedErrors).forEach(key => {
-          errors[key] = parsedErrors[key];
-        });
-      } catch (e) {
-        // If it's not JSON, treat it as a generic error message
-        errors.generic = schemaErrors;
-      }
-    } else if (typeof schemaErrors === 'object') {
-      Object.keys(schemaErrors).forEach(key => {
-        errors[key] = schemaErrors[key];
-      });
-    }
-  } catch (e) {
-    console.warn('Could not parse schema errors:', e);
-    errors.generic = "Schema validation failed";
-  }
-
-  console.log("🔧 Formatted schema errors:", errors);
-  return errors;
-};
-return (
-  <Container maxWidth="xl" sx={{ py: 4 }}>
-    <Paper elevation={3} sx={{ p: 4 }}>
-      {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" gutterBottom fontWeight="bold">
-          FORM 13 - Export Gate Pass
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Submit Form 13 for export container gate-in authorization at Indian ports
-        </Typography>
-      </Box>
+  return (
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Paper elevation={3} sx={{ p: 4 }}>
+        {/* Header */}
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h4" gutterBottom fontWeight="bold">
+            FORM 13 - Export Gate Pass
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Submit Form 13 for export container gate-in authorization at Indian
+            ports
+          </Typography>
+        </Box>
 
       <Divider sx={{ mb: 3 }} />
 

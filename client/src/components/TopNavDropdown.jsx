@@ -8,6 +8,7 @@ const TopNavDropdown = () => {
 
   const pathToValue = (pathname) => {
     if (pathname.startsWith('/form13')) return 'form13';
+    if (pathname.startsWith('/track-f13')) return 'trackf13';
     if (pathname.startsWith('/vgm-status')) return 'status';
     // default submission
     return 'submission';
@@ -20,6 +21,7 @@ const TopNavDropdown = () => {
     if (v === 'submission') navigate('/vgm');
     if (v === 'status') navigate('/vgm-status');
     if (v === 'form13') navigate('/form13');
+    if (v === 'trackf13') navigate('/track-f13');
   };
 
   return (
@@ -36,6 +38,7 @@ const TopNavDropdown = () => {
           <MenuItem value="submission">VGM Submission</MenuItem>
           <MenuItem value="status">VGM Status</MenuItem>
           <MenuItem value="form13">Form 13</MenuItem>
+          <MenuItem value="trackf13">Track F13 request </MenuItem>
         </Select>
       </FormControl>
     </Box>
