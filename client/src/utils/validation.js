@@ -120,18 +120,18 @@ export const vgmValidationSchema = Yup.object({
   // Conditional Validations
 
   // Hazardous Cargo Fields
-  imoNo1: Yup.string().when("cargoTp", {
-    is: "HAZ",
-    then: Yup.string()
-      .required("IMO No. 1 is required for HAZ cargo")
-      .max(50, "Max 50 characters allowed"),
-  }),
-  unNo1: Yup.string().when("cargoTp", {
-    is: "HAZ",
-    then: Yup.string()
-      .required("UN No. 1 is required for HAZ cargo")
-      .max(50, "Max 50 characters allowed"),
-  }),
+  // imoNo1: Yup.string().when("cargoTp", {
+  //   is: "HAZ",
+  //   then: Yup.string()
+  //     .required("IMO No. 1 is required for HAZ cargo")
+  //     .max(50, "Max 50 characters allowed"),
+  // }),
+  // unNo1: Yup.string().when("cargoTp", {
+  //   is: "HAZ",
+  //   then: Yup.string()
+  //     .required("UN No. 1 is required for HAZ cargo")
+  //     .max(50, "Max 50 characters allowed"),
+  // }),
 
   // Method 2 Specific Fields
   cargoWt: Yup.number().when("vgmEvalMethod", {
