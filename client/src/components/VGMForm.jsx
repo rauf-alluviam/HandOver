@@ -46,8 +46,6 @@ import {
   HANDOVER_LOCATIONS,
 } from "../utils/constants/masterData.js";
 
-
-
 const VGMForm = ({
   editMode = false,
   existingRequest = null,
@@ -63,8 +61,8 @@ const VGMForm = ({
   const [isEditMode, setIsEditMode] = useState(editMode);
   const [requestData, setRequestData] = useState(existingRequest);
   const [activeStep, setActiveStep] = useState(0);
-  const [initialValuesSet, setInitialValuesSet] = useState(false);
 
+  console.log("userdaya", userData);
   // Steps for the form
   const steps = [
     "Basic Details",
@@ -73,9 +71,40 @@ const VGMForm = ({
     "Review & Submit",
   ];
 
+  // Fetch request details when in edit mode
+  useEffect(() => {
+    const initializeEditMode = async () => {
+      if (location.state?.editMode && location.state?.vgmId) {
+        setIsEditMode(true);
+        await fetchRequestDetails(location.state.vgmId);
+      } else if (editMode && existingRequest) {
+        setIsEditMode(true);
+        setRequestData(existingRequest);
+        prefillForm(existingRequest);
+      }
+    };
+
+    initializeEditMode();
+  }, [location.state, editMode, existingRequest]);
+
+  // Fetch complete request details from API
+  const fetchRequestDetails = async (vgmId) => {
+    try {
+      setLoading(true);
+      const response = await vgmAPI.getRequestById(vgmId);
+      setRequestData(response.data);
+      prefillForm(response.data);
+    } catch (error) {
+      console.error("Error fetching request details:", error);
+      enqueueSnackbar("Failed to load request details", { variant: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Enhanced pre-fill form with existing request data
-  const getPrefilledValues = (request) => {
-    if (!request) return null;
+  const prefillForm = (request) => {
+    if (!request) return;
 
     // Extract data from request body (original submission data)
     const requestBody = request.request?.body || request;
@@ -84,7 +113,7 @@ const VGMForm = ({
     console.log("Prefilling form with data:", requestBody);
 
     // Transform the existing request data to match form structure
-    return {
+    const formValues = {
       // Basic Details
       linerId: requestBody.linerId || "",
       vesselNm: requestBody.vesselNm || "",
@@ -96,7 +125,7 @@ const VGMForm = ({
       authPrsnNm: requestBody.authPrsnNm || "",
       authDesignation: requestBody.authDesignation || "",
       authMobNo: requestBody.authMobNo || "",
-      odexRefNo: requestBody.odexRefNo || userData?.pyrCode,
+      odexRefNo: userData?.pyrCode,
 
       // Container & VGM Details
       vgmEvalMethod: requestBody.vgmEvalMethod || "M1",
@@ -140,125 +169,89 @@ const VGMForm = ({
       terminalCode: requestBody.terminalCode || "",
       useEncryption: false,
     };
-  };
 
-  // Fetch request details when in edit mode
-  useEffect(() => {
-    const initializeEditMode = async () => {
-      if (location.state?.editMode && location.state?.vgmId) {
-        setIsEditMode(true);
-        await fetchRequestDetails(location.state.vgmId);
-      } else if (editMode && existingRequest) {
-        setIsEditMode(true);
-        setRequestData(existingRequest);
-        // Don't prefill here - we'll handle it in the formik initialization
+    // Set form values
+    Object.keys(formValues).forEach((key) => {
+      if (formValues[key] !== undefined) {
+        formik.setFieldValue(key, formValues[key]);
       }
-    };
+    });
 
-    initializeEditMode();
-  }, [location.state, editMode, existingRequest]);
-
-  // Fetch complete request details from API
-  const fetchRequestDetails = async (vgmId) => {
-    try {
-      setLoading(true);
-      const response = await vgmAPI.getRequestById(vgmId);
-      setRequestData(response.data);
-      
-      // Handle attachments if any
-      const requestBody = response.data.request?.body || response.data;
-      if (requestBody.vgmWbAttList) {
-        setAttachments(requestBody.vgmWbAttList);
-      }
-      
-      enqueueSnackbar("Request details loaded", { variant: "info" });
-    } catch (error) {
-      console.error("Error fetching request details:", error);
-      enqueueSnackbar("Failed to load request details", { variant: "error" });
-    } finally {
-      setLoading(false);
+    // Handle attachments if any
+    if (requestBody.vgmWbAttList) {
+      setAttachments(requestBody.vgmWbAttList);
     }
+
+    enqueueSnackbar("Form pre-filled with existing data", { variant: "info" });
   };
-
-  // Get initial values based on mode
-  const getInitialValues = () => {
-    if (isEditMode && requestData) {
-      return getPrefilledValues(requestData) || getDefaultValues();
-    }
-    return getDefaultValues();
-  };
-
-  const getDefaultValues = () => ({
-    // Basic Details
-    linerId: "",
-    vesselNm: "",
-    voyageNo: "",
-    bookNo: "",
-    locId: "",
-    handoverLoc: "",
-    shipperTp: "S",
-    authPrsnNm: "",
-    authDesignation: "",
-    authMobNo: "",
-    odexRefNo: userData?.pyrCode || "",
-
-    // Container & VGM Details
-    vgmEvalMethod: "M1",
-    cntnrNo: "",
-    cntnrSize: "",
-    cntnrTp: "",
-    cargoTp: "GEN",
-    cscPlateMaxWtLimit: "",
-    cscPlateMaxWtUom: "KG",
-    isQuickResponse: "N",
-
-    // Weight Details
-    cargoWt: "",
-    cargoWtUom: "KG",
-    tareWt: "",
-    tareWtUom: "KG",
-    totWt: "",
-    totWtUom: "KG",
-
-    // Hazardous Details
-    imoNo1: "",
-    unNo1: "",
-
-    // Shipper Details
-    shipId: "",
-    shipperNm: "",
-    shipRegTP: "",
-    shipRegNo: "",
-
-    // Weighbridge Details
-    weighBridgeRegNo: "",
-    weighBridgeAddrLn1: "",
-    weighBridgeAddrLn2: "",
-    weighBridgeAddrLn3: "",
-    weighBridgeSlipNo: "",
-    weighBridgeWtTs: new Date().toISOString().slice(0, 19).replace("T", " "),
-
-    // Terminal & System
-    terminalCode: "",
-    useEncryption: false,
-  });
 
   // Check if selected shipper has VGM authorization
   const hasShipperAuth = shippers.some(
     (shipper) =>
-      shipper.shipperId === formik?.values?.shipId && shipper.serviceNm === "VGM"
+      shipper.shipperId === formik.values.shipId && shipper.serviceNm === "VGM"
   );
 
   const formik = useFormik({
-    initialValues: getInitialValues(),
+    initialValues: {
+      // Basic Details
+      linerId: "",
+      vesselNm: "",
+      voyageNo: "",
+      bookNo: "",
+      locId: "",
+      handoverLoc: "",
+      shipperTp: "S",
+      authPrsnNm: "",
+      authDesignation: "",
+      authMobNo: "",
+      odexRefNo: userData?.pyrCode,
+
+      // Container & VGM Details
+      vgmEvalMethod: "M1",
+      cntnrNo: "",
+      cntnrSize: "",
+      cntnrTp: "",
+      cargoTp: "GEN",
+      cscPlateMaxWtLimit: "",
+      cscPlateMaxWtUom: "KG",
+      isQuickResponse: "N",
+
+      // Weight Details
+      cargoWt: "",
+      cargoWtUom: "KG",
+      tareWt: "",
+      tareWtUom: "KG",
+      totWt: "",
+      totWtUom: "KG",
+
+      // Hazardous Details
+      imoNo1: "",
+      unNo1: "",
+
+      // Shipper Details
+      shipId: "",
+      shipperNm: "",
+      shipRegTP: "",
+      shipRegNo: "",
+
+      // Weighbridge Details
+      weighBridgeRegNo: "",
+      weighBridgeAddrLn1: "",
+      weighBridgeAddrLn2: "",
+      weighBridgeAddrLn3: "",
+      weighBridgeSlipNo: "",
+      weighBridgeWtTs: new Date().toISOString().slice(0, 19).replace("T", " "),
+
+      // Terminal & System
+      terminalCode: "",
+      useEncryption: false,
+    },
     validationSchema: vgmValidationSchema,
-    enableReinitialize: true, // This allows the form to reset when initialValues change
     onSubmit: async (values) => {
       setLoading(true);
       try {
         // Prepare payload exactly as API expects
         const payload = {
-          pyrId: "ODeX/MH/SHP/2503/00020",
           linerId: values.linerId,
           vesselNm: values.vesselNm || undefined,
           voyageNo: values.voyageNo || undefined,
