@@ -460,7 +460,7 @@ export const updateVGMRequest = async (req, res) => {
       },
     };
 
-    console.log("Updated request data:", updatedRequestData);
+    // console.log("Updated request data:", updatedRequestData);
 
     // Update the existing log
     const updatedLog = await ApiLog.findByIdAndUpdate(

@@ -18,6 +18,8 @@ import {
   Alert,
   CircularProgress,
   Divider,
+  Autocomplete,
+  TextField as MuiTextField,
   Stepper,
   Step,
   StepLabel,
@@ -44,6 +46,8 @@ import {
   IMO_NUMBERS,
   CONTAINER_TYPES,
   HANDOVER_LOCATIONS,
+  TERMINAL_CODES,
+  getTerminalCodesByPort,
 } from "../utils/constants/masterData.js";
 
 const VGMForm = ({
@@ -62,7 +66,8 @@ const VGMForm = ({
   const [requestData, setRequestData] = useState(existingRequest);
   const [activeStep, setActiveStep] = useState(0);
 
-  console.log("userdaya", userData);
+  console.log("userdata", userData);
+
   // Steps for the form
   const steps = [
     "Basic Details",
@@ -302,9 +307,9 @@ const VGMForm = ({
           payload.tareWtUom = values.tareWtUom;
         }
 
-        // Add shipper details for third party
+        // Add shipper details for third party - FIXED: Simplified logic
         if (values.shipperTp === "O") {
-          if (hasShipperAuth && values.shipId) {
+          if (values.shipId) {
             payload.shipId = values.shipId;
           } else {
             payload.shipperNm = values.shipperNm;
@@ -338,23 +343,45 @@ const VGMForm = ({
           // Update existing request using PATCH
           const vgmId = requestData._id || requestData.vgmId;
           response = await vgmAPI.updateRequest(vgmId, payload);
-          enqueueSnackbar(`VGM updated successfully! VGM ID: ${vgmId}`, {
-            variant: "success",
-            autoHideDuration: 10000,
-          });
         } else {
           // Create new request
           response = await vgmAPI.submit(payload);
+        }
+
+        // Enhanced success handling with proper status colors
+        if (response.data) {
+          const responseData = response.data.data || response.data;
+          const status = (
+            responseData.cntnrStatus ||
+            responseData.response ||
+            ""
+          ).toUpperCase();
+
+          // Determine snackbar color based on status
+          let snackbarVariant = "success"; // Default to success
+
+          // Only show error for explicit failure statuses
+          if (
+            status === "FAILED" ||
+            status === "REJECTED" ||
+            status === "ERROR"
+          ) {
+            snackbarVariant = "error";
+          }
+
+          // Show appropriate snackbar message
           enqueueSnackbar(
-            `VGM submitted successfully! VGM ID: ${response.data.vgmId}`,
+            `VGM ${
+              isEditMode ? "updated" : "submitted"
+            } successfully! VGM ID: ${responseData.vgmId}, Status: ${
+              responseData.cntnrStatus || responseData.response
+            }`,
             {
-              variant: "success",
+              variant: snackbarVariant,
               autoHideDuration: 10000,
             }
           );
-        }
 
-        if (response.data) {
           // Reset form after successful submission
           formik.resetForm();
           setAttachments([]);
@@ -363,7 +390,7 @@ const VGMForm = ({
 
           // Call success callback if provided
           if (onSuccess) {
-            onSuccess(response.data);
+            onSuccess(responseData);
           } else {
             // Redirect back to status page after successful update
             if (isEditMode) {
@@ -655,17 +682,64 @@ const VGMForm = ({
               </Grid>
 
               <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  name="terminalCode"
-                  label="Terminal Code"
+                <Autocomplete
+                  freeSolo
+                  options={getTerminalCodesByPort(formik.values.locId)}
+                  getOptionLabel={(option) =>
+                    typeof option === "string" ? option : option.label
+                  }
                   value={formik.values.terminalCode}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  placeholder="e.g., GTICT"
-                  helperText="Required for Tuticorin location"
+                  onChange={(event, newValue) => {
+                    let value = "";
+                    if (typeof newValue === "string") {
+                      value = newValue;
+                    } else if (newValue && newValue.value) {
+                      value = newValue.value;
+                    }
+                    formik.setFieldValue("terminalCode", value);
+                  }}
+                  onInputChange={(event, newInputValue) => {
+                    formik.setFieldValue("terminalCode", newInputValue);
+                  }}
+                  renderInput={(params) => (
+                    <MuiTextField
+                      {...params}
+                      name="terminalCode"
+                      label="Terminal Code"
+                      size="small"
+                      error={
+                        formik.touched.terminalCode &&
+                        Boolean(formik.errors.terminalCode)
+                      }
+                      helperText={
+                        formik.touched.terminalCode &&
+                        formik.errors.terminalCode
+                      }
+                      placeholder="Type or select terminal code"
+                    />
+                  )}
+                  renderOption={(props, option) => (
+                    <li {...props} key={option.value}>
+                      <Box>
+                        <Typography variant="body2" fontWeight="bold">
+                          {option.value}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {option.label}
+                        </Typography>
+                      </Box>
+                    </li>
+                  )}
                 />
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 0.5 }}
+                >
+                  {formik.values.locId === "INTUT1"
+                    ? "Required for Tuticorin location"
+                    : "Select or type terminal code"}
+                </Typography>
               </Grid>
             </Grid>
 
@@ -1332,13 +1406,25 @@ const VGMForm = ({
                   name="weighBridgeWtTs"
                   type="datetime-local"
                   label="Date & Time of Weighing *"
-                  value={formik.values.weighBridgeWtTs.replace(" ", "T")}
-                  onChange={(e) =>
-                    formik.setFieldValue(
-                      "weighBridgeWtTs",
-                      e.target.value.replace("T", " ")
-                    )
+                  value={
+                    formik.values.weighBridgeWtTs
+                      ? formik.values.weighBridgeWtTs
+                          .replace(" ", "T")
+                          .slice(0, 16)
+                      : new Date().toISOString().slice(0, 16)
                   }
+                  onChange={(e) => {
+                    const datetimeValue = e.target.value;
+                    if (datetimeValue) {
+                      // Convert from "YYYY-MM-DDTHH:MM" to "YYYY-MM-DD HH:MM:00"
+                      const formattedDateTime =
+                        datetimeValue.replace("T", " ") + ":00";
+                      formik.setFieldValue(
+                        "weighBridgeWtTs",
+                        formattedDateTime
+                      );
+                    }
+                  }}
                   onBlur={formik.handleBlur}
                   InputLabelProps={{ shrink: true }}
                   error={

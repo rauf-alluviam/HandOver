@@ -217,6 +217,148 @@ export const HANDOVER_LOCATIONS = [
   { value: "INKAK1", label: "Kakinada" },
 ];
 
+export const TERMINAL_CODES = [
+  // Nhava Sheva
+  { value: "JNPCT", label: "JNPCT - NSFTPL", portId: "INNSA1" },
+  { value: "GTI", label: "GTI - GTI", portId: "INNSA1" },
+  { value: "NSICT", label: "NSICT - NSICT", portId: "INNSA1" },
+  { value: "BMCT", label: "BMCT - BMCT", portId: "INNSA1" },
+  { value: "NSIGT", label: "NSIGT - NSIGT", portId: "INNSA1" },
+
+  // Mundra
+  { value: "MICT", label: "MICT - MICT", portId: "INMUN1" },
+  { value: "AMCT", label: "AMCT - AMCT", portId: "INMUN1" },
+  { value: "AICTPL", label: "AICTPL - AICTPL", portId: "INMUN1" },
+  { value: "ACMTPL", label: "ACMTPL - ACMTPL", portId: "INMUN1" },
+  { value: "ADANI", label: "ADANI - ADANI", portId: "INMUN1" },
+  { value: "AMCT2", label: "AMCT2 - AMCT2", portId: "INMUN1" },
+
+  // Mangalore
+  {
+    value: "JMCT",
+    label: "JMCT - JSW MANGALORE CONTAINER TERMINAL PVT LTD",
+    portId: "INNML1",
+  },
+  { value: "IXE", label: "IXE - IXE", portId: "INNML1" },
+  { value: "NML01", label: "NML01 - NML01", portId: "INNML1" },
+  { value: "INNML1", label: "INNML1 - INNML1", portId: "INNML1" },
+  { value: "NMPT", label: "NMPT - NMPT", portId: "INNML1" },
+
+  // Tuticorin
+  { value: "TUT01", label: "TUT01 - TUT01", portId: "INTUT1" },
+  { value: "INTUT1", label: "INTUT1 - INTUT1", portId: "INTUT1" },
+  { value: "TUT", label: "TUT - TUT", portId: "INTUT1" },
+  { value: "TICT", label: "TICT - TICT", portId: "INTUT1" },
+  { value: "DBGT", label: "DBGT - DBGT", portId: "INTUT1" },
+  { value: "PSA", label: "PSA - PSA", portId: "INTUT1" },
+
+  // Kolkata
+  { value: "AHPPL", label: "AHPPL - AHPPL", portId: "INCCU1" },
+  { value: "INCCU1", label: "INCCU1 - Kolkata Port Trust", portId: "INCCU1" },
+
+  // Pipavav
+  { value: "PAV01", label: "PAV01 - PAV01", portId: "INPAV1" },
+  {
+    value: "APM Terminal - GPPL",
+    label: "APM Terminal - GPPL",
+    portId: "INPAV1",
+  },
+  { value: "INPAV1", label: "INPAV1 - INPAV1", portId: "INPAV1" },
+
+  // Hazira
+  { value: "ADANI", label: "ADANI - ADANI", portId: "INHZA1" },
+  { value: "INPAV1", label: "INPAV1 - INPAV1", portId: "INHZA1" },
+  { value: "HAZ1", label: "HAZ1 - HAZ1", portId: "INHZA1" },
+  { value: "AHPPL", label: "AHPPL - AHPPL", portId: "INHZA1" },
+  { value: "INHZA", label: "INHZA - INHZA", portId: "INHZA1" },
+
+  // Marmagoa
+  { value: "MRM01", label: "MRM01 - Terminal", portId: "INMRM1" },
+  { value: "MARMAGOA", label: "MARMAGOA - MRM01", portId: "INMRM1" },
+  { value: "MPT", label: "MPT - MPT", portId: "INMRM1" },
+
+  // Cochin
+  { value: "INCOK1", label: "INCOK1 - INCOK1", portId: "INCOK1" },
+  { value: "COPT", label: "COPT - COPT", portId: "INCOK1" },
+  { value: "COK03", label: "COK03 - COK03", portId: "INCOK1" },
+
+  // Chennai
+  { value: "CCTL", label: "CCTL - CCTL", portId: "INMAA1" },
+  { value: "CITPL", label: "CITPL - CITPL", portId: "INMAA1" },
+  { value: "INMAA1", label: "INMAA1 - INMAA1", portId: "INMAA1" },
+
+  // Vishakapatnam
+  { value: "VIZAG", label: "VIZAG - INVTZ1", portId: "INVTZ1" },
+
+  // Haldia
+  { value: "HALDIA", label: "HALDIA - HALDIA", portId: "INHAL1" },
+  { value: "INHAL1", label: "INHAL1 - Haldia Dock complex", portId: "INHAL1" },
+  { value: "HAL", label: "HAL - HAL", portId: "INHAL1" },
+  { value: "HICT", label: "HICT - HICT", portId: "INHAL1" },
+
+  // Krishnapatnam
+  {
+    value: "KRISHNPPATNAM",
+    label: "KRISHNPPATNAM - KRISHNPPATNAM",
+    portId: "INKRI1",
+  },
+  { value: "INKRI1", label: "INKRI1 - INKRI1", portId: "INKRI1" },
+  { value: "INKRI", label: "INKRI - INKRI", portId: "INKRI1" },
+
+  // Kattupalli
+  { value: "KICT", label: "KICT - KICT", portId: "INKAT1" },
+  { value: "KATTUPALLI", label: "KATTUPALLI - KATTUPALLI", portId: "INKAT1" },
+  { value: "KTP01", label: "KTP01 - KTP01", portId: "INKAT1" },
+
+  // Paradip
+  {
+    value: "INPRT1PPT1",
+    label: "INPRT1PPT1 - Paradip International Cargo Terminal Pvt Ltd",
+    portId: "INPRT1",
+  },
+
+  // Kandla
+  { value: "KICT", label: "KICT - KICT", portId: "INIXY1" },
+
+  // Kakinada
+  {
+    value: "INKAK1KSP1",
+    label: "INKAK1KSP1 - Kakinada Container Terminal Private Limited(KCTPL)",
+    portId: "INKAK1",
+  },
+
+  // NCR
+  { value: "NCR", label: "NCR - NCR", portId: "NCR" },
+
+  // Mumbai
+  { value: "INBOM", label: "INBOM - MUMBAI TERMINAL", portId: "INBOM" },
+
+  // Gangavaram Port
+  { value: "INGGV1", label: "INGGV1 - Gangavaram", portId: "INGGV1" },
+
+  // Ennore
+  { value: "INENR1AEC1", label: "INENR1AEC1 - ADANI ENNORE", portId: "INENR1" },
+  { value: "AECTPL", label: "AECTPL - AECTPL", portId: "INENR1" },
+
+  // Vizhinjam Port
+  { value: "AVPPL", label: "AVPPL - AVPPL", portId: "AVPPL" },
+];
+
+// Helper function to get terminal codes by port
+export const getTerminalCodesByPort = (portId) => {
+  return TERMINAL_CODES.filter((terminal) => terminal.portId === portId);
+};
+
+// Helper function to get all unique port IDs from terminal codes
+export const getPortsFromTerminals = () => {
+  const portIds = [
+    ...new Set(TERMINAL_CODES.map((terminal) => terminal.portId)),
+  ];
+  return portIds.map((portId) => {
+    const port = PORTS.find((p) => p.value === portId);
+    return port || { value: portId, label: portId };
+  });
+};
 // src/utils/constants/masterData.js
 // Add this to your existing constants
 export const CONTAINER_TYPES = [
