@@ -19,8 +19,10 @@ app.use(
     origin: [
       process.env.CLIENT_URL || "http://localhost:3000",
       "https://8c749e4308c4.ngrok-free.app",
-   ],
-  
+      "http://3.108.244.38:3000",
+      "http://eximdev.s3-website.ap-south-1.amazonaws.com",
+    ],
+
     credentials: true,
   })
 );
