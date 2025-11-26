@@ -1,5 +1,4 @@
-Let's Encrypt / Certbot usage (nginx + Docker Compose)
-===================================================
+# Let's Encrypt / Certbot usage (nginx + Docker Compose)
 
 This project exposes nginx on ports 80 and 443 and mounts two folders used by
 certbot for HTTP-01 (webroot) challenges and certificate storage:
@@ -7,15 +6,13 @@ certbot for HTTP-01 (webroot) challenges and certificate storage:
 - ./nginx/html -> /usr/share/nginx/html (ACME http-01 challenge files go here)
 - ./nginx/certs -> mounted for certificate storage (certbot writes here)
 
-Pre-requirements
-----------------
+## Pre-requirements
 
 - Make sure your DNS for CLIENT_URL points at the server where this docker
   compose stack will run.
 - Add `CLIENT_URL` and `CERT_EMAIL` to `server/.env` (this repo ignores `server/.env`)
 
-Quick one-shot certificate issuance
------------------------------------
+## Quick one-shot certificate issuance
 
 1. Start the stack (so nginx will serve the ACME challenge path):
 
@@ -42,8 +39,7 @@ creation, reload nginx:
 docker compose exec nginx nginx -s reload
 ```
 
-Renewal
--------
+## Renewal
 
 You can renew certificates periodically by running certbot renew (again with
 the webroot plugin) and reloading nginx after a successful renewal:
@@ -52,8 +48,7 @@ the webroot plugin) and reloading nginx after a successful renewal:
 docker compose run --rm certbot renew --webroot --webroot-path=/usr/share/nginx/html && docker compose exec nginx nginx -s reload
 ```
 
-Notes / Alternatives
---------------------
+## Notes / Alternatives
 
 - The current setup intentionally provides `certbot` as a helper/one-shot
   container so you control when certs are requested. If you prefer fully

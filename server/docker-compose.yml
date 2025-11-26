@@ -9,7 +9,7 @@ services:
     env_file:
       - .env
     expose:
-      - "5000"                     # exposed to docker network, not host directly
+      - "5000" # exposed to docker network, not host directly
     restart: unless-stopped
     networks:
       - handover-net
@@ -23,9 +23,9 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro     # your custom nginx config(s)
-      - ./nginx/certs:/etc/nginx/certs         # certs (use certbot or place certs here)
-      - ./nginx/html:/usr/share/nginx/html     # optional static files for ACME challenge
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro # your custom nginx config(s)
+      - ./nginx/certs:/etc/nginx/certs # certs (use certbot or place certs here)
+      - ./nginx/html:/usr/share/nginx/html # optional static files for ACME challenge
     restart: unless-stopped
     networks:
       - handover-net
