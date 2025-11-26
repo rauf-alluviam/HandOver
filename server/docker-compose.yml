@@ -1,0 +1,58 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: handover-backend
+    env_file:
+      - .env
+    expose:
+      - "5000"                     # exposed to docker network, not host directly
+    restart: unless-stopped
+    networks:
+      - handover-net
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: handover-nginx
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro     # your custom nginx config(s)
+      - ./nginx/certs:/etc/nginx/certs         # certs (use certbot or place certs here)
+      - ./nginx/html:/usr/share/nginx/html     # optional static files for ACME challenge
+    restart: unless-stopped
+    networks:
+      - handover-net
+
+  # certbot is deliberately configured as a helper (one-shot) service.
+  # It does not request certificates automatically on compose up — instead
+  # you should run a one-shot command to obtain/renew certs, e.g.:
+  #
+  #  docker compose run --rm certbot \
+  #    certonly --webroot --webroot-path=/usr/share/nginx/html \
+  #    --email ${CERT_EMAIL} --agree-tos --no-eff-email -d ${CLIENT_URL}
+  #
+  # The above stores certbot output in ./nginx/certs (mounted into /etc/letsencrypt)
+  # which is also mounted into the nginx container at /etc/nginx/certs so nginx
+  # will be able to read the live/<domain> certificates.
+  certbot:
+    image: certbot/certbot:latest
+    container_name: handover-certbot
+    volumes:
+      - ./nginx/certs:/etc/letsencrypt
+      - ./nginx/html:/usr/share/nginx/html
+    depends_on:
+      - nginx
+    # no automatic command here — keep the container available for manual/one-shot runs
+    entrypoint: ["/bin/sh", "-c", "while sleep 3600; do :; done"]
+    restart: "no"
+
+networks:
+  handover-net:
+    driver: bridge

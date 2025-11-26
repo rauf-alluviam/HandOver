@@ -14,19 +14,25 @@ const app = express();
 
 // Middleware
 app.use(helmet());
+
+const allowedOrigins = [
+  process.env.CLIENT_URL || "http://localhost:3000",
+  "https://8c749e4308c4.ngrok-free.app",
+  "http://3.108.244.38:3000",
+  "http://eximdev.s3-website.ap-south-1.amazonaws.com",
+  `https://${process.env.CLIENT_URL}`
+];
 app.use(
   cors({
-    origin: [
-      process.env.CLIENT_URL || "http://localhost:3000",
-      "https://8c749e4308c4.ngrok-free.app",
-      "http://3.108.244.38:3000",
-      "http://eximdev.s3-website.ap-south-1.amazonaws.com",
-    ],
-
+    origin: (origin, cb) => {
+      if (!origin || allowedOrigins.includes(origin)) cb(null, true);
+      else cb(new Error("CORS not allowed"));
+    },
     credentials: true,
   })
 );
 
+app.set("trust proxy", true); // Trust first proxy
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
