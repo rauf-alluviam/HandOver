@@ -198,6 +198,7 @@ export const IMO_NUMBERS = [
 ];
 
 export const HANDOVER_LOCATIONS = [
+    { value: "", label: "SELECT HANDOVER LOCATIONS" },
   { value: "INNSA1", label: "Nhava Sheva" },
   { value: "INMUN1", label: "Mundra" },
   { value: "INNML1", label: "Mangalore" },
@@ -215,6 +216,7 @@ export const HANDOVER_LOCATIONS = [
   { value: "INPRT1", label: "Paradip" },
   { value: "INIXY1", label: "Kandla" },
   { value: "INKAK1", label: "Kakinada" },
+
 ];
 
 export const TERMINAL_CODES = [

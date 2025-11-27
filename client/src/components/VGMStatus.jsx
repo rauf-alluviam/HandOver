@@ -1,62 +1,82 @@
-// src/components/VGM/VGMStatus.jsx
 import React, { useState, useEffect } from "react";
-import {
-  Paper,
-  TextField,
-  Button,
-  Typography,
-  Box,
-  Grid,
-  Alert,
-  CircularProgress,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Chip,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  IconButton,
-  Pagination,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-} from "@mui/material";
-import {
-  FilterList as FilterIcon,
-  Refresh as RefreshIcon,
-  Visibility as ViewIcon,
-  Edit as EditIcon,
-} from "@mui/icons-material";
 import { useSnackbar } from "notistack";
 import { vgmAPI } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import dayjs from "dayjs";
 import TopNavDropdown from "./TopNavDropdown";
 import { useNavigate } from "react-router-dom";
+import "../styles/VGM.scss"; // Use same SCSS
+
+// Inline Icons to replace MUI Icons
+const Icons = {
+  Filter: () => (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+    </svg>
+  ),
+  Refresh: () => (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
+      <path d="M23 4v6h-6" />
+      <path d="M1 20v-6h6" />
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+    </svg>
+  ),
+  Eye: () => (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  ),
+  Edit: () => (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </svg>
+  ),
+};
 
 const VGMStatus = () => {
   const { enqueueSnackbar } = useSnackbar();
-  const { userData } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [requests, setRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
-  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
     total: 0,
     pages: 0,
   });
-  const navigate = useNavigate();
 
-  // Filters state
   const [filters, setFilters] = useState({
     status: "",
     containerNo: "",
@@ -65,484 +85,334 @@ const VGMStatus = () => {
     dateTo: "",
   });
 
-  const statusColors = {
-    Verified: "success",
-    Requested: "info",
-    Pending: "warning",
-    Failed: "error",
-    success: "success",
-    failed: "error",
-    pending: "warning",
-  };
-
-  // Fetch VGM requests
   const fetchVGMRequests = async (page = 1) => {
     setLoading(true);
     try {
-      const filterParams = {
-        page: page,
-        limit: pagination.limit,
-        ...(filters.status && { status: filters.status }),
-        ...(filters.containerNo && { containerNo: filters.containerNo }),
-        ...(filters.bookingNo && { bookingNo: filters.bookingNo }),
-        ...(filters.dateFrom && { dateFrom: filters.dateFrom }),
-        ...(filters.dateTo && { dateTo: filters.dateTo }),
-      };
+      const filterParams = { page, limit: pagination.limit, ...filters };
+      // Filter out empty strings
+      Object.keys(filterParams).forEach(
+        (k) => !filterParams[k] && delete filterParams[k]
+      );
 
       const response = await vgmAPI.getRequests(filterParams);
-      const { requests, pagination: serverPagination } = response.data;
-
-      setRequests(requests);
+      const { requests: data, pagination: meta } = response.data;
+      setRequests(data);
       setPagination((prev) => ({
         ...prev,
-        page: serverPagination.page,
-        total: serverPagination.total,
-        pages: serverPagination.pages,
+        page: meta.page,
+        total: meta.total,
+        pages: meta.pages,
       }));
     } catch (error) {
-      console.error("Error fetching VGM requests:", error);
-      enqueueSnackbar("Failed to load VGM requests", { variant: "error" });
+      enqueueSnackbar("Failed to load requests", { variant: "error" });
     } finally {
       setLoading(false);
     }
   };
 
-  // Refresh all requests
-  const refreshAllRequests = async () => {
-    setRefreshing(true);
-    try {
-      await fetchVGMRequests(pagination.page);
-      enqueueSnackbar("Requests refreshed successfully", {
-        variant: "success",
-      });
-    } catch (error) {
-      enqueueSnackbar("Failed to refresh requests", { variant: "error" });
-    } finally {
-      setRefreshing(false);
-    }
+  const handleEditRequest = (request) => {
+    navigate("/vgm", { state: { editMode: true, vgmId: request.vgmId } });
   };
 
-  // Handle edit request - switch to form tab with existing data
-  const handleEditRequest = async (request) => {
-    try {
-      // Navigate to submission form with edit state - VGMForm will fetch details using vgmId
-      navigate("/vgm", { state: { editMode: true, vgmId: request.vgmId } });
-      enqueueSnackbar("Opening VGM form in edit mode", { variant: "info" });
-    } catch (error) {
-      console.error("Error navigating to edit form:", error);
-      enqueueSnackbar("Failed to open edit form", { variant: "error" });
-    }
+  const getStatusBadgeClass = (status) => {
+    const s = (status || "").toLowerCase();
+    if (s.includes("verified") || s.includes("success")) return "badge-success";
+    if (s.includes("pending")) return "badge-warning";
+    if (s.includes("failed") || s.includes("rejected")) return "badge-error";
+    return "badge-info";
   };
 
-  // Handle new VGM submission - switch to form tab in create mode
-  const handleNewVGM = () => {
-    navigate("/vgm");
-  };
-
-  // Handle filter changes
-  const handleFilterChange = (field, value) => {
-    setFilters((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  // Apply filters
-  const applyFilters = () => {
-    fetchVGMRequests(1);
-  };
-
-  // Clear all filters
-  const clearFilters = () => {
-    setFilters({
-      status: "",
-      containerNo: "",
-      bookingNo: "",
-      dateFrom: "",
-      dateTo: "",
-    });
-    fetchVGMRequests(1);
-  };
-
-  // View request details
-  const viewRequestDetails = (request) => {
-    setSelectedRequest(request);
-    setDetailDialogOpen(true);
-  };
-
-  // Initial load
   useEffect(() => {
     fetchVGMRequests(1);
   }, []);
+
   return (
-    <Paper elevation={3} sx={{ p: 4, maxWidth: 2000, margin: "auto" }}>
+    <div className="vgm-container">
       <TopNavDropdown />
-      <Typography
-        variant="h5"
-        gutterBottom
-        align="center"
-        sx={{ fontWeight: "bold", mb: 3 }}
-      >
-        VGM Management
-      </Typography>
+      <div className="page-header">
+        <h2>VGM Management</h2>
+      </div>
 
-      {/* Filters Section */}
-      <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
-        <Typography
-          variant="h6"
-          gutterBottom
-          sx={{ display: "flex", alignItems: "center" }}
-        >
-          <FilterIcon sx={{ mr: 1 }} />
-          Filters
-        </Typography>
-
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={2}>
-            <FormControl fullWidth size="small">
-              <InputLabel>Status</InputLabel>
-              <Select
-                value={filters.status}
-                label="Status"
-                onChange={(e) => handleFilterChange("status", e.target.value)}
-              >
-                <MenuItem value="">All Status</MenuItem>
-                <MenuItem value="Verified">Verified</MenuItem>
-                <MenuItem value="Pending">Pending</MenuItem>
-                <MenuItem value="Requested">Requested</MenuItem>
-                <MenuItem value="Failed">Failed</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-
-          <Grid item xs={12} md={2}>
-            <TextField
-              fullWidth
-              size="small"
-              label="Container No"
-              value={filters.containerNo}
-              onChange={(e) =>
-                handleFilterChange("containerNo", e.target.value)
-              }
-              placeholder="ABCD1234567"
-            />
-          </Grid>
-
-          <Grid item xs={12} md={2}>
-            <TextField
-              fullWidth
-              size="small"
-              label="Booking No"
-              value={filters.bookingNo}
-              onChange={(e) => handleFilterChange("bookingNo", e.target.value)}
-              placeholder="BK001"
-            />
-          </Grid>
-
-          <Grid item xs={12} md={2}>
-            <TextField
-              fullWidth
-              size="small"
-              label="From Date"
-              type="date"
-              value={filters.dateFrom}
-              onChange={(e) => handleFilterChange("dateFrom", e.target.value)}
-              InputLabelProps={{ shrink: true }}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={2}>
-            <TextField
-              fullWidth
-              size="small"
-              label="To Date"
-              type="date"
-              value={filters.dateTo}
-              onChange={(e) => handleFilterChange("dateTo", e.target.value)}
-              InputLabelProps={{ shrink: true }}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={2}>
-            <Box sx={{ display: "flex", gap: 1 }}>
-              <Button
-                variant="contained"
-                onClick={applyFilters}
-                disabled={loading}
-              >
-                Apply
-              </Button>
-              <Button variant="outlined" onClick={clearFilters}>
-                Clear
-              </Button>
-            </Box>
-          </Grid>
-        </Grid>
-      </Paper>
-
-      {/* Results Section */}
-      <Paper elevation={1} sx={{ p: 2 }}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 2,
+      {/* Filters */}
+      <div className="panel">
+        <div className="d-flex mb-4 gap-2" style={{ fontWeight: 600 }}>
+          <Icons.Filter /> Filters
+        </div>
+        <div
+          className="form-grid"
+          style={{
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
           }}
         >
-          <Typography variant="h6">
-            VGM Requests ({pagination.total})
-          </Typography>
-          <Box sx={{ display: "flex", gap: 1 }}>
-            <Button
-              variant="contained"
-              onClick={handleNewVGM}
-              disabled={loading}
+          <div className="form-group">
+            <label>Status</label>
+            <select
+              className="form-control"
+              value={filters.status}
+              onChange={(e) =>
+                setFilters({ ...filters, status: e.target.value })
+              }
             >
-              New VGM
-            </Button>
-            <Button
-              startIcon={<RefreshIcon />}
-              onClick={refreshAllRequests}
-              disabled={loading || refreshing}
+              <option value="">All</option>
+              <option value="Verified">Verified</option>
+              <option value="Pending">Pending</option>
+              <option value="Failed">Failed</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Container No</label>
+            <input
+              className="form-control"
+              placeholder="ABCD1234567"
+              value={filters.containerNo}
+              onChange={(e) =>
+                setFilters({ ...filters, containerNo: e.target.value })
+              }
+            />
+          </div>
+          <div className="form-group">
+            <label>Booking No</label>
+            <input
+              className="form-control"
+              placeholder="BK001"
+              value={filters.bookingNo}
+              onChange={(e) =>
+                setFilters({ ...filters, bookingNo: e.target.value })
+              }
+            />
+          </div>
+          <div className="form-group">
+            <label>From Date</label>
+            <input
+              type="date"
+              className="form-control"
+              value={filters.dateFrom}
+              onChange={(e) =>
+                setFilters({ ...filters, dateFrom: e.target.value })
+              }
+            />
+          </div>
+          <div className="form-group">
+            <label>To Date</label>
+            <input
+              type="date"
+              className="form-control"
+              value={filters.dateTo}
+              onChange={(e) =>
+                setFilters({ ...filters, dateTo: e.target.value })
+              }
+            />
+          </div>
+          <div
+            className="form-group"
+            style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem" }}
+          >
+            <button
+              className="btn btn-primary w-full"
+              onClick={() => fetchVGMRequests(1)}
             >
-              {refreshing ? "Refreshing..." : "Refresh"}
-            </Button>
-          </Box>
-        </Box>
+              Apply
+            </button>
+            <button
+              className="btn btn-outline w-full"
+              onClick={() => {
+                setFilters({
+                  status: "",
+                  containerNo: "",
+                  bookingNo: "",
+                  dateFrom: "",
+                  dateTo: "",
+                });
+                setTimeout(() => fetchVGMRequests(1), 0);
+              }}
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="panel">
+        <div className="d-flex justify-between mb-4">
+          <h3>Requests ({pagination.total})</h3>
+          <div className="d-flex gap-2">
+            <button
+              className="btn btn-primary"
+              onClick={() => navigate("/vgm")}
+            >
+              + New VGM
+            </button>
+            <button
+              className="btn btn-outline"
+              onClick={() => fetchVGMRequests(pagination.page)}
+            >
+              <Icons.Refresh /> Refresh
+            </button>
+          </div>
+        </div>
 
         {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
-            <CircularProgress />
-          </Box>
+          <div className="text-center p-4">Loading...</div>
         ) : requests.length === 0 ? (
-          <Alert severity="info">
-            No VGM requests found matching your filters.
-          </Alert>
+          <div className="alert alert-info">No records found.</div>
         ) : (
           <>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-                    <TableCell>
-                      <strong>VGM ID</strong>
-                    </TableCell>
-                    <TableCell>
-                      <strong>Container No</strong>
-                    </TableCell>
-                    <TableCell>
-                      <strong>Booking No</strong>
-                    </TableCell>
-                    <TableCell>
-                      <strong>Status</strong>
-                    </TableCell>
-                    <TableCell>
-                      <strong>Total Weight</strong>
-                    </TableCell>
-                    <TableCell>
-                      <strong>Method</strong>
-                    </TableCell>
-                    <TableCell>
-                      <strong>Submitted</strong>
-                    </TableCell>
-                    <TableCell>
-                      <strong>Actions</strong>
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {requests.map((request, index) => (
-                    <TableRow key={index} hover>
-                      <TableCell>{request.vgmId}</TableCell>
-                      <TableCell>{request.cntnrNo}</TableCell>
-                      <TableCell>{request.bookNo}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={request.cntnrStatus || request.status}
-                          color={
-                            statusColors[
-                              request.cntnrStatus || request.status
-                            ] || "default"
-                          }
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {request.totWt
-                          ? `${request.totWt} ${request.totWtUom || "KG"}`
-                          : "N/A"}
-                      </TableCell>
-                      <TableCell>{request.vgmEvalMethod}</TableCell>
-                      <TableCell>
-                        {dayjs(request.createdAt).format("DD/MM/YYYY HH:mm")}
-                      </TableCell>
-                      <TableCell>
-                        <Box sx={{ display: "flex", gap: 1 }}>
-                          <IconButton
-                            size="small"
-                            onClick={() => viewRequestDetails(request)}
-                            color="primary"
+            <div className="table-container">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>VGM ID</th>
+                    <th>Container</th>
+                    <th>Booking</th>
+                    <th>Status</th>
+                    <th>Weight</th>
+                    <th>Method</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {requests.map((req, i) => (
+                    <tr key={i}>
+                      <td>{req.vgmId}</td>
+                      <td>{req.cntnrNo}</td>
+                      <td>{req.bookNo}</td>
+                      <td>
+                        <span
+                          className={`badge ${getStatusBadgeClass(
+                            req.cntnrStatus || req.status
+                          )}`}
+                        >
+                          {req.cntnrStatus || req.status}
+                        </span>
+                      </td>
+                      <td>
+                        {req.totWt ? `${req.totWt} ${req.totWtUom}` : "N/A"}
+                      </td>
+                      <td>{req.vgmEvalMethod}</td>
+                      <td>{dayjs(req.createdAt).format("DD/MM/YYYY HH:mm")}</td>
+                      <td>
+                        <div className="d-flex gap-2">
+                          <button
+                            className="btn btn-sm btn-outline"
+                            title="View"
+                            onClick={() => setSelectedRequest(req)}
                           >
-                            <ViewIcon />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleEditRequest(request)}
-                            color="secondary"
-                            disabled={request.status === "Verified"} // Disable edit for verified requests
-                            title={
-                              request.status === "Verified"
-                                ? "Cannot edit verified requests"
-                                : "Edit Request"
-                            }
+                            <Icons.Eye />
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline"
+                            title="Edit"
+                            disabled={req.status === "Verified"}
+                            onClick={() => handleEditRequest(req)}
                           >
-                            <EditIcon />
-                          </IconButton>
-                        </Box>
-                      </TableCell>
-                    </TableRow>
+                            <Icons.Edit />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
                   ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                </tbody>
+              </table>
+            </div>
 
+            {/* Simple Pagination */}
             {pagination.pages > 1 && (
-              <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-                <Pagination
-                  count={pagination.pages}
-                  page={pagination.page}
-                  onChange={(event, page) => fetchVGMRequests(page)}
-                  color="primary"
-                />
-              </Box>
+              <div className="d-flex justify-between mt-4">
+                <span>
+                  Page {pagination.page} of {pagination.pages}
+                </span>
+                <div className="d-flex gap-2">
+                  <button
+                    className="btn btn-sm btn-outline"
+                    disabled={pagination.page === 1}
+                    onClick={() => fetchVGMRequests(pagination.page - 1)}
+                  >
+                    Previous
+                  </button>
+                  <button
+                    className="btn btn-sm btn-outline"
+                    disabled={pagination.page === pagination.pages}
+                    onClick={() => fetchVGMRequests(pagination.page + 1)}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
             )}
           </>
         )}
-      </Paper>
+      </div>
 
-      <Alert severity="info" sx={{ mt: 3 }}>
-        <Typography variant="body2">
-          <strong>About VGM Status:</strong>
-          <br />• <strong>Verified</strong>: VGM has been successfully verified
-          and accepted
-          <br />• <strong>Pending</strong>: VGM is awaiting verification or
-          weighment details
-          <br />• <strong>Requested</strong>: VGM submission has been received
-          and is being processed
-          <br />• <strong>Failed</strong>: VGM submission failed due to errors
-          or invalid data
-        </Typography>
-      </Alert>
-
-      {/* Request Details Dialog */}
-      <Dialog
-        open={detailDialogOpen}
-        onClose={() => setDetailDialogOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          VGM Request Details - {selectedRequest?.vgmId}
-        </DialogTitle>
-        <DialogContent>
-          {selectedRequest && (
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={6}>
-                <Typography variant="body2" color="textSecondary">
-                  VGM ID
-                </Typography>
-                <Typography variant="body1">{selectedRequest.vgmId}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="body2" color="textSecondary">
-                  Status
-                </Typography>
-                <Chip
-                  label={selectedRequest.cntnrStatus || selectedRequest.status}
-                  color={
-                    statusColors[
-                      selectedRequest.cntnrStatus || selectedRequest.status
-                    ] || "default"
-                  }
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="body2" color="textSecondary">
-                  Container No
-                </Typography>
-                <Typography variant="body1">
-                  {selectedRequest.cntnrNo}
-                </Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="body2" color="textSecondary">
-                  Booking No
-                </Typography>
-                <Typography variant="body1">
-                  {selectedRequest.bookNo}
-                </Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="body2" color="textSecondary">
-                  VGM Method
-                </Typography>
-                <Typography variant="body1">
-                  {selectedRequest.vgmEvalMethod}
-                </Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="body2" color="textSecondary">
-                  Total Weight
-                </Typography>
-                <Typography variant="body1">
-                  {selectedRequest.totWt
-                    ? `${selectedRequest.totWt} ${
-                        selectedRequest.totWtUom || "KG"
-                      }`
-                    : "N/A"}
-                </Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="body2" color="textSecondary">
-                  Weighbridge Slip
-                </Typography>
-                <Typography variant="body1">
-                  {selectedRequest.weighBridgeSlipNo || "N/A"}
-                </Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="body2" color="textSecondary">
-                  Weighing Time
-                </Typography>
-                <Typography variant="body1">
-                  {selectedRequest.weighBridgeWtTs || "N/A"}
-                </Typography>
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="body2" color="textSecondary">
-                  Response
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    p: 1,
-                    backgroundColor: "#f5f5f5",
-                    borderRadius: 1,
-                    fontFamily: "monospace",
+      {/* Detail Modal */}
+      {selectedRequest && (
+        <div className="modal-overlay" onClick={() => setSelectedRequest(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Details: {selectedRequest.vgmId}</h3>
+              <button
+                className="close-btn"
+                onClick={() => setSelectedRequest(null)}
+              >
+                &times;
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="form-grid">
+                <div>
+                  <label className="text-muted">Status</label>
+                  <div>{selectedRequest.status}</div>
+                </div>
+                <div>
+                  <label className="text-muted">Container</label>
+                  <div>{selectedRequest.cntnrNo}</div>
+                </div>
+                <div>
+                  <label className="text-muted">Booking</label>
+                  <div>{selectedRequest.bookNo}</div>
+                </div>
+                <div>
+                  <label className="text-muted">Total Weight</label>
+                  <div>
+                    {selectedRequest.totWt} {selectedRequest.totWtUom}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-muted">Weighbridge</label>
+                  <div>{selectedRequest.weighBridgeSlipNo || "N/A"}</div>
+                </div>
+                <div>
+                  <label className="text-muted">Time</label>
+                  <div>{selectedRequest.weighBridgeWtTs || "N/A"}</div>
+                </div>
+              </div>
+              <div className="mt-4">
+                <label className="text-muted">API Response</label>
+                <pre
+                  style={{
+                    background: "#f1f5f9",
+                    padding: "1rem",
+                    borderRadius: "4px",
+                    overflowX: "auto",
                   }}
                 >
-                  {selectedRequest.response}
-                </Typography>
-              </Grid>
-            </Grid>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDetailDialogOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
-    </Paper>
+                  {JSON.stringify(selectedRequest.response || {}, null, 2)}
+                </pre>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn btn-primary"
+                onClick={() => setSelectedRequest(null)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

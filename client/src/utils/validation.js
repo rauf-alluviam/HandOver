@@ -1,5 +1,5 @@
 import * as Yup from "yup";
-import { getTerminalCodesByPort } from "./constants/masterData.js";
+import { getTerminalCodesByPort } from "./constants/masterDataVGM.js";
 
 export const containerNoRegex = /^[A-Z]{4}\d{7}$/;
 export const panNoRegex = /^[A-Z]{5}\d{4}[A-Z]{1}$/;

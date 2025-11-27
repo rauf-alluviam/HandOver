@@ -1,85 +1,148 @@
 // src/components/Dashboard/Dashboard.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Container,
-  Grid,
-  Card,
-  CardContent,
-  CardActions,
-  Button,
-  Typography,
-  Box,
-  Paper,
-  Chip,
-  Avatar,
-  Stack,
-  Divider,
-  alpha,
-  useTheme,
-} from "@mui/material";
-import {
-  Assignment as VGMIcon,
-  Description as FormIcon,
-  QueryBuilder as StatusIcon,
-  Logout as LogoutIcon,
-  Person as UserIcon,
-  Business as BusinessIcon,
-  TrendingUp as StatsIcon,
-  LocalShipping as ShippingIcon,
-} from "@mui/icons-material";
 import { useAuth } from "../context/AuthContext";
+import "../styles/Dashboard.scss";
+
+// --- Inline SVG Icons ---
+const Icons = {
+  VGM: () => (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+      <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+      <path d="M9 14h6" />
+      <path d="M9 10h6" />
+      <path d="M9 18h6" />
+    </svg>
+  ),
+  Form: () => (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+      <polyline points="14 2 14 8 20 8" />
+      <path d="M12 18v-6" />
+      <path d="M8 15l4 3 4-3" />
+    </svg>
+  ),
+  Status: () => (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  ),
+  Logout: () => (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+  ),
+  Stats: () => (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="18" y1="20" x2="18" y2="10" />
+      <line x1="12" y1="20" x2="12" y2="4" />
+      <line x1="6" y1="20" x2="6" y2="14" />
+    </svg>
+  ),
+  Ship: () => (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+      <line x1="8" y1="21" x2="16" y2="21" />
+      <line x1="12" y1="17" x2="12" y2="21" />
+    </svg>
+  ),
+  Business: () => (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 21h18" />
+      <path d="M5 21V7l8-4 8 4v14" />
+      <path d="M17 21v-8H7v8" />
+      <line x1="17" y1="17" x2="17" y2="17.01" />
+      <line x1="17" y1="13" x2="17" y2="13.01" />
+      <line x1="7" y1="13" x2="7" y2="13.01" />
+      <line x1="7" y1="17" x2="7" y2="17.01" />
+      <line x1="12" y1="13" x2="12" y2="13.01" />
+      <line x1="12" y1="17" x2="12" y2="17.01" />
+    </svg>
+  ),
+  Check: () => (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  ),
+};
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { userData, shippers, logout } = useAuth();
-  const theme = useTheme();
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
-  const StatCard = ({ icon, value, label, color = "primary" }) => (
-    <Paper
-      sx={{
-        p: 2,
-        textAlign: "center",
-        background: `linear-gradient(135deg, ${alpha(
-          theme.palette[color].main,
-          0.1
-        )} 0%, ${alpha(theme.palette[color].main, 0.05)} 100%)`,
-        border: `1px solid ${alpha(theme.palette[color].main, 0.2)}`,
-        borderRadius: 3,
-      }}
-    >
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          mb: 1,
-        }}
-      >
-        <Avatar
-          sx={{
-            bgcolor: alpha(theme.palette[color].main, 0.1),
-            width: 48,
-            height: 48,
-          }}
-        >
-          {React.cloneElement(icon, {
-            sx: { color: theme.palette[color].main, fontSize: 24 },
-          })}
-        </Avatar>
-      </Box>
-      <Typography variant="h4" fontWeight="bold" color={color}>
-        {value}
-      </Typography>
-      <Typography variant="body2" color="text.secondary" fontWeight="medium">
-        {label}
-      </Typography>
-    </Paper>
+  const StatCard = ({ icon, value, label, variant = "blue" }) => (
+    <div className={`stat-card variant-${variant}`}>
+      <div className="stat-icon-wrapper">{icon}</div>
+      <div className="stat-content">
+        <span className="stat-value">{value}</span>
+        <span className="stat-label">{label}</span>
+      </div>
+    </div>
   );
 
   const FeatureCard = ({
@@ -89,397 +152,194 @@ const Dashboard = () => {
     buttonText,
     onClick,
     disabled = false,
-    color = "primary",
   }) => (
-    <Card
-      sx={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        transition: "all 0.3s ease",
-        border: `1px solid ${alpha(theme.palette[color].main, 0.1)}`,
-        background: disabled
-          ? `linear-gradient(135deg, ${theme.palette.grey[50]} 0%, ${theme.palette.grey[100]} 100%)`
-          : `linear-gradient(135deg, ${alpha(
-              theme.palette[color].main,
-              0.02
-            )} 0%, ${alpha(theme.palette[color].main, 0.01)} 100%)`,
-        "&:hover": disabled
-          ? {}
-          : {
-              transform: "translateY(-4px)",
-              boxShadow: `0 8px 24px ${alpha(theme.palette[color].main, 0.15)}`,
-              border: `1px solid ${alpha(theme.palette[color].main, 0.3)}`,
-            },
-      }}
-    >
-      <CardContent sx={{ flexGrow: 1, p: 3 }}>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-          <Avatar
-            sx={{
-              bgcolor: disabled
-                ? theme.palette.grey[300]
-                : alpha(theme.palette[color].main, 0.1),
-              width: 56,
-              height: 56,
-              mr: 2,
-            }}
-          >
-            {React.cloneElement(icon, {
-              sx: {
-                color: disabled
-                  ? theme.palette.grey[500]
-                  : theme.palette[color].main,
-                fontSize: 28,
-              },
-            })}
-          </Avatar>
-          <Typography variant="h6" component="h2" fontWeight="bold">
-            {title}
-          </Typography>
-        </Box>
-        <Typography
-          variant="body2"
-          color={disabled ? "text.disabled" : "text.secondary"}
-          sx={{ lineHeight: 1.6 }}
-        >
-          {description}
-        </Typography>
-      </CardContent>
-      <CardActions sx={{ p: 3, pt: 0 }}>
-        <Button
-          size="medium"
-          variant={disabled ? "outlined" : "contained"}
-          onClick={onClick}
-          disabled={disabled}
-          fullWidth
-          sx={{
-            borderRadius: 2,
-            py: 1,
-            fontWeight: "bold",
-            ...(disabled
-              ? {}
-              : {
-                  background: `linear-gradient(135deg, ${theme.palette[color].main} 0%, ${theme.palette[color].dark} 100%)`,
-                  boxShadow: `0 4px 12px ${alpha(
-                    theme.palette[color].main,
-                    0.3
-                  )}`,
-                }),
-          }}
-        >
+    <div className={`feature-card ${disabled ? "disabled" : ""}`}>
+      <div className="card-body">
+        <div className="card-header">
+          <div className="card-icon">{icon}</div>
+          <h3>{title}</h3>
+        </div>
+        <p>{description}</p>
+      </div>
+      <div className="card-footer">
+        <button onClick={onClick} disabled={disabled} className="btn-primary">
           {buttonText}
-        </Button>
-      </CardActions>
-    </Card>
+        </button>
+      </div>
+    </div>
   );
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
-      {/* Header Section */}
-      <Paper
-        sx={{
-          p: 4,
-          mb: 4,
-          borderRadius: 3,
-          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-          color: "white",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        <Box sx={{ position: "relative", zIndex: 1 }}>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              mb: 2,
-            }}
-          >
-            <Box>
-              <Typography variant="h3" fontWeight="bold" gutterBottom>
-                ODeX Portal
-              </Typography>
-              <Typography variant="h6" sx={{ opacity: 0.9 }}>
-                VGM & Form 13 Management System
-              </Typography>
-            </Box>
-            <Button
-              variant="outlined"
-              onClick={handleLogout}
-              startIcon={<LogoutIcon />}
-              sx={{
-                color: "white",
-                borderColor: "white",
-                "&:hover": {
-                  backgroundColor: alpha("#fff", 0.1),
-                  borderColor: "white",
-                },
-              }}
-            >
+    <div className="dashboard-layout">
+      {/* Top Navbar */}
+      <header className="top-nav">
+        <div className="nav-container">
+          <div className="nav-brand">
+            <div className="brand-logo">OD</div>
+            <div className="brand-text">
+              <h1>ODeX Portal</h1>
+              <span>Enterprise Logistics</span>
+            </div>
+          </div>
+
+          <div className="nav-actions">
+            <div className="user-info">
+              <span className="user-name">
+                {userData?.pyrName || userData?.pyrCode || "User"}
+              </span>
+              <span className="user-role">{userData?.pyrType || "User"}</span>
+            </div>
+            <button onClick={handleLogout} className="btn-logout">
+              <Icons.Logout />
               Logout
-            </Button>
-          </Box>
+            </button>
+          </div>
+        </div>
+      </header>
 
-          <Grid container spacing={3} sx={{ mt: 2 }}>
-            <Grid item xs={12} md={6}>
-              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                <UserIcon sx={{ mr: 1, opacity: 0.9 }} />
-                <Typography variant="body1" fontWeight="medium">
-                  Welcome, {userData?.pyrName || userData?.pyrCode}
-                </Typography>
-              </Box>
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                {/* <CompanyIcon sx={{ mr: 1, opacity: 0.9 }} /> */}
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  {userData?.pyrCode} • {userData?.pyrType || "User"}
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                <ShippingIcon sx={{ mr: 1, opacity: 0.9 }} />
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  Shipping Line: {userData?.bnfCode || "All"}
-                </Typography>
-              </Box>
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                {/* <Business sx={{ mr: 1, opacity: 0.9 }} /> */}
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  Port Access: {userData?.locId || "Multiple Ports"}
-                </Typography>
-              </Box>
-            </Grid>
-          </Grid>
-        </Box>
+      <main className="main-content">
+        {/* Welcome Section */}
+        <section className="welcome-banner">
+          <div className="banner-content">
+            <h2>Dashboard Overview</h2>
+            <p>
+              Manage your VGM & Form 13 submissions. Monitor status and
+              authorized shippers.
+            </p>
 
-        {/* Background Pattern */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: -50,
-            right: -50,
-            width: 200,
-            height: 200,
-            borderRadius: "50%",
-            background: alpha("#fff", 0.1),
-          }}
-        />
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: -80,
-            right: 100,
-            width: 150,
-            height: 150,
-            borderRadius: "50%",
-            background: alpha("#fff", 0.05),
-          }}
-        />
-      </Paper>
+            <div className="banner-badges">
+              <div className="badge">
+                <Icons.Ship />
+                <span>Line: {userData?.bnfCode || "All"}</span>
+              </div>
+              <div className="badge">
+                <Icons.Business />
+                <span>Port: {userData?.locId || "Multiple"}</span>
+              </div>
+            </div>
+          </div>
+          <div className="banner-decoration"></div>
+        </section>
 
-      {/* Statistics Section */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
+        {/* KPI / Stats Section */}
+        <section className="stats-grid">
           <StatCard
-            icon={<VGMIcon />}
+            icon={<Icons.VGM />}
             value="0"
             label="Today's VGM"
-            color="primary"
+            variant="blue"
           />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
           <StatCard
-            icon={<FormIcon />}
+            icon={<Icons.Form />}
             value="0"
             label="Form 13 Today"
-            color="info"
+            variant="cyan"
           />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
           <StatCard
-            icon={<StatusIcon />}
+            icon={<Icons.Status />}
             value="0"
             label="Pending Status"
-            color="warning"
+            variant="orange"
           />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
           <StatCard
-            icon={<StatsIcon />}
+            icon={<Icons.Stats />}
             value="0"
             label="Total Submissions"
-            color="success"
+            variant="green"
           />
-        </Grid>
-      </Grid>
+        </section>
 
-      {/* Authorized Shippers Section */}
-      {shippers.length > 0 && (
-        <Paper
-          sx={{
-            p: 3,
-            mb: 4,
-            borderRadius: 3,
-            border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-            background: `linear-gradient(135deg, ${alpha(
-              theme.palette.primary.main,
-              0.02
-            )} 0%, ${alpha(theme.palette.primary.main, 0.01)} 100%)`,
-          }}
-        >
-          <Typography
-            variant="h6"
-            fontWeight="bold"
-            gutterBottom
-            sx={{ display: "flex", alignItems: "center" }}
-          >
-            <Business sx={{ mr: 1, color: "primary.main" }} />
-            Authorized Shippers
-          </Typography>
-          <Divider sx={{ my: 2 }} />
-          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-            {shippers.map((shipper, index) => (
-              <Chip
-                key={index}
-                label={`${shipper.shipperNm} (${shipper.shipperRegNo})`}
-                variant="outlined"
-                color="primary"
-                sx={{
-                  mb: 1,
-                  borderColor: alpha(theme.palette.primary.main, 0.3),
-                  background: alpha(theme.palette.primary.main, 0.05),
-                }}
-              />
-            ))}
-          </Stack>
-        </Paper>
-      )}
-
-      {/* Features Grid */}
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
+        {/* Main Features */}
+        <section className="features-grid">
           <FeatureCard
-            icon={<VGMIcon />}
+            icon={<Icons.VGM />}
             title="VGM Submission"
-            description="Submit Verified Gross Mass declarations for containers as per SOLAS requirements. Ensure compliance with international shipping regulations."
+            description="Submit Verified Gross Mass declarations per SOLAS requirements. Ensure compliance with shipping regulations."
             buttonText="Submit VGM"
             onClick={() => navigate("/vgm")}
-            color="primary"
           />
-        </Grid>
-
-        <Grid item xs={12} md={4}>
           <FeatureCard
-            icon={<FormIcon />}
+            icon={<Icons.Form />}
             title="Form 13 Submission"
-            description="Submit Export Gate Pass (Form 13) for container authorization. Digital submission to shipping lines via ODeX API integration."
+            description="Generate Export Gate Pass (Form 13) for container authorization. Direct API submission to lines."
             buttonText="Submit Form 13"
             onClick={() => navigate("/form13")}
-            color="info"
           />
-        </Grid>
-
-        <Grid item xs={12} md={4}>
           <FeatureCard
-            icon={<StatusIcon />}
-            title="Request Status"
-            description="Track the status of submitted VGM and Form 13 requests in real-time. Monitor container verification and get instant updates."
+            icon={<Icons.Status />}
+            title="Track Requests"
+            description="Monitor real-time status of your containers. View history and download confirmation reports."
             buttonText="Check Status"
             onClick={() => navigate("/vgm-status")}
-            color="success"
           />
-        </Grid>
-      </Grid>
+        </section>
 
-      {/* Quick Actions Footer */}
-      <Paper
-        sx={{
-          mt: 4,
-          p: 3,
-          borderRadius: 3,
-          background: alpha(theme.palette.grey[50], 0.5),
-          border: `1px solid ${theme.palette.grey[200]}`,
-        }}
-      >
-        <Typography variant="h6" fontWeight="bold" gutterBottom>
-          Quick Actions
-        </Typography>
-        <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => navigate("/vgm")}
-            sx={{ borderRadius: 2 }}
-          >
-            New VGM Submission
-          </Button>
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => navigate("/form13")}
-            sx={{ borderRadius: 2 }}
-          >
-            New Form 13
-          </Button>
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => navigate("/vgm-status")}
-            sx={{ borderRadius: 2 }}
-          >
-            View All Submissions
-          </Button>
-          <Button
-            variant="outlined"
-            size="small"
-            disabled
-            sx={{ borderRadius: 2 }}
-          >
-            Download Reports
-          </Button>
-        </Stack>
-      </Paper>
+        {/* Lower Section: Shippers & Quick Actions */}
+        <div className="lower-grid">
+          {/* Authorized Shippers */}
+          {shippers.length > 0 && (
+            <div className="panel shippers-panel">
+              <div className="panel-header">
+                <h3>
+                  <Icons.Business /> Authorized Shippers
+                </h3>
+                <span className="counter-badge">{shippers.length} Active</span>
+              </div>
+              <div className="panel-body">
+                <div className="shipper-list">
+                  {shippers.map((shipper, index) => (
+                    <div key={index} className="shipper-item">
+                      <span className="status-dot"></span>
+                      <span className="shipper-name">{shipper.shipperNm}</span>
+                      <span className="shipper-reg">
+                        {shipper.shipperRegNo}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
-      {/* System Status */}
-      <Paper
-        sx={{
-          mt: 3,
-          p: 2,
-          borderRadius: 2,
-          background: alpha(theme.palette.info.main, 0.05),
-          border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
-        }}
-      >
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <Box
-              sx={{
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                bgcolor: "success.main",
-                mr: 1,
-                animation: "pulse 2s infinite",
-              }}
-            />
-            <Typography variant="body2" color="text.secondary">
-              System Status: <strong>All Systems Operational</strong>
-            </Typography>
-          </Box>
-          <Typography variant="caption" color="text.secondary">
-            ODeX API: Connected • Form 13: Available
-          </Typography>
-        </Box>
-      </Paper>
-    </Container>
+          {/* Sidebar / Quick Actions */}
+          <div className="sidebar-column">
+            <div className="panel quick-actions-panel">
+              <div className="panel-header">
+                <h3>Quick Shortcuts</h3>
+              </div>
+              <div className="action-list">
+                <button
+                  onClick={() => navigate("/vgm")}
+                  className="action-link"
+                >
+                  New VGM Submission <span>&rarr;</span>
+                </button>
+                <button
+                  onClick={() => navigate("/form13")}
+                  className="action-link"
+                >
+                  New Form 13 <span>&rarr;</span>
+                </button>
+                <button
+                  onClick={() => navigate("/vgm-status")}
+                  className="action-link"
+                >
+                  View All Submissions <span>&rarr;</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="system-status-card">
+              <div className="status-indicator">
+                <span className="pulse-dot"></span>
+                <span>System Operational</span>
+              </div>
+              <p>ODeX API Connection: Stable</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
   );
 };
 

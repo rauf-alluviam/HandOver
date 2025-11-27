@@ -1,0 +1,382 @@
+@use "sass:color";
+
+// --- Variables (Compact) ---
+$primary: #2563eb;
+$primary-hover: #1d4ed8;
+$bg-color: #f1f5f9; // Slightly darker bg for contrast
+$surface: #ffffff;
+$border: #cbd5e1; // Slightly darker border for definition
+$text-main: #0f172a;
+$text-muted: #64748b;
+$danger: #dc2626;
+$success: #16a34a;
+$warning: #d97706;
+
+// Density Variables
+$radius: 4px; // Sharper corners
+$input-height: 32px;
+$font-size-base: 13px;
+$font-size-sm: 12px;
+$spacing-base: 0.75rem; // 12px padding
+
+// --- Layout ---
+.vgm-container {
+  padding: 1rem;
+  max-width: 100%;
+  margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  font-size: $font-size-base;
+  color: $text-main;
+  background-color: $bg-color;
+  min-height: 100vh;
+}
+
+.page-header {
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  h2 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin: 0;
+    color: $text-main;
+  }
+
+  .header-meta {
+    font-size: $font-size-sm;
+    color: $text-muted;
+    background: color.adjust($bg-color, $lightness: -3%);
+    padding: 2px 8px;
+    border-radius: $radius;
+    border: 1px solid $border;
+  }
+}
+
+// --- Compact Panels ---
+.panel {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  padding: $spacing-base; // Reduced padding
+  margin-bottom: $spacing-base;
+
+  .panel-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    color: $text-muted;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid $border;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+// --- Dense Grid System ---
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 0.75rem 1rem; // Row gap 0.75rem, Col gap 1rem
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, 1fr);
+  } // 4 Columns for density
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  label {
+    font-size: $font-size-sm;
+    font-weight: 600;
+    color: $text-muted;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    .required {
+      color: $danger;
+      margin-left: 2px;
+    }
+  }
+
+  .form-control {
+    height: $input-height;
+    padding: 0 0.5rem;
+    border: 1px solid $border;
+    border-radius: $radius;
+    font-size: $font-size-base;
+    background-color: #fff;
+    transition: all 0.15s ease-in-out;
+    width: 100%;
+
+    &:focus {
+      outline: none;
+      border-color: $primary;
+      box-shadow: 0 0 0 2px rgba($primary, 0.1);
+    }
+
+    &.error {
+      border-color: $danger;
+      background-color: #fef2f2;
+    }
+    &:disabled {
+      background-color: #f8fafc;
+      color: $text-muted;
+      cursor: not-allowed;
+    }
+  }
+
+  .error-text {
+    font-size: 11px;
+    color: $danger;
+    margin-top: 1px;
+  }
+}
+
+// --- Buttons (Compact) ---
+.btn {
+  height: $input-height;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+  font-size: $font-size-sm;
+  font-weight: 600;
+  border-radius: $radius;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+  gap: 0.5rem;
+  white-space: nowrap;
+
+  &.btn-primary {
+    background-color: $primary;
+    color: white;
+    &:hover:not(:disabled) {
+      background-color: $primary-hover;
+    }
+  }
+
+  &.btn-outline {
+    background-color: white;
+    border-color: $border;
+    color: $text-main;
+    &:hover {
+      background-color: #f8fafc;
+      border-color: color.adjust($border, $lightness: -10%);
+    }
+  }
+
+  &.btn-icon {
+    width: $input-height;
+    padding: 0;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// --- Alerts (Slim) ---
+.alert {
+  padding: 0.5rem 0.75rem;
+  border-radius: $radius;
+  margin-bottom: $spacing-base;
+  font-size: $font-size-sm;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid transparent;
+
+  &.alert-info {
+    background: #eff6ff;
+    color: #1e40af;
+    border-color: #dbeafe;
+  }
+  &.alert-warning {
+    background: #fffbeb;
+    color: #92400e;
+    border-color: #fcd34d;
+  }
+}
+
+// --- Dense Table ---
+.table-container {
+  overflow-x: auto;
+  border: 1px solid $border;
+  border-radius: $radius;
+  background: white;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: $font-size-sm;
+
+  thead {
+    background-color: #f8fafc;
+    th {
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      font-weight: 600;
+      color: $text-muted;
+      border-bottom: 1px solid $border;
+      white-space: nowrap;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid $border;
+      &:last-child {
+        border-bottom: none;
+      }
+      &:hover {
+        background-color: #f8fafc;
+      }
+    }
+    td {
+      padding: 0.4rem 0.75rem;
+      color: $text-main;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+  }
+}
+
+// --- Badges (Mini) ---
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.5rem;
+  height: 20px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+
+  &.badge-success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+  }
+  &.badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+  }
+  &.badge-info {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+  }
+  &.badge-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+  }
+}
+
+// --- Utilities ---
+.d-flex {
+  display: flex;
+  align-items: center;
+}
+.justify-between {
+  justify-content: space-between;
+}
+.gap-2 {
+  gap: 0.5rem;
+}
+.text-right {
+  text-align: right;
+}
+.w-full {
+  width: 100%;
+}
+.mt-2 {
+  margin-top: 0.5rem;
+}
+
+// File Upload Compact
+.file-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+  border-bottom: 1px dashed $border;
+  font-size: $font-size-sm;
+
+  &:last-child {
+    border-bottom: none;
+  }
+  .file-label {
+    width: 30%;
+    font-weight: 500;
+  }
+  .file-name {
+    width: 40%;
+    color: $text-muted;
+    font-style: italic;
+  }
+  .file-actions {
+    width: 30%;
+    text-align: right;
+  }
+}
+
+// Modal Dense
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.modal-content {
+  background: white;
+  width: 95%;
+  max-width: 650px;
+  border-radius: $radius;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+
+  .modal-header {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid $border;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+  }
+  .modal-body {
+    padding: 1rem;
+    overflow-y: auto;
+  }
+  .modal-footer {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid $border;
+    text-align: right;
+  }
+}

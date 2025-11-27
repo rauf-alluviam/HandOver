@@ -13,12 +13,18 @@ import {
   Typography,
   Button,
   IconButton,
+  Paper,
   Box,
   Divider,
   Chip,
 } from "@mui/material";
-import { Delete as DeleteIcon, Add as AddIcon } from "@mui/icons-material";
+import {
+  Assignment as AssignmentIcon,
+  Delete as DeleteIcon,
+  Add as AddIcon,
+} from "@mui/icons-material";
 import { masterData, getIsoCodesBySize } from "../../data/masterData";
+import Form13ShippingBillSection from "./Form13ShippingBillSection";
 
 const Form13ContainerSection = ({
   formData,
@@ -27,13 +33,13 @@ const Form13ContainerSection = ({
   onRemoveContainer,
   validationErrors = {},
 }) => {
-  const {
-    containerSizes,
-    specialStowOptions,
-    odcUnits,
-    imoNumbers
-  } = masterData;
-
+  const { containerSizes, specialStowOptions, odcUnits, imoNumbers } =
+    masterData;
+  const inputProps = {
+    size: "small",
+    fullWidth: true,
+    variant: "outlined",
+  };
   const renderContainerFields = (container, index) => {
     const availableIsoCodes = getIsoCodesBySize(container.cntnrSize);
 
@@ -71,21 +77,33 @@ const Form13ContainerSection = ({
                 label="Container No *"
                 value={container.cntnrNo}
                 onChange={(e) =>
-                  onFormDataChange("containers", "cntnrNo", e.target.value, index)
+                  onFormDataChange(
+                    "containers",
+                    "cntnrNo",
+                    e.target.value,
+                    index
+                  )
                 }
                 required
-                inputProps={{ 
+                inputProps={{
                   pattern: "[A-Za-z]{4}[0-9]{7}",
-                  maxLength: 11
+                  maxLength: 11,
                 }}
                 error={!!validationErrors[`container_${index}_cntnrNo`]}
-                helperText={validationErrors[`container_${index}_cntnrNo`] || "Format: 4 letters + 7 numbers"}
+                helperText={
+                  validationErrors[`container_${index}_cntnrNo`] ||
+                  "Format: 4 letters + 7 numbers"
+                }
               />
             </Grid>
 
             {/* Container Size */}
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth required error={!!validationErrors[`container_${index}_cntnrSize`]}>
+              <FormControl
+                fullWidth
+                required
+                error={!!validationErrors[`container_${index}_cntnrSize`]}
+              >
                 <InputLabel>Container Size *</InputLabel>
                 <Select
                   value={container.cntnrSize}
@@ -115,7 +133,11 @@ const Form13ContainerSection = ({
 
             {/* ISO Code */}
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth required error={!!validationErrors[`container_${index}_iso`]}>
+              <FormControl
+                fullWidth
+                required
+                error={!!validationErrors[`container_${index}_iso`]}
+              >
                 <InputLabel>ISO Code *</InputLabel>
                 <Select
                   value={container.iso}
@@ -209,12 +231,20 @@ const Form13ContainerSection = ({
                   type="number"
                   value={container.vgmWt}
                   onChange={(e) =>
-                    onFormDataChange("containers", "vgmWt", e.target.value, index)
+                    onFormDataChange(
+                      "containers",
+                      "vgmWt",
+                      e.target.value,
+                      index
+                    )
                   }
                   required
                   inputProps={{ step: "0.01", min: "0" }}
                   error={!!validationErrors[`container_${index}_vgmWt`]}
-                  helperText={validationErrors[`container_${index}_vgmWt`] || "Weight in Metric Tons"}
+                  helperText={
+                    validationErrors[`container_${index}_vgmWt`] ||
+                    "Weight in Metric Tons"
+                  }
                 />
               </Grid>
             )}
@@ -247,72 +277,108 @@ const Form13ContainerSection = ({
                   label="Shipping Instruction No *"
                   value={container.shpInstructNo}
                   onChange={(e) =>
-                    onFormDataChange("containers", "shpInstructNo", e.target.value, index)
+                    onFormDataChange(
+                      "containers",
+                      "shpInstructNo",
+                      e.target.value,
+                      index
+                    )
                   }
                   required
                   error={!!validationErrors[`container_${index}_shpInstructNo`]}
-                  helperText={validationErrors[`container_${index}_shpInstructNo`]}
+                  helperText={
+                    validationErrors[`container_${index}_shpInstructNo`]
+                  }
                 />
               </Grid>
             )}
 
             {/* Vehicle No - Conditional for Mundra Factory Stuffed/ICD by Road */}
-            {formData.locId === "INMUN1" && (formData.origin === "F" || formData.origin === "R") && (
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Vehicle No *"
-                  value={container.vehicleNo}
-                  onChange={(e) =>
-                    onFormDataChange("containers", "vehicleNo", e.target.value, index)
-                  }
-                  required
-                  error={!!validationErrors[`container_${index}_vehicleNo`]}
-                  helperText={validationErrors[`container_${index}_vehicleNo`]}
-                />
-              </Grid>
-            )}
-
-            {/* Special Stow - Conditional for NSICT/NSIGT/BMCT/CCTL/ICT */}
-            {formData.locId === "INNSA1" && 
-              ["NSICT", "NSIGT", "BMCT", "CCTL", "ICT"].includes(formData.terminalCode) && (
-              <>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth required error={!!validationErrors[`container_${index}_spclStow`]}>
-                    <InputLabel>Special Stow *</InputLabel>
-                    <Select
-                      value={container.spclStow}
-                      label="Special Stow *"
-                      onChange={(e) =>
-                        onFormDataChange("containers", "spclStow", e.target.value, index)
-                      }
-                    >
-                      {specialStowOptions.map((stow) => (
-                        <MenuItem key={stow.value} value={stow.value}>
-                          {stow.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
+            {formData.locId === "INMUN1" &&
+              (formData.origin === "F" || formData.origin === "R") && (
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
-                    label="Special Stow Remark *"
-                    value={container.spclStowRemark}
+                    label="Vehicle No *"
+                    value={container.vehicleNo}
                     onChange={(e) =>
-                      onFormDataChange("containers", "spclStowRemark", e.target.value, index)
+                      onFormDataChange(
+                        "containers",
+                        "vehicleNo",
+                        e.target.value,
+                        index
+                      )
                     }
                     required
-                    error={!!validationErrors[`container_${index}_spclStowRemark`]}
-                    helperText={validationErrors[`container_${index}_spclStowRemark`]}
+                    error={!!validationErrors[`container_${index}_vehicleNo`]}
+                    helperText={
+                      validationErrors[`container_${index}_vehicleNo`]
+                    }
                   />
                 </Grid>
-              </>
-            )}
+              )}
+
+            {/* Special Stow - Conditional for NSICT/NSIGT/BMCT/CCTL/ICT */}
+            {formData.locId === "INNSA1" &&
+              ["NSICT", "NSIGT", "BMCT", "CCTL", "ICT"].includes(
+                formData.terminalCode
+              ) && (
+                <>
+                  <Grid item xs={12} sm={6}>
+                    <FormControl
+                      fullWidth
+                      required
+                      error={!!validationErrors[`container_${index}_spclStow`]}
+                    >
+                      <InputLabel>Special Stow *</InputLabel>
+                      <Select
+                        value={container.spclStow}
+                        label="Special Stow *"
+                        onChange={(e) =>
+                          onFormDataChange(
+                            "containers",
+                            "spclStow",
+                            e.target.value,
+                            index
+                          )
+                        }
+                      >
+                        {specialStowOptions.map((stow) => (
+                          <MenuItem key={stow.value} value={stow.value}>
+                            {stow.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Special Stow Remark *"
+                      value={container.spclStowRemark}
+                      onChange={(e) =>
+                        onFormDataChange(
+                          "containers",
+                          "spclStowRemark",
+                          e.target.value,
+                          index
+                        )
+                      }
+                      required
+                      error={
+                        !!validationErrors[`container_${index}_spclStowRemark`]
+                      }
+                      helperText={
+                        validationErrors[`container_${index}_spclStowRemark`]
+                      }
+                    />
+                  </Grid>
+                </>
+              )}
 
             {/* Hazardous Fields - Conditional for HAZ cargo */}
-            {(formData.cargoTp === "HAZ" || formData.cargoTp.includes("HAZ")) && (
+            {(formData.cargoTp === "HAZ" ||
+              formData.cargoTp.includes("HAZ")) && (
               <>
                 <Grid item xs={12}>
                   <Typography variant="subtitle2" color="warning.main">
@@ -320,13 +386,22 @@ const Form13ContainerSection = ({
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
-                  <FormControl fullWidth required error={!!validationErrors[`container_${index}_imoNo1`]}>
+                  <FormControl
+                    fullWidth
+                    required
+                    error={!!validationErrors[`container_${index}_imoNo1`]}
+                  >
                     <InputLabel>IMO No 1 *</InputLabel>
                     <Select
                       value={container.imoNo1}
                       label="IMO No 1 *"
                       onChange={(e) =>
-                        onFormDataChange("containers", "imoNo1", e.target.value, index)
+                        onFormDataChange(
+                          "containers",
+                          "imoNo1",
+                          e.target.value,
+                          index
+                        )
                       }
                     >
                       {imoNumbers.map((imo) => (
@@ -343,7 +418,12 @@ const Form13ContainerSection = ({
                     label="UN No 1 *"
                     value={container.unNo1}
                     onChange={(e) =>
-                      onFormDataChange("containers", "unNo1", e.target.value, index)
+                      onFormDataChange(
+                        "containers",
+                        "unNo1",
+                        e.target.value,
+                        index
+                      )
                     }
                     required
                     error={!!validationErrors[`container_${index}_unNo1`]}
@@ -357,7 +437,12 @@ const Form13ContainerSection = ({
                       value={container.imoNo2}
                       label="IMO No 2"
                       onChange={(e) =>
-                        onFormDataChange("containers", "imoNo2", e.target.value, index)
+                        onFormDataChange(
+                          "containers",
+                          "imoNo2",
+                          e.target.value,
+                          index
+                        )
                       }
                     >
                       {imoNumbers.map((imo) => (
@@ -374,7 +459,12 @@ const Form13ContainerSection = ({
                     label="UN No 2"
                     value={container.unNo2}
                     onChange={(e) =>
-                      onFormDataChange("containers", "unNo2", e.target.value, index)
+                      onFormDataChange(
+                        "containers",
+                        "unNo2",
+                        e.target.value,
+                        index
+                      )
                     }
                   />
                 </Grid>
@@ -382,7 +472,8 @@ const Form13ContainerSection = ({
             )}
 
             {/* Reefer Fields - Conditional for REF cargo */}
-            {(formData.cargoTp === "REF" || formData.cargoTp.includes("REF")) && (
+            {(formData.cargoTp === "REF" ||
+              formData.cargoTp.includes("REF")) && (
               <>
                 <Grid item xs={12}>
                   <Typography variant="subtitle2" color="info.main">
@@ -395,11 +486,19 @@ const Form13ContainerSection = ({
                     label="Temperature *"
                     value={container.temp}
                     onChange={(e) =>
-                      onFormDataChange("containers", "temp", e.target.value, index)
+                      onFormDataChange(
+                        "containers",
+                        "temp",
+                        e.target.value,
+                        index
+                      )
                     }
                     required
                     error={!!validationErrors[`container_${index}_temp`]}
-                    helperText={validationErrors[`container_${index}_temp`] || "Temperature setting"}
+                    helperText={
+                      validationErrors[`container_${index}_temp`] ||
+                      "Temperature setting"
+                    }
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -408,7 +507,12 @@ const Form13ContainerSection = ({
                     label="Voltage"
                     value={container.volt}
                     onChange={(e) =>
-                      onFormDataChange("containers", "volt", e.target.value, index)
+                      onFormDataChange(
+                        "containers",
+                        "volt",
+                        e.target.value,
+                        index
+                      )
                     }
                     helperText="Voltage setting"
                   />
@@ -417,7 +521,8 @@ const Form13ContainerSection = ({
             )}
 
             {/* ODC Fields - Conditional for ODC cargo */}
-            {(formData.cargoTp === "ODC" || formData.cargoTp.includes("ODC")) && (
+            {(formData.cargoTp === "ODC" ||
+              formData.cargoTp.includes("ODC")) && (
               <>
                 <Grid item xs={12}>
                   <Typography variant="subtitle2" color="secondary.main">
@@ -430,11 +535,20 @@ const Form13ContainerSection = ({
                     label="Right Dimensions *"
                     value={container.rightDimensions}
                     onChange={(e) =>
-                      onFormDataChange("containers", "rightDimensions", e.target.value, index)
+                      onFormDataChange(
+                        "containers",
+                        "rightDimensions",
+                        e.target.value,
+                        index
+                      )
                     }
                     required
-                    error={!!validationErrors[`container_${index}_rightDimensions`]}
-                    helperText={validationErrors[`container_${index}_rightDimensions`]}
+                    error={
+                      !!validationErrors[`container_${index}_rightDimensions`]
+                    }
+                    helperText={
+                      validationErrors[`container_${index}_rightDimensions`]
+                    }
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -443,11 +557,20 @@ const Form13ContainerSection = ({
                     label="Top Dimensions *"
                     value={container.topDimensions}
                     onChange={(e) =>
-                      onFormDataChange("containers", "topDimensions", e.target.value, index)
+                      onFormDataChange(
+                        "containers",
+                        "topDimensions",
+                        e.target.value,
+                        index
+                      )
                     }
                     required
-                    error={!!validationErrors[`container_${index}_topDimensions`]}
-                    helperText={validationErrors[`container_${index}_topDimensions`]}
+                    error={
+                      !!validationErrors[`container_${index}_topDimensions`]
+                    }
+                    helperText={
+                      validationErrors[`container_${index}_topDimensions`]
+                    }
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -456,11 +579,20 @@ const Form13ContainerSection = ({
                     label="Back Dimensions *"
                     value={container.backDimensions}
                     onChange={(e) =>
-                      onFormDataChange("containers", "backDimensions", e.target.value, index)
+                      onFormDataChange(
+                        "containers",
+                        "backDimensions",
+                        e.target.value,
+                        index
+                      )
                     }
                     required
-                    error={!!validationErrors[`container_${index}_backDimensions`]}
-                    helperText={validationErrors[`container_${index}_backDimensions`]}
+                    error={
+                      !!validationErrors[`container_${index}_backDimensions`]
+                    }
+                    helperText={
+                      validationErrors[`container_${index}_backDimensions`]
+                    }
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -469,11 +601,20 @@ const Form13ContainerSection = ({
                     label="Left Dimensions *"
                     value={container.leftDimensions}
                     onChange={(e) =>
-                      onFormDataChange("containers", "leftDimensions", e.target.value, index)
+                      onFormDataChange(
+                        "containers",
+                        "leftDimensions",
+                        e.target.value,
+                        index
+                      )
                     }
                     required
-                    error={!!validationErrors[`container_${index}_leftDimensions`]}
-                    helperText={validationErrors[`container_${index}_leftDimensions`]}
+                    error={
+                      !!validationErrors[`container_${index}_leftDimensions`]
+                    }
+                    helperText={
+                      validationErrors[`container_${index}_leftDimensions`]
+                    }
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -482,21 +623,39 @@ const Form13ContainerSection = ({
                     label="Front Dimensions *"
                     value={container.frontDimensions}
                     onChange={(e) =>
-                      onFormDataChange("containers", "frontDimensions", e.target.value, index)
+                      onFormDataChange(
+                        "containers",
+                        "frontDimensions",
+                        e.target.value,
+                        index
+                      )
                     }
                     required
-                    error={!!validationErrors[`container_${index}_frontDimensions`]}
-                    helperText={validationErrors[`container_${index}_frontDimensions`]}
+                    error={
+                      !!validationErrors[`container_${index}_frontDimensions`]
+                    }
+                    helperText={
+                      validationErrors[`container_${index}_frontDimensions`]
+                    }
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth required error={!!validationErrors[`container_${index}_odcUnits`]}>
+                  <FormControl
+                    fullWidth
+                    required
+                    error={!!validationErrors[`container_${index}_odcUnits`]}
+                  >
                     <InputLabel>ODC Units *</InputLabel>
                     <Select
                       value={container.odcUnits}
                       label="ODC Units *"
                       onChange={(e) =>
-                        onFormDataChange("containers", "odcUnits", e.target.value, index)
+                        onFormDataChange(
+                          "containers",
+                          "odcUnits",
+                          e.target.value,
+                          index
+                        )
                       }
                     >
                       {odcUnits.map((unit) => (
@@ -528,7 +687,12 @@ const Form13ContainerSection = ({
                 label="CHA Remarks"
                 value={container.chaRemarks}
                 onChange={(e) =>
-                  onFormDataChange("containers", "chaRemarks", e.target.value, index)
+                  onFormDataChange(
+                    "containers",
+                    "chaRemarks",
+                    e.target.value,
+                    index
+                  )
                 }
                 multiline
                 rows={2}
@@ -541,7 +705,12 @@ const Form13ContainerSection = ({
                 label="Haulier"
                 value={container.haulier}
                 onChange={(e) =>
-                  onFormDataChange("containers", "haulier", e.target.value, index)
+                  onFormDataChange(
+                    "containers",
+                    "haulier",
+                    e.target.value,
+                    index
+                  )
                 }
               />
             </Grid>
@@ -552,7 +721,12 @@ const Form13ContainerSection = ({
                 label="Driver License No"
                 value={container.driverLicNo}
                 onChange={(e) =>
-                  onFormDataChange("containers", "driverLicNo", e.target.value, index)
+                  onFormDataChange(
+                    "containers",
+                    "driverLicNo",
+                    e.target.value,
+                    index
+                  )
                 }
               />
             </Grid>
@@ -563,42 +737,247 @@ const Form13ContainerSection = ({
   };
 
   return (
-    <Card>
-      <CardContent>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 3,
-          }}
+    <Box>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 1,
+        }}
+      >
+        <Typography
+          variant="subtitle2"
+          fontWeight="bold"
+          sx={{ color: "text.secondary", textTransform: "uppercase" }}
         >
-          <Typography variant="h6">Container Information</Typography>
-          <Button
-            variant="outlined"
-            startIcon={<AddIcon />}
-            onClick={onAddContainer}
+          Container & Shipping Bill Details
+        </Typography>
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<AddIcon />}
+          onClick={onAddContainer}
+        >
+          Add Container
+        </Button>
+      </Box>
+
+      {formData.containers.map((container, index) => {
+        const availableIsoCodes = getIsoCodesBySize(container.cntnrSize);
+
+        return (
+          <Paper
+            key={index}
+            sx={{ mb: 2, p: 2, borderLeft: "4px solid #1976d2" }}
+            elevation={2}
           >
-            Add Container
-          </Button>
-        </Box>
+            {/* Toolbar for this Container */}
+            <Box
+              sx={{ display: "flex", justifyContent: "space-between", mb: 1.5 }}
+            >
+              <Typography variant="subtitle1" fontWeight="bold">
+                Container #{index + 1}
+              </Typography>
+              {formData.containers.length > 1 && (
+                <IconButton
+                  color="error"
+                  size="small"
+                  onClick={() => onRemoveContainer(index)}
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              )}
+            </Box>
 
-        {formData.containers.map((container, index) =>
-          renderContainerFields(container, index)
-        )}
+            {/* Container Fields Row 1 - High Frequency Fields */}
+            <Grid container spacing={1.5}>
+              <Grid item xs={12} sm={6} md={3} lg={2}>
+                <TextField
+                  {...inputProps}
+                  label="Container No *"
+                  value={container.cntnrNo}
+                  onChange={(e) =>
+                    onFormDataChange(
+                      "containers",
+                      "cntnrNo",
+                      e.target.value,
+                      index
+                    )
+                  }
+                  required
+                  error={!!validationErrors[`container_${index}_cntnrNo`]}
+                  helperText={validationErrors[`container_${index}_cntnrNo`]}
+                />
+              </Grid>
 
-        <Box sx={{ mt: 2, p: 2, bgcolor: "grey.50", borderRadius: 1 }}>
-          <Typography variant="body2" color="text.secondary">
-            <strong>Note:</strong>
-            <br />• Container number must follow standard format: 4 letters + 7 numbers
-            <br />• VGM weight is required if not submitted via ODeX
-            <br />• Hazardous, Reefer, and ODC fields are conditionally required based on cargo type
-            <br />• Special stow requirements are mandatory for NSICT/NSIGT/BMCT/CCTL/ICT terminals
-            <br />• Shipping Instruction No is mandatory for MSC shipping line
-          </Typography>
-        </Box>
-      </CardContent>
-    </Card>
+              <Grid item xs={12} sm={6} md={2} lg={1.5}>
+                <FormControl {...inputProps} required>
+                  <InputLabel>Size</InputLabel>
+                  <Select
+                    value={container.cntnrSize}
+                    label="Size"
+                    onChange={(e) =>
+                      onFormDataChange(
+                        "containers",
+                        "cntnrSize",
+                        e.target.value,
+                        index
+                      )
+                    }
+                  >
+                    {containerSizes.map((size) => (
+                      <MenuItem key={size.value} value={size.value}>
+                        {size.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} sm={6} md={2} lg={1.5}>
+                <FormControl {...inputProps} required>
+                  <InputLabel>ISO</InputLabel>
+                  <Select
+                    value={container.iso}
+                    label="ISO"
+                    onChange={(e) =>
+                      onFormDataChange(
+                        "containers",
+                        "iso",
+                        e.target.value,
+                        index
+                      )
+                    }
+                  >
+                    {availableIsoCodes.map((iso) => (
+                      <MenuItem key={iso.value} value={iso.value}>
+                        {iso.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} sm={6} md={2.5} lg={2}>
+                <TextField
+                  {...inputProps}
+                  label="Agent Seal No *"
+                  value={container.agentSealNo}
+                  onChange={(e) =>
+                    onFormDataChange(
+                      "containers",
+                      "agentSealNo",
+                      e.target.value,
+                      index
+                    )
+                  }
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6} md={2.5} lg={2}>
+                <TextField
+                  {...inputProps}
+                  label="Custom Seal No *"
+                  value={container.customSealNo}
+                  onChange={(e) =>
+                    onFormDataChange(
+                      "containers",
+                      "customSealNo",
+                      e.target.value,
+                      index
+                    )
+                  }
+                />
+              </Grid>
+
+              {/* Row 2: Weights & Driver */}
+              <Grid item xs={12} sm={6} md={2} lg={1.5}>
+                <FormControl {...inputProps} required>
+                  <InputLabel>VGM via ODeX</InputLabel>
+                  <Select
+                    value={container.vgmViaODeX}
+                    label="VGM via ODeX"
+                    onChange={(e) =>
+                      onFormDataChange(
+                        "containers",
+                        "vgmViaODeX",
+                        e.target.value,
+                        index
+                      )
+                    }
+                  >
+                    <MenuItem value="Y">Yes</MenuItem>
+                    <MenuItem value="N">No</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {container.vgmViaODeX === "N" && (
+                <Grid item xs={12} sm={6} md={2} lg={1.5}>
+                  <TextField
+                    {...inputProps}
+                    label="VGM (MT) *"
+                    type="number"
+                    value={container.vgmWt}
+                    onChange={(e) =>
+                      onFormDataChange(
+                        "containers",
+                        "vgmWt",
+                        e.target.value,
+                        index
+                      )
+                    }
+                  />
+                </Grid>
+              )}
+
+              <Grid item xs={12} sm={6} md={4} lg={3}>
+                <TextField
+                  {...inputProps}
+                  label="Driver Name *"
+                  value={container.driverNm}
+                  onChange={(e) =>
+                    onFormDataChange(
+                      "containers",
+                      "driverNm",
+                      e.target.value,
+                      index
+                    )
+                  }
+                />
+              </Grid>
+            </Grid>
+
+            {/* Embedded Shipping Bill Section for this container */}
+            <Box sx={{ mt: 2, pt: 2, borderTop: "1px dashed #ccc" }}>
+              <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                <AssignmentIcon
+                  fontSize="small"
+                  color="action"
+                  sx={{ mr: 1 }}
+                />
+                <Typography
+                  variant="body2"
+                  fontWeight="bold"
+                  color="text.secondary"
+                >
+                  Shipping Bill / Invoice Details
+                </Typography>
+              </Box>
+
+              <Form13ShippingBillSection
+                formData={formData}
+                containerIndex={index}
+                onFormDataChange={onFormDataChange}
+                validationErrors={validationErrors}
+                isEmbedded={true}
+              />
+            </Box>
+          </Paper>
+        );
+      })}
+    </Box>
   );
 };
 

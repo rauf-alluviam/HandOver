@@ -11,6 +11,7 @@ import {
   CircularProgress,
   Divider,
   Fab,
+  Stack,
   Snackbar,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
@@ -21,8 +22,6 @@ import Form13HeaderSection from "./Form13HeaderSection";
 import Form13ContainerSection from "./Form13ContainerSection";
 import Form13ShippingBillSection from "./Form13ShippingBillSection";
 import Form13AttachmentSection from "./Form13AttachmentSection";
-
-import TopNavDropdown from "../TopNavDropdown"; 
 
 const Form13 = () => {
   const { userData } = useAuth();
@@ -251,11 +250,13 @@ const Form13 = () => {
       if (!formData.consigneeNm)
         errors.consigneeNm = "Consignee Name is required for this location";
       if (!formData.consigneeAddr)
-        errors.consigneeAddr = "Consignee Address is required for this location";
+        errors.consigneeAddr =
+          "Consignee Address is required for this location";
       if (!formData.cargoDesc)
         errors.cargoDesc = "Cargo Description is required for this location";
       if (!formData.terminalLoginId)
-        errors.terminalLoginId = "Terminal Login ID is required for this location";
+        errors.terminalLoginId =
+          "Terminal Login ID is required for this location";
     }
 
     // FPOD Validation
@@ -271,14 +272,16 @@ const Form13 = () => {
     // Nhavasheva (INNSA1) - One of CHA/FF/IE Code required
     if (formData.locId === "INNSA1") {
       if (!formData.CHACode && !formData.FFCode && !formData.IECode) {
-        errors.CHACode = "One of CHA Code, FF Code, or IE Code is required for Nhavasheva";
+        errors.CHACode =
+          "One of CHA Code, FF Code, or IE Code is required for Nhavasheva";
       }
     }
 
     // Tuticorin Specific (INTUT1)
     if (formData.locId === "INTUT1" && formData.terminalCode === "DBGT") {
       if (!formData.ShipperCity) {
-        errors.ShipperCity = "Shipper City is required for Tuticorin DBGT terminal";
+        errors.ShipperCity =
+          "Shipper City is required for Tuticorin DBGT terminal";
       }
     }
 
@@ -294,7 +297,8 @@ const Form13 = () => {
       formData.cargoTp !== "REF" &&
       !formData.bookCopyBlNo
     ) {
-      errors.bookCopyBlNo = "BL Number is required for Hapag Lloyd (non-reefer cargo)";
+      errors.bookCopyBlNo =
+        "BL Number is required for Hapag Lloyd (non-reefer cargo)";
     }
 
     // Origin-Based Validations
@@ -310,8 +314,9 @@ const Form13 = () => {
     ) {
       formData.containers.forEach((container, index) => {
         if (!container.vehicleNo) {
-          errors[`container_${index}_vehicleNo`] =
-            `Container ${index + 1}: Vehicle No is required for Factory Stuffed/ICD by Road at Mundra`;
+          errors[`container_${index}_vehicleNo`] = `Container ${
+            index + 1
+          }: Vehicle No is required for Factory Stuffed/ICD by Road at Mundra`;
         }
       });
     }
@@ -325,150 +330,187 @@ const Form13 = () => {
     formData.containers.forEach((container, index) => {
       // Mandatory container fields
       if (!container.cntnrNo) {
-        errors[`container_${index}_cntnrNo`] =
-          `Container ${index + 1}: Container No is required`;
+        errors[`container_${index}_cntnrNo`] = `Container ${
+          index + 1
+        }: Container No is required`;
       } else if (!/^[A-Z]{4}\d{7}$/.test(container.cntnrNo.toUpperCase())) {
-        errors[`container_${index}_cntnrNo`] =
-          `Container ${index + 1}: Invalid format (4 letters + 7 numbers)`;
+        errors[`container_${index}_cntnrNo`] = `Container ${
+          index + 1
+        }: Invalid format (4 letters + 7 numbers)`;
       }
 
       if (!container.cntnrSize) {
-        errors[`container_${index}_cntnrSize`] =
-          `Container ${index + 1}: Container Size is required`;
+        errors[`container_${index}_cntnrSize`] = `Container ${
+          index + 1
+        }: Container Size is required`;
       }
 
       if (!container.iso) {
-        errors[`container_${index}_iso`] =
-          `Container ${index + 1}: ISO Code is required`;
+        errors[`container_${index}_iso`] = `Container ${
+          index + 1
+        }: ISO Code is required`;
       }
 
       if (!container.agentSealNo) {
-        errors[`container_${index}_agentSealNo`] =
-          `Container ${index + 1}: Agent Seal No is required`;
+        errors[`container_${index}_agentSealNo`] = `Container ${
+          index + 1
+        }: Agent Seal No is required`;
       }
 
       if (!container.customSealNo) {
-        errors[`container_${index}_customSealNo`] =
-          `Container ${index + 1}: Custom Seal No is required`;
+        errors[`container_${index}_customSealNo`] = `Container ${
+          index + 1
+        }: Custom Seal No is required`;
       }
 
       if (!container.driverNm) {
-        errors[`container_${index}_driverNm`] =
-          `Container ${index + 1}: Driver Name is required`;
+        errors[`container_${index}_driverNm`] = `Container ${
+          index + 1
+        }: Driver Name is required`;
       }
 
       // VGM Validation
       if (container.vgmViaODeX === "N" && !container.vgmWt) {
-        errors[`container_${index}_vgmWt`] =
-          `Container ${index + 1}: VGM Weight is required when not via ODeX`;
+        errors[`container_${index}_vgmWt`] = `Container ${
+          index + 1
+        }: VGM Weight is required when not via ODeX`;
       }
 
       // Cargo Type Specific Validations
       // Hazardous Cargo
       if (formData.cargoTp === "HAZ" || formData.cargoTp.includes("HAZ")) {
         if (!container.imoNo1) {
-          errors[`container_${index}_imoNo1`] =
-            `Container ${index + 1}: IMO No 1 is required for hazardous cargo`;
+          errors[`container_${index}_imoNo1`] = `Container ${
+            index + 1
+          }: IMO No 1 is required for hazardous cargo`;
         }
         if (!container.unNo1) {
-          errors[`container_${index}_unNo1`] =
-            `Container ${index + 1}: UN No 1 is required for hazardous cargo`;
+          errors[`container_${index}_unNo1`] = `Container ${
+            index + 1
+          }: UN No 1 is required for hazardous cargo`;
         }
       }
 
       // Reefer Cargo
       if (formData.cargoTp === "REF" || formData.cargoTp.includes("REF")) {
         if (!container.temp || container.temp === "0") {
-          errors[`container_${index}_temp`] =
-            `Container ${index + 1}: Temperature is required for reefer cargo`;
+          errors[`container_${index}_temp`] = `Container ${
+            index + 1
+          }: Temperature is required for reefer cargo`;
         }
       }
 
       // ODC Cargo
       if (formData.cargoTp === "ODC" || formData.cargoTp.includes("ODC")) {
-        if (!container.rightDimensions || container.rightDimensions === "0.00") {
-          errors[`container_${index}_rightDimensions`] =
-            `Container ${index + 1}: Right Dimensions required for ODC`;
+        if (
+          !container.rightDimensions ||
+          container.rightDimensions === "0.00"
+        ) {
+          errors[`container_${index}_rightDimensions`] = `Container ${
+            index + 1
+          }: Right Dimensions required for ODC`;
         }
         if (!container.topDimensions || container.topDimensions === "0.00") {
-          errors[`container_${index}_topDimensions`] =
-            `Container ${index + 1}: Top Dimensions required for ODC`;
+          errors[`container_${index}_topDimensions`] = `Container ${
+            index + 1
+          }: Top Dimensions required for ODC`;
         }
         if (!container.backDimensions || container.backDimensions === "0.00") {
-          errors[`container_${index}_backDimensions`] =
-            `Container ${index + 1}: Back Dimensions required for ODC`;
+          errors[`container_${index}_backDimensions`] = `Container ${
+            index + 1
+          }: Back Dimensions required for ODC`;
         }
         if (!container.leftDimensions || container.leftDimensions === "0.00") {
-          errors[`container_${index}_leftDimensions`] =
-            `Container ${index + 1}: Left Dimensions required for ODC`;
+          errors[`container_${index}_leftDimensions`] = `Container ${
+            index + 1
+          }: Left Dimensions required for ODC`;
         }
-        if (!container.frontDimensions || container.frontDimensions === "0.00") {
-          errors[`container_${index}_frontDimensions`] =
-            `Container ${index + 1}: Front Dimensions required for ODC`;
+        if (
+          !container.frontDimensions ||
+          container.frontDimensions === "0.00"
+        ) {
+          errors[`container_${index}_frontDimensions`] = `Container ${
+            index + 1
+          }: Front Dimensions required for ODC`;
         }
         if (!container.odcUnits) {
-          errors[`container_${index}_odcUnits`] =
-            `Container ${index + 1}: ODC Units required for ODC`;
+          errors[`container_${index}_odcUnits`] = `Container ${
+            index + 1
+          }: ODC Units required for ODC`;
         }
       }
 
       // Special Stow for NSICT/NSIGT/BMCT/CCTL/ICT terminals
       if (
         formData.locId === "INNSA1" &&
-        ["NSICT", "NSIGT", "BMCT", "CCTL", "ICT"].includes(formData.terminalCode)
+        ["NSICT", "NSIGT", "BMCT", "CCTL", "ICT"].includes(
+          formData.terminalCode
+        )
       ) {
         if (!container.spclStow) {
-          errors[`container_${index}_spclStow`] =
-            `Container ${index + 1}: Special Stow is required for this terminal`;
+          errors[`container_${index}_spclStow`] = `Container ${
+            index + 1
+          }: Special Stow is required for this terminal`;
         }
         if (!container.spclStowRemark) {
-          errors[`container_${index}_spclStowRemark`] =
-            `Container ${index + 1}: Special Stow Remark is required for this terminal`;
+          errors[`container_${index}_spclStowRemark`] = `Container ${
+            index + 1
+          }: Special Stow Remark is required for this terminal`;
         }
       }
 
       // MSC Shipping Instruction Number validation
       if (formData.bnfCode === "MSCU" && !container.shpInstructNo) {
-        errors[`container_${index}_shpInstructNo`] =
-          `Container ${index + 1}: Shipping Instruction No is mandatory for MSC`;
+        errors[`container_${index}_shpInstructNo`] = `Container ${
+          index + 1
+        }: Shipping Instruction No is mandatory for MSC`;
       }
 
       // Shipping Bill Validations (embedded in container)
       const sbDetails = container.sbDtlsVo && container.sbDtlsVo[0];
       if (sbDetails) {
         if (!sbDetails.shipBillInvNo) {
-          errors[`container_${index}_shipBillInvNo`] =
-            `Container ${index + 1}: Shipping Bill No is required`;
+          errors[`container_${index}_shipBillInvNo`] = `Container ${
+            index + 1
+          }: Shipping Bill No is required`;
         }
         if (!sbDetails.shipBillDt) {
-          errors[`container_${index}_shipBillDt`] =
-            `Container ${index + 1}: Shipping Bill Date is required`;
+          errors[`container_${index}_shipBillDt`] = `Container ${
+            index + 1
+          }: Shipping Bill Date is required`;
         }
         if (!sbDetails.chaNm) {
-          errors[`container_${index}_chaNm`] =
-            `Container ${index + 1}: CHA Name is required`;
+          errors[`container_${index}_chaNm`] = `Container ${
+            index + 1
+          }: CHA Name is required`;
         }
         if (!sbDetails.chaPan) {
-          errors[`container_${index}_chaPan`] =
-            `Container ${index + 1}: CHA PAN is required`;
+          errors[`container_${index}_chaPan`] = `Container ${
+            index + 1
+          }: CHA PAN is required`;
         } else if (!/^[A-Z]{5}\d{4}[A-Z]{1}$/.test(sbDetails.chaPan)) {
-          errors[`container_${index}_chaPan`] =
-            `Container ${index + 1}: Invalid CHA PAN format (5 letters + 4 digits + 1 letter)`;
+          errors[`container_${index}_chaPan`] = `Container ${
+            index + 1
+          }: Invalid CHA PAN format (5 letters + 4 digits + 1 letter)`;
         }
         if (!sbDetails.exporterNm) {
-          errors[`container_${index}_exporterNm`] =
-            `Container ${index + 1}: Exporter Name is required`;
+          errors[`container_${index}_exporterNm`] = `Container ${
+            index + 1
+          }: Exporter Name is required`;
         }
         if (!sbDetails.exporterIec) {
-          errors[`container_${index}_exporterIec`] =
-            `Container ${index + 1}: Exporter IEC is required`;
+          errors[`container_${index}_exporterIec`] = `Container ${
+            index + 1
+          }: Exporter IEC is required`;
         } else if (!/^\d{10}$/.test(sbDetails.exporterIec)) {
-          errors[`container_${index}_exporterIec`] =
-            `Container ${index + 1}: Exporter IEC must be 10 digits`;
+          errors[`container_${index}_exporterIec`] = `Container ${
+            index + 1
+          }: Exporter IEC must be 10 digits`;
         }
         if (!sbDetails.noOfPkg || sbDetails.noOfPkg <= 0) {
-          errors[`container_${index}_noOfPkg`] =
-            `Container ${index + 1}: Number of Packages is required`;
+          errors[`container_${index}_noOfPkg`] = `Container ${
+            index + 1
+          }: Number of Packages is required`;
         }
       }
     });
@@ -487,7 +529,9 @@ const Form13 = () => {
     return errors;
   };
 
-  useEffect(() => { console.log(validationErrors); }, [validationErrors]);
+  useEffect(() => {
+    console.log(validationErrors);
+  }, [validationErrors]);
 
   // Get Required Attachments based on location, cargo type, and origin
   const getRequiredAttachments = () => {
@@ -770,19 +814,19 @@ const Form13 = () => {
   };
 
   const fieldToLabel = (fieldName) => {
-  const labelMap = {
-    vesselNm: "Vessel Name",
-    viaNo: "VIA No",
-    cntnrStatus: "Container Status",
-    pod: "POD",
-    issueTo: "Issue To",
-    cfsCode: "CFS Code",
-    CHACode: "CHA Code",
-    // Add more mappings as needed
+    const labelMap = {
+      vesselNm: "Vessel Name",
+      viaNo: "VIA No",
+      cntnrStatus: "Container Status",
+      pod: "POD",
+      issueTo: "Issue To",
+      cfsCode: "CFS Code",
+      CHACode: "CHA Code",
+      // Add more mappings as needed
+    };
+
+    return labelMap[fieldName] || fieldName;
   };
-  
-  return labelMap[fieldName] || fieldName;
-}
 
   // Remove Container
   const handleRemoveContainer = (index) => {
@@ -793,95 +837,98 @@ const Form13 = () => {
       }));
     }
   };
-const formatBusinessErrors = (businessErrors) => {
-  const errors = {};
-  
-  if (!businessErrors) return errors;
+  const formatBusinessErrors = (businessErrors) => {
+    const errors = {};
 
-  console.log("🔧 Raw business errors:", businessErrors);
+    if (!businessErrors) return errors;
 
-  // Split by number pattern like "1 -", "2 -", etc.
-  const errorLines = businessErrors.split(/\d+\s*-\s*/).filter(line => line.trim());
-  
-  console.log("🔧 Parsed error lines:", errorLines);
+    console.log("🔧 Raw business errors:", businessErrors);
 
-  errorLines.forEach((line, index) => {
-    const trimmedLine = line.trim();
-    
-    // Map specific error messages to form fields
-    if (trimmedLine.includes("Vessel Name or Via No. is invalid")) {
-      errors.vesselNm = "Vessel Name or Via No. is invalid";
-      errors.viaNo = "Vessel Name or Via No. is invalid";
-    }
-    
-    if (trimmedLine.includes("Container status is invalid")) {
-      errors.cntnrStatus = "Container status is invalid for the selected vessel";
-    }
-    
-    if (trimmedLine.includes("POD is Invalid")) {
-      errors.pod = "POD is invalid for the provided Booking No";
-    }
-    
-    if (trimmedLine.includes("Issue To is required")) {
-      errors.issueTo = "Issue To is required";
-    }
-    
-    if (trimmedLine.includes("CFS is required")) {
-      errors.cfsCode = "CFS is required";
-    }
-    
-    if (trimmedLine.includes("invalid CHA code")) {
-      errors.CHACode = "Invalid CHA code";
-    }
+    // Split by number pattern like "1 -", "2 -", etc.
+    const errorLines = businessErrors
+      .split(/\d+\s*-\s*/)
+      .filter((line) => line.trim());
 
-    // If no specific field mapping found, add as generic error
-    if (Object.keys(errors).length === 0 && index === 0) {
+    console.log("🔧 Parsed error lines:", errorLines);
+
+    errorLines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+
+      // Map specific error messages to form fields
+      if (trimmedLine.includes("Vessel Name or Via No. is invalid")) {
+        errors.vesselNm = "Vessel Name or Via No. is invalid";
+        errors.viaNo = "Vessel Name or Via No. is invalid";
+      }
+
+      if (trimmedLine.includes("Container status is invalid")) {
+        errors.cntnrStatus =
+          "Container status is invalid for the selected vessel";
+      }
+
+      if (trimmedLine.includes("POD is Invalid")) {
+        errors.pod = "POD is invalid for the provided Booking No";
+      }
+
+      if (trimmedLine.includes("Issue To is required")) {
+        errors.issueTo = "Issue To is required";
+      }
+
+      if (trimmedLine.includes("CFS is required")) {
+        errors.cfsCode = "CFS is required";
+      }
+
+      if (trimmedLine.includes("invalid CHA code")) {
+        errors.CHACode = "Invalid CHA code";
+      }
+
+      // If no specific field mapping found, add as generic error
+      if (Object.keys(errors).length === 0 && index === 0) {
+        errors.generic = businessErrors;
+      }
+    });
+
+    // If we still have no errors, add the raw business errors
+    if (Object.keys(errors).length === 0) {
       errors.generic = businessErrors;
     }
-  });
 
-  // If we still have no errors, add the raw business errors
-  if (Object.keys(errors).length === 0) {
-    errors.generic = businessErrors;
-  }
+    console.log("🔧 Formatted errors:", errors);
+    return errors;
+  };
 
-  console.log("🔧 Formatted errors:", errors);
-  return errors;
-};
+  // ADD THE MISSING FUNCTION - formatSchemaErrors
+  const formatSchemaErrors = (schemaErrors) => {
+    const errors = {};
 
-// ADD THE MISSING FUNCTION - formatSchemaErrors
-const formatSchemaErrors = (schemaErrors) => {
-  const errors = {};
-  
-  if (!schemaErrors) return errors;
+    if (!schemaErrors) return errors;
 
-  console.log("🔧 Raw schema errors:", schemaErrors);
+    console.log("🔧 Raw schema errors:", schemaErrors);
 
-  try {
-    if (typeof schemaErrors === 'string') {
-      // Try to parse as JSON if it's a string
-      try {
-        const parsedErrors = JSON.parse(schemaErrors);
-        Object.keys(parsedErrors).forEach(key => {
-          errors[key] = parsedErrors[key];
+    try {
+      if (typeof schemaErrors === "string") {
+        // Try to parse as JSON if it's a string
+        try {
+          const parsedErrors = JSON.parse(schemaErrors);
+          Object.keys(parsedErrors).forEach((key) => {
+            errors[key] = parsedErrors[key];
+          });
+        } catch (e) {
+          // If it's not JSON, treat it as a generic error message
+          errors.generic = schemaErrors;
+        }
+      } else if (typeof schemaErrors === "object") {
+        Object.keys(schemaErrors).forEach((key) => {
+          errors[key] = schemaErrors[key];
         });
-      } catch (e) {
-        // If it's not JSON, treat it as a generic error message
-        errors.generic = schemaErrors;
       }
-    } else if (typeof schemaErrors === 'object') {
-      Object.keys(schemaErrors).forEach(key => {
-        errors[key] = schemaErrors[key];
-      });
+    } catch (e) {
+      console.warn("Could not parse schema errors:", e);
+      errors.generic = "Schema validation failed";
     }
-  } catch (e) {
-    console.warn('Could not parse schema errors:', e);
-    errors.generic = "Schema validation failed";
-  }
 
-  console.log("🔧 Formatted schema errors:", errors);
-  return errors;
-};
+    console.log("🔧 Formatted schema errors:", errors);
+    return errors;
+  };
   // Convert file to Base64
   const fileToBase64 = (file) => {
     return new Promise((resolve, reject) => {
@@ -897,349 +944,347 @@ const formatSchemaErrors = (schemaErrors) => {
   };
 
   // Submit Form
-// src/components/Form13/Form13.jsx
+  // src/components/Form13/Form13.jsx
 
-// Update the handleSubmit function with proper error handling
-// src/components/Form13/Form13.jsx
+  // Update the handleSubmit function with proper error handling
+  // src/components/Form13/Form13.jsx
 
-// src/components/Form13/Form13.jsx
+  // src/components/Form13/Form13.jsx
 
-const handleSubmit = async () => {
-  try {
-    setLoading(true);
-    setError("");
-    setSuccess("");
-    setValidationErrors({});
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      setSuccess("");
+      setValidationErrors({});
 
-    // Validate form
-    const errors = validateForm();
-    if (Object.keys(errors).length > 0) {
-      setValidationErrors(errors);
-      setError(
-        `Please fix ${Object.keys(errors).length} validation error(s) before submitting`
+      // Validate form
+      const errors = validateForm();
+      if (Object.keys(errors).length > 0) {
+        setValidationErrors(errors);
+        setError(
+          `Please fix ${
+            Object.keys(errors).length
+          } validation error(s) before submitting`
+        );
+        setLoading(false);
+        return;
+      }
+
+      // Prepare attachments with base64 encoding
+      const attList = await Promise.all(
+        formData.attachments.map(async (file) => ({
+          attReqId: "",
+          attNm: file.name,
+          attData: await fileToBase64(file),
+          attTitle: file.title || "BOOKING_COPY",
+        }))
       );
+
+      const hardcodedHashKey = "5XRMN8PVXKQT";
+
+      // Prepare API payload
+      const payload = {
+        formType: "F13",
+        hashKey: hardcodedHashKey,
+        odexRefNo: formData.odexRefNo,
+        reqId: formData.reqId,
+        bookNo: formData.bookNo,
+        bnfCode: formData.bnfCode,
+        locId: formData.locId,
+        vesselNm: formData.vesselNm,
+        viaNo: formData.viaNo,
+        terminalCode: formData.terminalCode,
+        service: formData.service,
+        pod: formData.pod,
+        fpod: formData.fpod,
+        cargoTp: formData.cargoTp,
+        origin: formData.origin,
+        shpInstructNo: formData.shpInstructNo,
+        cntnrStatus: formData.cntnrStatus,
+        mobileNo: formData.mobileNo,
+        issueTo: formData.issueTo,
+        shipperNm: formData.shipperNm,
+        pyrCode: formData.pyrCode,
+        consigneeNm: formData.consigneeNm,
+        consigneeAddr: formData.consigneeAddr,
+        cargoDesc: formData.cargoDesc,
+        terminalLoginId: formData.terminalLoginId,
+        stuffTp: formData.stuffTp,
+        icdLoadingPort: formData.icdLoadingPort,
+        voyageNo: formData.voyageNo,
+        haulageTp: formData.haulageTp,
+        isEarlyGateIn: formData.IsEarlyGateIn,
+        shipperCd: formData.shipperCd,
+        railOperator: formData.railOperator,
+        shipperCity: formData.ShipperCity,
+        ffCode: formData.FFCode,
+        ieCode: formData.IECode,
+        bookLinId: formData.bookLinId,
+        notifyTo: formData.Notify_TO,
+        chaCode: formData.CHACode,
+        placeOfDel: formData.placeOfDel,
+        contactPerson: formData.contactPerson,
+        outsideWindowIssue: formData.outsideWindowIssue,
+        cntrList: formData.containers.map((container) => ({
+          cntnrReqId: container.cntnrReqId,
+          cntnrNo: container.cntnrNo,
+          cntnrSize: container.cntnrSize,
+          iso: container.iso,
+          agentSealNo: container.agentSealNo,
+          customSealNo: container.customSealNo,
+          vgmWt: container.vgmWt,
+          vgmViaODeX: container.vgmViaODeX,
+          doNo: container.doNo,
+          temp: container.temp,
+          volt: container.volt,
+          chaRemarks: container.chaRemarks,
+          vehicleNo: container.vehicleNo,
+          driverLicNo: container.driverLicNo,
+          driverNm: container.driverNm,
+          haulier: container.haulier,
+          imoNo1: container.imoNo1,
+          unNo1: container.unNo1,
+          imoNo2: container.imoNo2,
+          unNo2: container.unNo2,
+          imoNo3: container.imoNo3,
+          unNo3: container.unNo3,
+          imoNo4: container.imoNo4,
+          unNo4: container.unNo4,
+          rightDimensions: container.rightDimensions,
+          topDimensions: container.topDimensions,
+          backDimensions: container.backDimensions,
+          leftDimensions: container.leftDimensions,
+          frontDimensions: container.frontDimensions,
+          odcUnits: container.odcUnits,
+          status: container.status,
+          spclStow: container.spclStow,
+          spclStowRemark: container.spclStowRemark,
+          cntnrTareWgt: container.cntnrTareWgt,
+          cargoVal: container.cargoVal,
+          commodityName: container.commodityName,
+          shpInstructNo: container.shpInstructNo,
+          sbDtlsVo: container.sbDtlsVo,
+        })),
+        attList: attList,
+      };
+
+      console.log("📤 Sending payload:", payload);
+
+      // Call API
+      const response = await form13API.submitForm13(payload);
+
+      console.log("📥 Raw API Response:", response);
+      console.log("📥 Response data:", response?.data);
+
+      // FIXED: The response data is directly at response.data level
+      const respData = response?.data || {};
+
+      console.log("🔍 Parsed response data:", respData);
+      console.log("🔍 Business validation:", respData.business_validation);
+      console.log("🔍 Business errors:", respData.business_validations);
+
+      // Handle Business Validation Failures - Check directly in respData
+
+      // Handle Schema Validation Failures
+      const schemaFlag = respData.schema_validation;
+      const schemaErrors = respData.schema_validations;
+
+      if (schemaFlag === "FAIL" && schemaErrors) {
+        console.log("🚨 Schema validation failed");
+        const formattedSchemaErrors = formatSchemaErrors(schemaErrors);
+        setError("Schema Validation Failed");
+        setValidationErrors(formattedSchemaErrors);
+        setLoading(false);
+        return;
+      }
+
+      // Check if the form was actually successful
+      // Since your API returns success: true even with business validation failures,
+      // we need to check the business_validation flag instead
+      const odexRefNo = respData.odexRefNo;
+
+      if (odexRefNo && businessFlag !== "FAIL") {
+        console.log("✅ Form submitted successfully");
+        setSuccess(
+          `Form 13 submitted successfully! Reference No: ${odexRefNo}`
+        );
+      } else {
+        console.log("❌ Form submission failed or has validation errors");
+        // Show generic error if we didn't catch specific validation errors
+        setError(
+          "Form submission failed. Please check your inputs and try again."
+        );
+      }
+    } catch (err) {
+      console.error("💥 Form submission error:", err);
+      console.error("💥 Error response:", err.response);
+
+      let errorMessage = err.response?.data?.error || err.message;
+
+      if (errorMessage.includes("Form type is required")) {
+        errorMessage = "Form Type is required. Please contact support.";
+      } else if (errorMessage.includes("ODeX Error:")) {
+        errorMessage = errorMessage.replace("ODeX Error: ", "");
+      } else if (
+        errorMessage.includes("Network Error") ||
+        errorMessage.includes("timeout")
+      ) {
+        errorMessage =
+          "Network connection issue. Please check your internet and try again.";
+      } else if (errorMessage.includes("500")) {
+        errorMessage = "Server error. Please try again in a few moments.";
+      }
+
+      setError(`Failed to submit form: ${errorMessage}`);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    // Prepare attachments with base64 encoding
-    const attList = await Promise.all(
-      formData.attachments.map(async (file) => ({
-        attReqId: "",
-        attNm: file.name,
-        attData: await fileToBase64(file),
-        attTitle: file.title || "BOOKING_COPY",
-      }))
-    );
-
-    const hardcodedHashKey = "5XRMN8PVXKQT";
-
-    // Prepare API payload
-    const payload = {
-      formType: "F13",
-      hashKey: hardcodedHashKey,
-      odexRefNo: formData.odexRefNo,
-      reqId: formData.reqId,
-      bookNo: formData.bookNo,
-      bnfCode: formData.bnfCode,
-      locId: formData.locId,
-      vesselNm: formData.vesselNm,
-      viaNo: formData.viaNo,
-      terminalCode: formData.terminalCode,
-      service: formData.service,
-      pod: formData.pod,
-      fpod: formData.fpod,
-      cargoTp: formData.cargoTp,
-      origin: formData.origin,
-      shpInstructNo: formData.shpInstructNo,
-      cntnrStatus: formData.cntnrStatus,
-      mobileNo: formData.mobileNo,
-      issueTo: formData.issueTo,
-      shipperNm: formData.shipperNm,
-      pyrCode: formData.pyrCode,
-      consigneeNm: formData.consigneeNm,
-      consigneeAddr: formData.consigneeAddr,
-      cargoDesc: formData.cargoDesc,
-      terminalLoginId: formData.terminalLoginId,
-      stuffTp: formData.stuffTp,
-      icdLoadingPort: formData.icdLoadingPort,
-      voyageNo: formData.voyageNo,
-      haulageTp: formData.haulageTp,
-      isEarlyGateIn: formData.IsEarlyGateIn,
-      shipperCd: formData.shipperCd,
-      railOperator: formData.railOperator,
-      shipperCity: formData.ShipperCity,
-      ffCode: formData.FFCode,
-      ieCode: formData.IECode,
-      bookLinId: formData.bookLinId,
-      notifyTo: formData.Notify_TO,
-      chaCode: formData.CHACode,
-      placeOfDel: formData.placeOfDel,
-      contactPerson: formData.contactPerson,
-      outsideWindowIssue: formData.outsideWindowIssue,
-      cntrList: formData.containers.map((container) => ({
-        cntnrReqId: container.cntnrReqId,
-        cntnrNo: container.cntnrNo,
-        cntnrSize: container.cntnrSize,
-        iso: container.iso,
-        agentSealNo: container.agentSealNo,
-        customSealNo: container.customSealNo,
-        vgmWt: container.vgmWt,
-        vgmViaODeX: container.vgmViaODeX,
-        doNo: container.doNo,
-        temp: container.temp,
-        volt: container.volt,
-        chaRemarks: container.chaRemarks,
-        vehicleNo: container.vehicleNo,
-        driverLicNo: container.driverLicNo,
-        driverNm: container.driverNm,
-        haulier: container.haulier,
-        imoNo1: container.imoNo1,
-        unNo1: container.unNo1,
-        imoNo2: container.imoNo2,
-        unNo2: container.unNo2,
-        imoNo3: container.imoNo3,
-        unNo3: container.unNo3,
-        imoNo4: container.imoNo4,
-        unNo4: container.unNo4,
-        rightDimensions: container.rightDimensions,
-        topDimensions: container.topDimensions,
-        backDimensions: container.backDimensions,
-        leftDimensions: container.leftDimensions,
-        frontDimensions: container.frontDimensions,
-        odcUnits: container.odcUnits,
-        status: container.status,
-        spclStow: container.spclStow,
-        spclStowRemark: container.spclStowRemark,
-        cntnrTareWgt: container.cntnrTareWgt,
-        cargoVal: container.cargoVal,
-        commodityName: container.commodityName,
-        shpInstructNo: container.shpInstructNo,
-        sbDtlsVo: container.sbDtlsVo,
-      })),
-      attList: attList,
-    };
-
-    console.log("📤 Sending payload:", payload);
-
-    // Call API
-    const response = await form13API.submitForm13(payload);
-
-    console.log("📥 Raw API Response:", response);
-    console.log("📥 Response data:", response?.data);
-
-    // FIXED: The response data is directly at response.data level
-    const respData = response?.data || {};
-    
-    console.log("🔍 Parsed response data:", respData);
-    console.log("🔍 Business validation:", respData.business_validation);
-    console.log("🔍 Business errors:", respData.business_validations);
-
-    // Handle Business Validation Failures - Check directly in respData
-   
-    // Handle Schema Validation Failures
-    const schemaFlag = respData.schema_validation;
-    const schemaErrors = respData.schema_validations;
-
-    if (schemaFlag === "FAIL" && schemaErrors) {
-      console.log("🚨 Schema validation failed");
-      const formattedSchemaErrors = formatSchemaErrors(schemaErrors);
-      setError("Schema Validation Failed");
-      setValidationErrors(formattedSchemaErrors);
-      setLoading(false);
-      return;
-    }
-
-    // Check if the form was actually successful
-    // Since your API returns success: true even with business validation failures,
-    // we need to check the business_validation flag instead
-    const odexRefNo = respData.odexRefNo;
-    
-    if (odexRefNo && businessFlag !== "FAIL") {
-      console.log("✅ Form submitted successfully");
-      setSuccess(
-        `Form 13 submitted successfully! Reference No: ${odexRefNo}`
-      );
-    } else {
-      console.log("❌ Form submission failed or has validation errors");
-      // Show generic error if we didn't catch specific validation errors
-      setError("Form submission failed. Please check your inputs and try again.");
-    }
-  } catch (err) {
-    console.error("💥 Form submission error:", err);
-    console.error("💥 Error response:", err.response);
-    
-    let errorMessage = err.response?.data?.error || err.message;
-    
-    if (errorMessage.includes("Form type is required")) {
-      errorMessage = "Form Type is required. Please contact support.";
-    } else if (errorMessage.includes("ODeX Error:")) {
-      errorMessage = errorMessage.replace("ODeX Error: ", "");
-    } else if (errorMessage.includes("Network Error") || errorMessage.includes("timeout")) {
-      errorMessage = "Network connection issue. Please check your internet and try again.";
-    } else if (errorMessage.includes("500")) {
-      errorMessage = "Server error. Please try again in a few moments.";
-    }
-    
-    setError(`Failed to submit form: ${errorMessage}`);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ p: 4 }}>
-        {/* Header */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h4" gutterBottom fontWeight="bold">
-            FORM 13 - Export Gate Pass
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Submit Form 13 for export container gate-in authorization at Indian
-            ports
-          </Typography>
+    <Container maxWidth={false} sx={{ py: 2, px: 2 }}>
+      <Paper elevation={2} sx={{ p: 2, bgcolor: "#f8f9fa" }}>
+        {/* Header Compact */}
+        <Box
+          sx={{
+            mb: 2,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Box>
+            <Typography variant="h5" fontWeight="bold" color="primary">
+              FORM 13 - Export Gate Pass
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Enter details for export container gate-in authorization
+            </Typography>
+          </Box>
         </Box>
 
-      <Divider sx={{ mb: 3 }} />
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
+            {error}
+          </Alert>
+        )}
+        {success && (
+          <Alert
+            severity="success"
+            sx={{ mb: 2 }}
+            onClose={() => setSuccess("")}
+          >
+            {success}
+          </Alert>
+        )}
 
-{error && (
-  <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
-    <Typography variant="subtitle1" fontWeight="bold">
-      {error}
-    </Typography>
-    {error.includes("Validation") && (
-      <Typography variant="body2" sx={{ mt: 1 }}>
-        Please check the highlighted fields below for details.
-      </Typography>
-    )}
-  </Alert>
-)}
+        {/* API Validation Errors Summary */}
+        {Object.keys(validationErrors).length > 0 && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            <Typography variant="subtitle1" fontWeight="bold">
+              API Validation Errors ({Object.keys(validationErrors).length}{" "}
+              found)
+            </Typography>
+            <Box component="ul" sx={{ mt: 1, mb: 0, pl: 2 }}>
+              {Object.entries(validationErrors).map(([field, message]) => (
+                <li key={field}>
+                  <Typography variant="body2">
+                    {field !== "generic" ? (
+                      <>
+                        <strong>{fieldToLabel(field)}:</strong> {message}
+                      </>
+                    ) : (
+                      message
+                    )}
+                  </Typography>
+                </li>
+              ))}
+            </Box>
+          </Alert>
+        )}
 
-{success && (
-  <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess("")}>
-    {success}
-  </Alert>
-)}
+        {/* Master Data Loading Status */}
+        {!masterDataLoaded && (
+          <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+            <CircularProgress size={16} sx={{ mr: 1 }} />
+            <Typography variant="caption">Loading master data...</Typography>
+          </Box>
+        )}
 
-{/* API Validation Errors Summary */}
-{Object.keys(validationErrors).length > 0 && (
-  <Alert severity="warning" sx={{ mb: 2 }}>
-    <Typography variant="subtitle1" fontWeight="bold">
-      API Validation Errors ({Object.keys(validationErrors).length} found)
-    </Typography>
-    <Box component="ul" sx={{ mt: 1, mb: 0, pl: 2 }}>
-      {Object.entries(validationErrors).map(([field, message]) => (
-        <li key={field}>
-          <Typography variant="body2">
-            {field !== 'generic' ? (
-              <>
-                <strong>{fieldToLabel(field)}:</strong> {message}
-              </>
-            ) : (
-              message
-            )}
-          </Typography>
-        </li>
-      ))}
-    </Box>
-  </Alert>
-)}
-
-
-
-      {/* Master Data Loading Status */}
-      {!masterDataLoaded && (
-        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-          <CircularProgress size={20} sx={{ mr: 2 }} />
-          <Typography>
-            Loading master data (Vessels, PODs, Terminals)...
-          </Typography>
-        </Box>
-      )}
-
-      {/* Continuous Scroll Form */}
-      <Box>
-        {/* Section 1: Header Information */}
-        <Form13HeaderSection
-          formData={formData}
-          vessels={vessels}
-          pods={pods}
-          masterDataLoaded={masterDataLoaded}
-          loading={loading}
-          onFormDataChange={handleFormDataChange}
-          onReloadMasterData={loadMasterData}
-          validationErrors={validationErrors}
-        />
-
-        <Divider sx={{ my: 4 }} />
-
-        {/* Section 2: Container Information */}
-        <Form13ContainerSection
-          formData={formData}
-          onFormDataChange={handleFormDataChange}
-          onAddContainer={handleAddContainer}
-          onRemoveContainer={handleRemoveContainer}
-          validationErrors={validationErrors}
-        />
-
-        <Divider sx={{ my: 4 }} />
-
-        {/* Section 3: Shipping Bill Information (per container) */}
-        {formData.containers.map((container, index) => (
-          <Box key={index} sx={{ mb: 3 }}>
-            <Form13ShippingBillSection
+        {/* Continuous Scroll Form */}
+        <Stack spacing={2}>
+          {/* Section 1: Header Information */}
+          <Paper sx={{ p: 2 }} variant="outlined">
+            <Form13HeaderSection
               formData={formData}
-              containerIndex={index}
+              vessels={vessels}
+              pods={pods}
+              masterDataLoaded={masterDataLoaded}
+              loading={loading}
               onFormDataChange={handleFormDataChange}
               validationErrors={validationErrors}
             />
+          </Paper>
+
+          {/* Section 2: Container Information */}
+          <Paper sx={{ p: 2 }} variant="outlined">
+            <Form13ContainerSection
+              formData={formData}
+              onFormDataChange={handleFormDataChange}
+              onAddContainer={handleAddContainer}
+              onRemoveContainer={handleRemoveContainer}
+              validationErrors={validationErrors}
+            />
+          </Paper>
+          {/* Section 4: Attachments */}
+          <Paper sx={{ p: 2 }} variant="outlined">
+            <Form13AttachmentSection
+              formData={formData}
+              onFormDataChange={handleFormDataChange}
+              requiredAttachments={[]} // Pass actual function result here
+              validationErrors={validationErrors}
+            />
+          </Paper>
+
+          {/* Submit Button */}
+          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
+            <Button
+              variant="contained"
+              onClick={handleSubmit}
+              disabled={loading || !masterDataLoaded}
+              startIcon={
+                loading ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  <SendIcon />
+                )
+              }
+              size="large"
+              sx={{ minWidth: 200 }}
+            >
+              {loading ? "Submitting..." : "Submit Form 13"}
+            </Button>
           </Box>
-        ))}
+        </Stack>
 
-        <Divider sx={{ my: 4 }} />
-
-        {/* Section 4: Attachments */}
-        <Form13AttachmentSection
-          formData={formData}
-          onFormDataChange={handleFormDataChange}
-          requiredAttachments={getRequiredAttachments()}
-          validationErrors={validationErrors}
-        />
-
-        {/* Submit Button */}
-        <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
-          <Button
-            variant="contained"
-            size="large"
-            onClick={handleSubmit}
-            disabled={loading || !masterDataLoaded}
-            startIcon={loading ? <CircularProgress size={20} /> : <SendIcon />}
-            sx={{ minWidth: 200 }}
-          >
-            {loading ? "Submitting..." : "Submit Form 13"}
-          </Button>
-        </Box>
-      </Box>
-
-      {/* Floating Action Button for Quick Submit */}
-      <Fab
-        color="primary"
-        aria-label="submit"
-        sx={{
-          position: "fixed",
-          bottom: 16,
-          right: 16,
-        }}
-        onClick={handleSubmit}
-        disabled={loading || !masterDataLoaded}
-      >
-        <SendIcon />
-      </Fab>
-    </Paper>
-  </Container>
-);
+        {/* Floating Action Button for Quick Submit */}
+        <Fab
+          color="primary"
+          aria-label="submit"
+          sx={{
+            position: "fixed",
+            bottom: 16,
+            right: 16,
+          }}
+          onClick={handleSubmit}
+          disabled={loading || !masterDataLoaded}
+        >
+          <SendIcon />
+        </Fab>
+      </Paper>
+    </Container>
+  );
 };
-
 
 export default Form13;
