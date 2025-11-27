@@ -22,7 +22,7 @@ import Form13HeaderSection from "./Form13HeaderSection";
 import Form13ContainerSection from "./Form13ContainerSection";
 import Form13ShippingBillSection from "./Form13ShippingBillSection";
 import Form13AttachmentSection from "./Form13AttachmentSection";
-
+import TopNavDropdown from "../TopNavDropdown";
 const Form13 = () => {
   const { userData } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -1143,147 +1143,75 @@ const Form13 = () => {
   };
 
   return (
-    <Container maxWidth={false} sx={{ py: 2, px: 2 }}>
-      <Paper elevation={2} sx={{ p: 2, bgcolor: "#f8f9fa" }}>
-        {/* Header Compact */}
-        <Box
-          sx={{
-            mb: 2,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Box>
-            <Typography variant="h5" fontWeight="bold" color="primary">
-              FORM 13 - Export Gate Pass
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Enter details for export container gate-in authorization
-            </Typography>
-          </Box>
-        </Box>
+    <div className="form13-container">
+      <TopNavDropdown />
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
-            {error}
-          </Alert>
-        )}
-        {success && (
-          <Alert
-            severity="success"
-            sx={{ mb: 2 }}
-            onClose={() => setSuccess("")}
+      <div className="page-header">
+        <h2>Export Gate Pass (Form 13)</h2>
+        <div className="d-flex gap-2">
+          {!masterDataLoaded && (
+            <span className="text-muted" style={{ fontSize: "12px" }}>
+              Loading Master Data...
+            </span>
+          )}
+        </div>
+      </div>
+
+      {error && <div className="alert alert-error">{error}</div>}
+      {success && <div className="alert alert-success">{success}</div>}
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault(); /* handleSubmit(); */
+        }}
+      >
+        {/* Header Section */}
+        <div className="panel">
+          <Form13HeaderSection
+            formData={formData}
+            vessels={vessels}
+            pods={pods}
+            masterDataLoaded={masterDataLoaded}
+            onFormDataChange={handleFormDataChange}
+            validationErrors={validationErrors}
+          />
+        </div>
+
+        {/* Containers Section */}
+        <div className="panel">
+          <Form13ContainerSection
+            formData={formData}
+            onFormDataChange={handleFormDataChange}
+            onAddContainer={handleAddContainer}
+            onRemoveContainer={handleRemoveContainer}
+            validationErrors={validationErrors}
+          />
+        </div>
+
+        {/* Attachments Section */}
+        <div className="panel">
+          <Form13AttachmentSection
+            formData={formData}
+            onFormDataChange={handleFormDataChange}
+            validationErrors={validationErrors}
+          />
+        </div>
+
+        {/* Actions */}
+        <div className="panel d-flex justify-end gap-2">
+          <button type="button" className="btn btn-outline">
+            Save Draft
+          </button>
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={loading || !masterDataLoaded}
           >
-            {success}
-          </Alert>
-        )}
-
-        {/* API Validation Errors Summary */}
-        {Object.keys(validationErrors).length > 0 && (
-          <Alert severity="warning" sx={{ mb: 2 }}>
-            <Typography variant="subtitle1" fontWeight="bold">
-              API Validation Errors ({Object.keys(validationErrors).length}{" "}
-              found)
-            </Typography>
-            <Box component="ul" sx={{ mt: 1, mb: 0, pl: 2 }}>
-              {Object.entries(validationErrors).map(([field, message]) => (
-                <li key={field}>
-                  <Typography variant="body2">
-                    {field !== "generic" ? (
-                      <>
-                        <strong>{fieldToLabel(field)}:</strong> {message}
-                      </>
-                    ) : (
-                      message
-                    )}
-                  </Typography>
-                </li>
-              ))}
-            </Box>
-          </Alert>
-        )}
-
-        {/* Master Data Loading Status */}
-        {!masterDataLoaded && (
-          <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-            <CircularProgress size={16} sx={{ mr: 1 }} />
-            <Typography variant="caption">Loading master data...</Typography>
-          </Box>
-        )}
-
-        {/* Continuous Scroll Form */}
-        <Stack spacing={2}>
-          {/* Section 1: Header Information */}
-          <Paper sx={{ p: 2 }} variant="outlined">
-            <Form13HeaderSection
-              formData={formData}
-              vessels={vessels}
-              pods={pods}
-              masterDataLoaded={masterDataLoaded}
-              loading={loading}
-              onFormDataChange={handleFormDataChange}
-              validationErrors={validationErrors}
-            />
-          </Paper>
-
-          {/* Section 2: Container Information */}
-          <Paper sx={{ p: 2 }} variant="outlined">
-            <Form13ContainerSection
-              formData={formData}
-              onFormDataChange={handleFormDataChange}
-              onAddContainer={handleAddContainer}
-              onRemoveContainer={handleRemoveContainer}
-              validationErrors={validationErrors}
-            />
-          </Paper>
-          {/* Section 4: Attachments */}
-          <Paper sx={{ p: 2 }} variant="outlined">
-            <Form13AttachmentSection
-              formData={formData}
-              onFormDataChange={handleFormDataChange}
-              requiredAttachments={[]} // Pass actual function result here
-              validationErrors={validationErrors}
-            />
-          </Paper>
-
-          {/* Submit Button */}
-          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
-            <Button
-              variant="contained"
-              onClick={handleSubmit}
-              disabled={loading || !masterDataLoaded}
-              startIcon={
-                loading ? (
-                  <CircularProgress size={20} color="inherit" />
-                ) : (
-                  <SendIcon />
-                )
-              }
-              size="large"
-              sx={{ minWidth: 200 }}
-            >
-              {loading ? "Submitting..." : "Submit Form 13"}
-            </Button>
-          </Box>
-        </Stack>
-
-        {/* Floating Action Button for Quick Submit */}
-        <Fab
-          color="primary"
-          aria-label="submit"
-          sx={{
-            position: "fixed",
-            bottom: 16,
-            right: 16,
-          }}
-          onClick={handleSubmit}
-          disabled={loading || !masterDataLoaded}
-        >
-          <SendIcon />
-        </Fab>
-      </Paper>
-    </Container>
+            {loading ? "Submitting..." : "Submit Application"}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 };
 
