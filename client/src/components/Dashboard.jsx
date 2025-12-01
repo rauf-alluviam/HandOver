@@ -222,7 +222,7 @@ const Dashboard = () => {
         </section>
 
         {/* KPI / Stats Section */}
-        <section className="stats-grid">
+        {/* <section className="stats-grid">
           <StatCard
             icon={<Icons.VGM />}
             value="0"
@@ -247,7 +247,7 @@ const Dashboard = () => {
             label="Total Submissions"
             variant="green"
           />
-        </section>
+        </section> */}
 
         {/* Main Features */}
         <section className="features-grid">

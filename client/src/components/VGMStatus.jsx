@@ -5,58 +5,30 @@ import { useAuth } from "../context/AuthContext";
 import dayjs from "dayjs";
 import TopNavDropdown from "./TopNavDropdown";
 import { useNavigate } from "react-router-dom";
-import "../styles/VGM.scss"; // Use same SCSS
+import "../styles/VGM.scss"; 
 
-// Inline Icons to replace MUI Icons
+// Inline Icons
 const Icons = {
   Filter: () => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-    >
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
     </svg>
   ),
   Refresh: () => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-    >
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M23 4v6h-6" />
       <path d="M1 20v-6h6" />
       <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
     </svg>
   ),
   Eye: () => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-    >
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
       <circle cx="12" cy="12" r="3" />
     </svg>
   ),
   Edit: () => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-    >
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
     </svg>
@@ -67,7 +39,6 @@ const VGMStatus = () => {
   const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const [requests, setRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [pagination, setPagination] = useState({
@@ -89,7 +60,6 @@ const VGMStatus = () => {
     setLoading(true);
     try {
       const filterParams = { page, limit: pagination.limit, ...filters };
-      // Filter out empty strings
       Object.keys(filterParams).forEach(
         (k) => !filterParams[k] && delete filterParams[k]
       );
@@ -114,12 +84,42 @@ const VGMStatus = () => {
     navigate("/vgm", { state: { editMode: true, vgmId: request.vgmId } });
   };
 
-  const getStatusBadgeClass = (status) => {
-    const s = (status || "").toLowerCase();
-    if (s.includes("verified") || s.includes("success")) return "badge-success";
-    if (s.includes("pending")) return "badge-warning";
-    if (s.includes("failed") || s.includes("rejected")) return "badge-error";
-    return "badge-info";
+  // --- Logic 1: Determine Display Status ---
+  const getDisplayStatus = (req) => {
+    // Check internal response for errors first
+    // If response is a string and starts with "ERROR", force Pending
+    if (typeof req.response === 'string' && req.response.trim().toUpperCase().startsWith("ERROR")) {
+      return "Pending";
+    }
+
+    // Otherwise check standard status fields
+    const s = (req.cntnrStatus || req.status || "").toLowerCase();
+    if (s.includes("verified") || s.includes("success")) return "Verified";
+    
+    return "Pending";
+  };
+
+  const getStatusBadgeClass = (displayStatus) => {
+    return displayStatus === "Verified" ? "badge-success" : "badge-warning";
+  };
+
+  // --- Logic 2: Get Remarks ---
+  const getRemarks = (req) => {
+    // 1. Direct String Check (Matches your JSON example: "response": "ERROR: ...")
+    if (typeof req.response === 'string') {
+      return req.response;
+    }
+
+    // 2. Object Check
+    const resp = req.response || {};
+    const message = resp.message || resp.error || resp.statusDescription;
+    if (message) return message;
+
+    // 3. Fallback based on computed status
+    const status = getDisplayStatus(req);
+    if (status === "Verified") return "Submitted Successfully";
+    
+    return "Processing / Awaiting Confirmation";
   };
 
   useEffect(() => {
@@ -156,7 +156,6 @@ const VGMStatus = () => {
               <option value="">All</option>
               <option value="Verified">Verified</option>
               <option value="Pending">Pending</option>
-              <option value="Failed">Failed</option>
             </select>
           </div>
           <div className="form-group">
@@ -262,36 +261,22 @@ const VGMStatus = () => {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>VGM ID</th>
+                    <th>Actions</th>
                     <th>Container</th>
                     <th>Booking</th>
                     <th>Status</th>
+                    <th>Remarks</th>
                     <th>Weight</th>
-                    <th>Method</th>
                     <th>Date</th>
-                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {requests.map((req, i) => (
+                  {requests.map((req, i) => {
+                    const displayStatus = getDisplayStatus(req); // Pass entire object
+                    const remarks = getRemarks(req);
+                    
+                    return (
                     <tr key={i}>
-                      <td>{req.vgmId}</td>
-                      <td>{req.cntnrNo}</td>
-                      <td>{req.bookNo}</td>
-                      <td>
-                        <span
-                          className={`badge ${getStatusBadgeClass(
-                            req.cntnrStatus || req.status
-                          )}`}
-                        >
-                          {req.cntnrStatus || req.status}
-                        </span>
-                      </td>
-                      <td>
-                        {req.totWt ? `${req.totWt} ${req.totWtUom}` : "N/A"}
-                      </td>
-                      <td>{req.vgmEvalMethod}</td>
-                      <td>{dayjs(req.createdAt).format("DD/MM/YYYY HH:mm")}</td>
                       <td>
                         <div className="d-flex gap-2">
                           <button
@@ -304,20 +289,47 @@ const VGMStatus = () => {
                           <button
                             className="btn btn-sm btn-outline"
                             title="Edit"
-                            disabled={req.status === "Verified"}
+                
                             onClick={() => handleEditRequest(req)}
                           >
                             <Icons.Edit />
                           </button>
                         </div>
                       </td>
+                      <td>{req.cntnrNo}</td>
+                      <td>{req.bookNo}</td>
+                      <td>
+                        <span
+                          className={`badge ${getStatusBadgeClass(displayStatus)}`}
+                        >
+                          {displayStatus}
+                        </span>
+                      </td>
+                      {/* Remarks Column with Red Color for Errors */}
+                      <td 
+                        style={{ 
+                          maxWidth: '250px', 
+                          whiteSpace: 'nowrap', 
+                          overflow: 'hidden', 
+                          textOverflow: 'ellipsis',
+                          color: remarks.toString().startsWith("ERROR") ? '#dc2626' : 'inherit',
+                          fontWeight: remarks.toString().startsWith("ERROR") ? '600' : 'normal'
+                        }} 
+                        title={remarks}
+                      >
+                         {remarks}
+                      </td>
+                      <td>
+                        {req.totWt ? `${req.totWt} ${req.totWtUom}` : "N/A"}
+                      </td>
+                      <td>{dayjs(req.createdAt).format("DD/MM/YYYY HH:mm")}</td>
                     </tr>
-                  ))}
+                  )})}
                 </tbody>
               </table>
             </div>
 
-            {/* Simple Pagination */}
+            {/* Pagination */}
             {pagination.pages > 1 && (
               <div className="d-flex justify-between mt-4">
                 <span>
@@ -362,7 +374,7 @@ const VGMStatus = () => {
               <div className="form-grid">
                 <div>
                   <label className="text-muted">Status</label>
-                  <div>{selectedRequest.status}</div>
+                  <div>{getDisplayStatus(selectedRequest)}</div>
                 </div>
                 <div>
                   <label className="text-muted">Container</label>
@@ -379,8 +391,10 @@ const VGMStatus = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="text-muted">Weighbridge</label>
-                  <div>{selectedRequest.weighBridgeSlipNo || "N/A"}</div>
+                  <label className="text-muted">Remarks</label>
+                  <div style={{color: '#dc2626', fontWeight: 600}}>
+                    {getRemarks(selectedRequest)}
+                  </div>
                 </div>
                 <div>
                   <label className="text-muted">Time</label>
@@ -388,16 +402,20 @@ const VGMStatus = () => {
                 </div>
               </div>
               <div className="mt-4">
-                <label className="text-muted">API Response</label>
+                <label className="text-muted">Full API Response</label>
                 <pre
                   style={{
                     background: "#f1f5f9",
                     padding: "1rem",
                     borderRadius: "4px",
                     overflowX: "auto",
+                    maxHeight: "200px",
+                    whiteSpace: "pre-wrap" // Allows text wrapping for long error messages
                   }}
                 >
-                  {JSON.stringify(selectedRequest.response || {}, null, 2)}
+                  {typeof selectedRequest.response === 'string' 
+                    ? selectedRequest.response 
+                    : JSON.stringify(selectedRequest.response || {}, null, 2)}
                 </pre>
               </div>
             </div>

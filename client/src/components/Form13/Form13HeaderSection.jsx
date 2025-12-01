@@ -100,17 +100,17 @@ const Form13HeaderSection = ({
           label="VIA No"
           name="viaNo"
           required
-          options={renderOptions(
-            [...new Set(vessels.map((v) => v.viaNo).filter(Boolean))]
-          )}
+          options={renderOptions([
+            ...new Set(vessels.map((v) => v.viaNo).filter(Boolean)),
+          ])}
         />
         <Select
           label="Terminal"
           name="terminalCode"
           required
-          options={renderOptions(
-            [...new Set(vessels.map((v) => v.terminalCode).filter(Boolean))]
-          )}
+          options={renderOptions([
+            ...new Set(vessels.map((v) => v.terminalCode).filter(Boolean)),
+          ])}
         />
         <Select
           label="Service"
@@ -118,12 +118,14 @@ const Form13HeaderSection = ({
           required
           options={renderOptions(
             // dedupe service values for the selected vessel
-            [...new Set(
-              vessels
-                .filter((v) => v.vesselNm === formData.vesselNm)
-                .map((v) => v.service)
-                .filter(Boolean)
-            )]
+            [
+              ...new Set(
+                vessels
+                  .filter((v) => v.vesselNm === formData.vesselNm)
+                  .map((v) => v.service)
+                  .filter(Boolean)
+              ),
+            ]
           )}
         />
         <Select

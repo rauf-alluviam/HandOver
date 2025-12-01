@@ -66,7 +66,10 @@ const Form13ContainerSection = ({
         return (
           <div
             key={
-              container.cntnrNo || container.agentSealNo || container.customSealNo || `container-${index}`
+              container.cntnrNo ||
+              container.agentSealNo ||
+              container.customSealNo ||
+              `container-${index}`
             }
             className="panel border-left-primary"
             style={{ marginBottom: "1rem" }}

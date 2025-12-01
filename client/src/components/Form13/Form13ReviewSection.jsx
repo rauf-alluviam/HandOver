@@ -192,7 +192,11 @@ const Form13ReviewSection = ({ formData, vessels, pods }) => {
             </Typography>
             {formData.containers.map((container, index) => (
               <Box
-                key={container.cntnrNo || container.agentSealNo || `container-${index}`}
+                key={
+                  container.cntnrNo ||
+                  container.agentSealNo ||
+                  `container-${index}`
+                }
                 sx={{
                   mb: 2,
                   p: 2,
@@ -270,7 +274,11 @@ const Form13ReviewSection = ({ formData, vessels, pods }) => {
             </Typography>
             <List dense>
               {formData.attachments.map((file, index) => (
-                <ListItem key={`${file.name}-${file.size}-${file.lastModified ?? index}`}>
+                <ListItem
+                  key={`${file.name}-${file.size}-${
+                    file.lastModified ?? index
+                  }`}
+                >
                   <ListItemText
                     primary={file.name}
                     secondary={`${(file.size / 1024 / 1024).toFixed(2)} MB`}
