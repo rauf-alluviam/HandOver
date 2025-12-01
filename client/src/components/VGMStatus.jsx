@@ -5,30 +5,58 @@ import { useAuth } from "../context/AuthContext";
 import dayjs from "dayjs";
 import TopNavDropdown from "./TopNavDropdown";
 import { useNavigate } from "react-router-dom";
-import "../styles/VGM.scss"; 
+import "../styles/VGM.scss";
 
 // Inline Icons
 const Icons = {
   Filter: () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
       <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
     </svg>
   ),
   Refresh: () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
       <path d="M23 4v6h-6" />
       <path d="M1 20v-6h6" />
       <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
     </svg>
   ),
   Eye: () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
       <circle cx="12" cy="12" r="3" />
     </svg>
   ),
   Edit: () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
     </svg>
@@ -88,14 +116,20 @@ const VGMStatus = () => {
   const getDisplayStatus = (req) => {
     // Check internal response for errors first
     // If response is a string and starts with "ERROR", force Pending
-    if (typeof req.response === 'string' && req.response.trim().toUpperCase().startsWith("ERROR")) {
+    if (
+      typeof req.response === "string" &&
+      req.response.trim().toUpperCase().startsWith("ERROR")
+    ) {
       return "Pending";
     }
 
     // Otherwise check standard status fields
-    const s = (req.cntnrStatus || req.status || "").toLowerCase();
+
+    const s = (req.response || req.status || "").toLowerCase();
+    console.log(req.response);
+    console.log(s);
     if (s.includes("verified") || s.includes("success")) return "Verified";
-    
+
     return "Pending";
   };
 
@@ -106,19 +140,19 @@ const VGMStatus = () => {
   // --- Logic 2: Get Remarks ---
   const getRemarks = (req) => {
     // 1. Direct String Check (Matches your JSON example: "response": "ERROR: ...")
-    if (typeof req.response === 'string') {
+    if (typeof req.response === "string") {
       return req.response;
     }
 
     // 2. Object Check
-    const resp = req.response || {};
+    const resp = req.response;
     const message = resp.message || resp.error || resp.statusDescription;
     if (message) return message;
 
     // 3. Fallback based on computed status
     const status = getDisplayStatus(req);
     if (status === "Verified") return "Submitted Successfully";
-    
+
     return "Processing / Awaiting Confirmation";
   };
 
@@ -274,57 +308,65 @@ const VGMStatus = () => {
                   {requests.map((req, i) => {
                     const displayStatus = getDisplayStatus(req); // Pass entire object
                     const remarks = getRemarks(req);
-                    
+
                     return (
-                    <tr key={i}>
-                      <td>
-                        <div className="d-flex gap-2">
-                          <button
-                            className="btn btn-sm btn-outline"
-                            title="View"
-                            onClick={() => setSelectedRequest(req)}
+                      <tr key={i}>
+                        <td>
+                          <div className="d-flex gap-2">
+                            <button
+                              className="btn btn-sm btn-outline"
+                              title="View"
+                              onClick={() => setSelectedRequest(req)}
+                            >
+                              <Icons.Eye />
+                            </button>
+                            <button
+                              className="btn btn-sm btn-outline"
+                              title="Edit"
+                              onClick={() => handleEditRequest(req)}
+                            >
+                              <Icons.Edit />
+                            </button>
+                          </div>
+                        </td>
+                        <td>{req.cntnrNo}</td>
+                        <td>{req.bookNo}</td>
+                        <td>
+                          <span
+                            className={`badge ${getStatusBadgeClass(
+                              displayStatus
+                            )}`}
                           >
-                            <Icons.Eye />
-                          </button>
-                          <button
-                            className="btn btn-sm btn-outline"
-                            title="Edit"
-                
-                            onClick={() => handleEditRequest(req)}
-                          >
-                            <Icons.Edit />
-                          </button>
-                        </div>
-                      </td>
-                      <td>{req.cntnrNo}</td>
-                      <td>{req.bookNo}</td>
-                      <td>
-                        <span
-                          className={`badge ${getStatusBadgeClass(displayStatus)}`}
+                            {displayStatus}
+                          </span>
+                        </td>
+                        {/* Remarks Column with Red Color for Errors */}
+                        <td
+                          style={{
+                            maxWidth: "250px",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            color: remarks.toString().startsWith("ERROR")
+                              ? "#dc2626"
+                              : "inherit",
+                            fontWeight: remarks.toString().startsWith("ERROR")
+                              ? "600"
+                              : "normal",
+                          }}
+                          title={remarks}
                         >
-                          {displayStatus}
-                        </span>
-                      </td>
-                      {/* Remarks Column with Red Color for Errors */}
-                      <td 
-                        style={{ 
-                          maxWidth: '250px', 
-                          whiteSpace: 'nowrap', 
-                          overflow: 'hidden', 
-                          textOverflow: 'ellipsis',
-                          color: remarks.toString().startsWith("ERROR") ? '#dc2626' : 'inherit',
-                          fontWeight: remarks.toString().startsWith("ERROR") ? '600' : 'normal'
-                        }} 
-                        title={remarks}
-                      >
-                         {remarks}
-                      </td>
-                      <td>
-                        {req.totWt ? `${req.totWt} ${req.totWtUom}` : "N/A"}
-                      </td>
-                      <td>{dayjs(req.createdAt).format("DD/MM/YYYY HH:mm")}</td>
-                    </tr>
-                  )})}
+                          {remarks}
+                        </td>
+                        <td>
+                          {req.totWt ? `${req.totWt} ${req.totWtUom}` : "N/A"}
+                        </td>
+                        <td>
+                          {dayjs(req.createdAt).format("DD/MM/YYYY HH:mm")}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -392,7 +434,7 @@ const VGMStatus = () => {
                 </div>
                 <div>
                   <label className="text-muted">Remarks</label>
-                  <div style={{color: '#dc2626', fontWeight: 600}}>
+                  <div style={{ color: "#dc2626", fontWeight: 600 }}>
                     {getRemarks(selectedRequest)}
                   </div>
                 </div>
@@ -410,11 +452,11 @@ const VGMStatus = () => {
                     borderRadius: "4px",
                     overflowX: "auto",
                     maxHeight: "200px",
-                    whiteSpace: "pre-wrap" // Allows text wrapping for long error messages
+                    whiteSpace: "pre-wrap", // Allows text wrapping for long error messages
                   }}
                 >
-                  {typeof selectedRequest.response === 'string' 
-                    ? selectedRequest.response 
+                  {typeof selectedRequest.response === "string"
+                    ? selectedRequest.response
                     : JSON.stringify(selectedRequest.response || {}, null, 2)}
                 </pre>
               </div>

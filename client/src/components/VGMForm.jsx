@@ -107,50 +107,58 @@ const VGMForm = ({
   const [isEditMode, setIsEditMode] = useState(editMode);
   const [requestData, setRequestData] = useState(existingRequest);
 
+  const [formValues, setFormValues] = useState({
+    linerId: "",
+    vesselNm: "",
+    voyageNo: "",
+    bookNo: "",
+    locId: "",
+    handoverLoc: "",
+    shipperTp: "S",
+    authPrsnNm: "",
+    authDesignation: "",
+    authMobNo: "",
+    odexRefNo: userData?.pyrCode,
+    vgmEvalMethod: "M1",
+    cntnrNo: "",
+    cntnrSize: "",
+    cntnrTp: "",
+    cargoTp: "GEN",
+    cscPlateMaxWtLimit: "",
+    cscPlateMaxWtUom: "KG",
+    isQuickResponse: "N",
+    cargoWt: "",
+    cargoWtUom: "KG",
+    tareWt: "",
+    tareWtUom: "KG",
+    totWt: "",
+    totWtUom: "KG",
+    imoNo1: "",
+    unNo1: "",
+    shipId: "",
+    shipperNm: "",
+    shipRegTP: "",
+    shipRegNo: "",
+    weighBridgeRegNo: "",
+    weighBridgeAddrLn1: "",
+    weighBridgeAddrLn2: "",
+    weighBridgeAddrLn3: "",
+    weighBridgeSlipNo: "",
+    weighBridgeWtTs: new Date().toISOString().slice(0, 19).replace("T", " "),
+    terminalCode: "",
+  });
   // --- Initialize Formik ---
   const formik = useFormik({
-    initialValues: {
-      linerId: "",
-      vesselNm: "",
-      voyageNo: "",
-      bookNo: "",
-      locId: "",
-      handoverLoc: "",
-      shipperTp: "S",
-      authPrsnNm: "",
-      authDesignation: "",
-      authMobNo: "",
-      odexRefNo: userData?.pyrCode,
-      vgmEvalMethod: "M1",
-      cntnrNo: "",
-      cntnrSize: "",
-      cntnrTp: "",
-      cargoTp: "GEN",
-      cscPlateMaxWtLimit: "",
-      cscPlateMaxWtUom: "KG",
-      isQuickResponse: "N",
-      cargoWt: "",
-      cargoWtUom: "KG",
-      tareWt: "",
-      tareWtUom: "KG",
-      totWt: "",
-      totWtUom: "KG",
-      imoNo1: "",
-      unNo1: "",
-      shipId: "",
-      shipperNm: "",
-      shipRegTP: "",
-      shipRegNo: "",
-      weighBridgeRegNo: "",
-      weighBridgeAddrLn1: "",
-      weighBridgeAddrLn2: "",
-      weighBridgeAddrLn3: "",
-      weighBridgeSlipNo: "",
-      weighBridgeWtTs: new Date().toISOString().slice(0, 19).replace("T", " "),
-      terminalCode: "",
-    },
+    initialValues: formValues,
+    enableReinitialize: true,
     validationSchema: vgmValidationSchema,
     onSubmit: async (values) => {
+      if (isEditMode && !formik.dirty) {
+        enqueueSnackbar("No changes detected. Update cancelled.", {
+          variant: "info",
+        });
+        return; // <--- STOP HERE. No API call, no remarks update.
+      }
       if (loading) return;
       setLoading(true);
       try {
@@ -197,7 +205,8 @@ const VGMForm = ({
 
         if (responseBody) {
           // --- FIX 2: Check for logical errors inside the success response ---
-          const innerResponse = responseBody.data?.response; // "ERROR: 1 - Shipping Line..."
+          // const innerResponse = responseBody.data?.response; // "ERROR: 1 - Shipping Line..."
+          const innerResponse = responseBody.data?.remarks;
           const isLogicalError =
             typeof innerResponse === "string" &&
             innerResponse.trim().toUpperCase().startsWith("ERROR");
@@ -268,7 +277,7 @@ const VGMForm = ({
     if (!request) return;
     const requestBody = request.request?.body || request;
 
-    const formValues = {
+    const newValues = {
       linerId: requestBody.linerId || "",
       vesselNm: requestBody.vesselNm || "",
       voyageNo: requestBody.voyageNo || "",
@@ -315,9 +324,10 @@ const VGMForm = ({
       if (formValues[key] !== undefined)
         formik.setFieldValue(key, formValues[key]);
     });
+    setFormValues(newValues);
 
-    if (requestBody.vgmWbAttList) setAttachments(requestBody.vgmWbAttList);
-    enqueueSnackbar("Form pre-filled with existing data", { variant: "info" });
+    // if (requestBody.vgmWbAttList) setAttachments(requestBody.vgmWbAttList);
+    // enqueueSnackbar("Form pre-filled with existing data", { variant: "info" });
   };
 
   const hasShipperAuth = shippers.some(
@@ -359,23 +369,6 @@ const VGMForm = ({
     <FormikProvider value={formik}>
       <div className="vgm-container">
         <TopNavDropdown />
-
-        <div className="alert alert-warning">
-          <div style={{ flex: 1 }}>
-            <strong>Dear Customer,</strong> post tips Pay credit facility is
-            discontinued. Please renew VGM subscriptions timely.
-          </div>
-          <button className="btn btn-sm btn-primary">Subscribe Now</button>
-        </div>
-
-        <div className="page-header">
-          <h2>{isEditMode ? "Edit VGM Request" : "VGM Declaration Form"}</h2>
-          {isEditMode && existingRequest && (
-            <div className="text-muted">
-              ID: {existingRequest.vgmId} | Container: {existingRequest.cntnrNo}
-            </div>
-          )}
-        </div>
 
         <form onSubmit={formik.handleSubmit}>
           {/* Section 1: Shipper & Booking */}
