@@ -438,6 +438,7 @@ export const getVGMRequestById = async (req, res) => {
 };
 
 // Update VGM request and retrigger third-party API
+// Update VGM request and retrigger third-party API
 export const updateVGMRequest = async (req, res) => {
   try {
     const { vgmId } = req.params;
@@ -460,19 +461,18 @@ export const updateVGMRequest = async (req, res) => {
       },
     };
 
-    // console.log("Updated request data:", updatedRequestData);
-
-    // Update the existing log
-    const updatedLog = await ApiLog.findByIdAndUpdate(
-      vgmId,
-      {
-        request: updatedRequestData,
-        status: "pending",
-        remarks: `Updated and resubmitted on ${new Date().toISOString()}`,
-        $inc: { retryCount: 1 },
-      },
-      { new: true }
+    console.log(
+      "Updated request data for resubmission:",
+      JSON.stringify(updatedRequestData.body, null, 2)
     );
+
+    // Update the existing log with pending status
+    await ApiLog.findByIdAndUpdate(vgmId, {
+      request: updatedRequestData,
+      status: "pending",
+      remarks: `Updated and resubmitted on ${new Date().toISOString()}`,
+      $inc: { retryCount: 1 },
+    });
 
     // Retrigger API call to third party with updated data
     const result = await ApiLogger.logAndForward(
@@ -480,10 +480,17 @@ export const updateVGMRequest = async (req, res) => {
       updatedRequestData
     );
 
+    console.log("Resubmission result structure:", {
+      success: result.success,
+      errorType: typeof result.error,
+      errorValue: result.error,
+      hasLogId: !!result.logId,
+    });
+
+    // Update the log with the response
     if (result.success) {
-      // Update the log with the successful response
       await ApiLog.findByIdAndUpdate(vgmId, {
-        response: result.data,
+        "response.data": result.data,
         status: "success",
       });
 
@@ -494,21 +501,59 @@ export const updateVGMRequest = async (req, res) => {
         vgmId: vgmId,
       });
     } else {
-      // Update the log with the failed response
+      // DEBUG: Log the exact structure of result.error
+      console.log("DEBUG - result.error structure:", {
+        type: typeof result.error,
+        value: result.error,
+        isObject: result.error && typeof result.error === "object",
+        isString: typeof result.error === "string",
+        keys:
+          result.error && typeof result.error === "object"
+            ? Object.keys(result.error)
+            : "N/A",
+      });
+
+      // Safely handle the error - always ensure it's an object
+      let errorData;
+      if (!result.error) {
+        errorData = { message: "No error information provided" };
+      } else if (typeof result.error === "string") {
+        errorData = {
+          message: result.error,
+          originalString: result.error,
+        };
+      } else if (typeof result.error === "object") {
+        errorData = result.error;
+      } else {
+        errorData = {
+          message: "Unknown error type",
+          originalValue: String(result.error),
+        };
+      }
+
+      console.log("DEBUG - Final errorData to store:", errorData);
+
+      // Update database with error
       await ApiLog.findByIdAndUpdate(vgmId, {
-        response: result.error,
+        "response.data": errorData,
         status: "failed",
       });
 
       res.status(500).json({
         success: false,
-        error: result.error,
+        error: errorData,
         vgmId: vgmId,
         message: "VGM request updated but third-party API call failed",
       });
     }
   } catch (error) {
-    console.error("Update VGM request error:", error);
+    console.error("Update VGM request error details:", {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code,
+    });
+
     res.status(500).json({
       error: "Failed to update VGM request",
       details: error.message,

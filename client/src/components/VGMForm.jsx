@@ -153,13 +153,15 @@ const VGMForm = ({
     enableReinitialize: true,
     validationSchema: vgmValidationSchema,
     onSubmit: async (values) => {
-      if (isEditMode && !formik.dirty) {
+      const currentPayload = JSON.stringify(values);
+      const initialPayload = JSON.stringify(formValues);
+
+      if (isEditMode && currentPayload === initialPayload) {
         enqueueSnackbar("No changes detected. Update cancelled.", {
           variant: "info",
         });
-        return; // <--- STOP HERE. No API call, no remarks update.
+        return;
       }
-      if (loading) return;
       setLoading(true);
       try {
         const payload = { ...values };
@@ -362,7 +364,7 @@ const VGMForm = ({
 
   const handleCancel = () => {
     if (onCancel) onCancel();
-    else navigate("/vgm-status");
+    else navigate("/dashboard");
   };
 
   return (
@@ -624,13 +626,33 @@ const VGMForm = ({
                 <label>
                   Date & Time of Weighing <span className="required">*</span>
                 </label>
+
                 <input
                   type="datetime-local"
                   name="weighBridgeWtTs"
-                  className="form-control"
-                  value={formik.values.weighBridgeWtTs
-                    .replace(" ", "T")
-                    .slice(0, 16)}
+                  /* 1. HIGHLIGHT LOGIC: This adds a red border if touched + error exists */
+                  className={`form-control ${
+                    formik.touched.weighBridgeWtTs &&
+                    formik.errors.weighBridgeWtTs
+                      ? "is-invalid"
+                      : ""
+                  }`}
+                  /* 2. STYLE FALLBACK: If 'is-invalid' class doesn't exist in your CSS, this forces the red border */
+                  style={
+                    formik.touched.weighBridgeWtTs &&
+                    formik.errors.weighBridgeWtTs
+                      ? { borderColor: "#dc3545" }
+                      : {}
+                  }
+                  /* 3. TRIGGER: onBlur is required to trigger validation when leaving the field */
+                  onBlur={formik.handleBlur}
+                  value={
+                    formik.values.weighBridgeWtTs
+                      ? formik.values.weighBridgeWtTs
+                          .replace(" ", "T")
+                          .slice(0, 16)
+                      : ""
+                  }
                   onChange={(e) => {
                     const val = e.target.value
                       ? e.target.value.replace("T", " ") + ":00"
@@ -638,6 +660,17 @@ const VGMForm = ({
                     formik.setFieldValue("weighBridgeWtTs", val);
                   }}
                 />
+
+                {/* 4. ERROR MESSAGE: Display the text in red below the input */}
+                {formik.touched.weighBridgeWtTs &&
+                  formik.errors.weighBridgeWtTs && (
+                    <div
+                      className="invalid-feedback d-block"
+                      style={{ color: "#dc3545" }}
+                    >
+                      {formik.errors.weighBridgeWtTs}
+                    </div>
+                  )}
               </div>
             </div>
           </div>
@@ -650,65 +683,91 @@ const VGMForm = ({
             </div>
 
             {ATTACHMENT_TITLES.map((type) => (
-              <div key={type.value} className="file-upload-wrapper">
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>
-                    {type.label}
-                    {((type.value === "DG_DECLARATION" &&
-                      formik.values.cargoTp === "HAZ") ||
-                      (type.value === "AUTH_LETTER" &&
-                        formik.values.shipperTp === "O" &&
-                        !hasShipperAuth)) && (
-                      <span className="required" style={{ color: "red" }}>
-                        {" "}
-                        *
-                      </span>
-                    )}
+              <div
+                key={type.value}
+                className="file-upload-wrapper"
+                style={{ marginBottom: "15px" }}
+              >
+                {/* LABEL SECTION */}
+                <div
+                  style={{
+                    marginBottom: "5px",
+                    fontWeight: 600,
+                    fontSize: "0.9rem",
+                  }}
+                >
+                  {type.label}
+                  {((type.value === "DG_DECLARATION" &&
+                    formik.values.cargoTp === "HAZ") ||
+                    (type.value === "AUTH_LETTER" &&
+                      formik.values.shipperTp === "O" &&
+                      !hasShipperAuth)) && (
+                    <span className="required" style={{ color: "red" }}>
+                      {" "}
+                      *
+                    </span>
+                  )}
+                </div>
+
+                {/* CONTROLS SECTION */}
+                <div className="d-flex align-items-center">
+                  {/* 1. File Name Text (Added marginRight) */}
+                  <div className="file-name" style={{ marginRight: "15px" }}>
+                    {attachments.find((a) => a.attTitle === type.value)
+                      ?.attNm || "No file chosen"}
                   </div>
-                </div>
-                <div className="file-name">
-                  {attachments.find((a) => a.attTitle === type.value)?.attNm ||
-                    "No file chosen"}
-                </div>
 
-                <label className="btn btn-sm btn-outline">
-                  Choose File
-                  <input
-                    type="file"
-                    accept=".pdf"
-                    hidden
-                    onChange={(e) => handleFileUpload(e, type.value)}
-                  />
-                </label>
-
-                {attachments.find((a) => a.attTitle === type.value) && (
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-danger-outline"
-                    onClick={() =>
-                      removeAttachment(
-                        attachments.findIndex((a) => a.attTitle === type.value)
-                      )
-                    }
+                  {/* 2. Choose File Button (Added marginRight) */}
+                  <label
+                    className="btn btn-sm btn-outline"
+                    style={{ marginBottom: 0, marginRight: "10px" }}
                   >
-                    Remove
-                  </button>
-                )}
+                    Choose File
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      hidden
+                      onChange={(e) => handleFileUpload(e, type.value)}
+                    />
+                  </label>
+
+                  {/* 3. Remove Button */}
+                  {attachments.find((a) => a.attTitle === type.value) && (
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-danger-outline"
+                      onClick={() =>
+                        removeAttachment(
+                          attachments.findIndex(
+                            (a) => a.attTitle === type.value
+                          )
+                        )
+                      }
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
 
           {/* Actions */}
           <div className="panel">
-            <div className="d-flex gap-4" style={{ justifyContent: "center" }}>
+            {/* Added explicit gap via style just in case class fails, removed gap-4 class */}
+            <div
+              className="d-flex"
+              style={{ justifyContent: "center", gap: "15px" }}
+            >
               <button
                 type="button"
-                className="btn btn-outline"
+                className="btn btn-outline" // Removed me-2 since we added gap:15px above, but you can add me-2 here if you prefer
                 onClick={handleCancel}
                 disabled={loading}
               >
                 Cancel
               </button>
+
               <button
                 type="submit"
                 className="btn btn-primary"

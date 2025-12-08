@@ -10,6 +10,7 @@ const ODEX_CONFIG = {
   baseURL: process.env.ODEX_BASE_URL || "https://staging.odexglobal.com",
   endpoints: {
     vesselMaster: "/RS/iForm13Service/json/getForm13VesselInfo",
+
     podMaster: "/RS/iForm13Service/json/getForm13PODInfo",
     submitForm13: "/DEMO/RS/iForm13Service/json/saveF13",
     getStatus: "/RS/iForm13Service/json/getForm13ReqInfo",
@@ -34,11 +35,10 @@ const getHashKey = () => {
 
 // Helper function to call ODeX API with robust error handling
 
-
 export const callOdexAPI = async (endpoint, requestData) => {
   const url = `${process.env.ODEX_BASE_URL}${endpoint}`;
   console.log("📤 ODeX Request →", url);
-  console.log("📤 Payload:", JSON.stringify(requestData, null, 2));
+  // console.log("📤 Payload:", JSON.stringify(requestData, null, 2));
 
   try {
     const res = await axios.post(url, requestData, {
@@ -49,27 +49,26 @@ export const callOdexAPI = async (endpoint, requestData) => {
       timeout: 30000,
     });
 
-    console.log("📥 ODeX Response:", JSON.stringify(res.data, null, 2));
-    
+    // console.log("📥 ODeX Response:", JSON.stringify(res.data, null, 2));
+
     // ODeX returns JSON even for errors, so no HTML detection needed
     return res.data;
-    
   } catch (error) {
     console.error("❌ ODeX call failed:", error.message);
-    
+
     if (error.response) {
       // ODeX returned JSON error
       const odexError = error.response.data;
-      throw new Error(odexError.responseMessage || odexError.error || 'ODeX API error');
+      throw new Error(
+        odexError.responseMessage || odexError.error || "ODeX API error"
+      );
     } else if (error.request) {
-      throw new Error('ODeX service unavailable - no response received');
+      throw new Error("ODeX service unavailable - no response received");
     } else {
       throw error;
     }
   }
 };
-
-
 
 // Mock data for testing when API is down
 const getMockVesselData = () => {
@@ -124,7 +123,7 @@ router.post("/vessel-master", async (req, res) => {
 
     // Get current timestamp and hashkey
     // const fromTs = getCurrentTimestamp();
-    const fromTs = "2025-10-13 00:00:00";
+    const fromTs = "2025-11-09 00:00:00";
     const hashKey = getHashKey();
 
     // Prepare request for ODeX API
@@ -133,7 +132,6 @@ router.post("/vessel-master", async (req, res) => {
       fromTs,
       hashKey,
     };
-
 
     // Call actual ODeX Vessel Master API
     const odexResponse = await callOdexAPI(
@@ -191,8 +189,6 @@ router.post("/pod-master", async (req, res) => {
       hashKey,
     };
 
-
-
     // Call actual ODeX POD Master API
     const odexResponse = await callOdexAPI(
       ODEX_CONFIG.endpoints.podMaster,
@@ -208,7 +204,6 @@ router.post("/pod-master", async (req, res) => {
 
     // Return mock data for testing when API is down
     if (process.env.USE_MOCK_DATA === "true") {
-
       return res.json({
         success: true,
         data: [
@@ -231,15 +226,21 @@ router.post("/pod-master", async (req, res) => {
 router.post("/submit", async (req, res) => {
   try {
     const formData = req.body;
-    
+
     // Validate required fields including formType
-    const requiredFields = ['pyrCode', 'vesselNm', 'pod', 'formType', 'hashKey'];
-    const missingFields = requiredFields.filter(field => !formData[field]);
-    
+    const requiredFields = [
+      "pyrCode",
+      "vesselNm",
+      "pod",
+      "formType",
+      "hashKey",
+    ];
+    const missingFields = requiredFields.filter((field) => !formData[field]);
+
     if (missingFields.length > 0) {
       return res.status(400).json({
         success: false,
-        error: `Missing required fields: ${missingFields.join(', ')}`,
+        error: `Missing required fields: ${missingFields.join(", ")}`,
       });
     }
 
@@ -256,16 +257,15 @@ router.post("/submit", async (req, res) => {
     // Update with ODeX reference
     if (odexResponse.odexRefNo) {
       form13.odexRefNo = odexResponse.odexRefNo;
-      form13.status = 'SUBMITTED';
+      form13.status = "SUBMITTED";
       await form13.save();
     }
 
     res.json({
       success: true,
       data: odexResponse,
-      internalRef: form13._id
+      internalRef: form13._id,
     });
-
   } catch (error) {
     console.error("Form 13 Submission Error:", error);
     res.status(500).json({

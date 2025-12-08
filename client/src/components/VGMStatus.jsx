@@ -112,10 +112,30 @@ const VGMStatus = () => {
     navigate("/vgm", { state: { editMode: true, vgmId: request.vgmId } });
   };
 
+  // ✅ FIXED: Clear filters handler - works on FIRST click
+  const handleClearFilters = () => {
+    const clearedFilters = {
+      status: "",
+      containerNo: "",
+      bookingNo: "",
+      dateFrom: "",
+      dateTo: "",
+    };
+    setFilters(clearedFilters);
+    setPagination((prev) => ({ ...prev, page: 1 }));
+    fetchVGMRequests(1);
+  };
+
+  // ✅ FIXED: Apply filters handler - resets to page 1
+  const handleApplyFilters = () => {
+    setPagination((prev) => ({ ...prev, page: 1 }));
+    fetchVGMRequests(1);
+  };
+
+  // --- Logic 1: Determine Display Status ---
   // --- Logic 1: Determine Display Status ---
   const getDisplayStatus = (req) => {
-    // Check internal response for errors first
-    // If response is a string and starts with "ERROR", force Pending
+    // Handle string responses (errors)
     if (
       typeof req.response === "string" &&
       req.response.trim().toUpperCase().startsWith("ERROR")
@@ -123,39 +143,55 @@ const VGMStatus = () => {
       return "Pending";
     }
 
-    // Otherwise check standard status fields
+    // Check cntnrStatus from the request object directly (not nested in response)
+    if (req.cntnrStatus) {
+      const s = req.cntnrStatus.toLowerCase();
+      if (s.includes("verified")) return "Verified";
+      if (s.includes("success")) return "Verified"; // If status is "success", treat as Verified
+    }
 
-    const s = (req.response || req.status || "").toLowerCase();
-    console.log(req.response);
-    console.log(s);
-    if (s.includes("verified") || s.includes("success")) return "Verified";
+    // Handle object responses - check if cntnrStatus exists in response
+    if (
+      req.response &&
+      typeof req.response === "object" &&
+      req.response.cntnrStatus
+    ) {
+      const s = req.response.cntnrStatus.toLowerCase();
+      if (s.includes("verified")) return "Verified";
+      if (s.includes("success")) return "Verified";
+    }
 
     return "Pending";
   };
-
   const getStatusBadgeClass = (displayStatus) => {
     return displayStatus === "Verified" ? "badge-success" : "badge-warning";
   };
 
   // --- Logic 2: Get Remarks ---
   const getRemarks = (req) => {
-    // 1. Direct String Check (Matches your JSON example: "response": "ERROR: ...")
+    // If response is a string (error or success message)
     if (typeof req.response === "string") {
-      return req.response;
+      // Check if it's an error
+      if (req.response.trim().toUpperCase().startsWith("ERROR")) {
+        return req.response;
+      }
+      // Check if it's SUCCESS and cntnrStatus is verified
+      if (
+        req.response === "SUCCESS" &&
+        req.cntnrStatus &&
+        req.cntnrStatus.toLowerCase().includes("verified")
+      ) {
+        return "Submitted Successfully";
+      }
     }
 
-    // 2. Object Check
-    const resp = req.response;
-    const message = resp.message || resp.error || resp.statusDescription;
-    if (message) return message;
-
-    // 3. Fallback based on computed status
     const status = getDisplayStatus(req);
     if (status === "Verified") return "Submitted Successfully";
 
     return "Processing / Awaiting Confirmation";
   };
 
+  // Initial load
   useEffect(() => {
     fetchVGMRequests(1);
   }, []);
@@ -240,24 +276,17 @@ const VGMStatus = () => {
             className="form-group"
             style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem" }}
           >
+            {/* ✅ FIXED: Apply button */}
             <button
               className="btn btn-primary w-full"
-              onClick={() => fetchVGMRequests(1)}
+              onClick={handleApplyFilters}
             >
               Apply
             </button>
+            {/* ✅ FIXED: Clear button - works on FIRST click */}
             <button
               className="btn btn-outline w-full"
-              onClick={() => {
-                setFilters({
-                  status: "",
-                  containerNo: "",
-                  bookingNo: "",
-                  dateFrom: "",
-                  dateTo: "",
-                });
-                setTimeout(() => fetchVGMRequests(1), 0);
-              }}
+              onClick={handleClearFilters}
             >
               Clear
             </button>
@@ -306,7 +335,7 @@ const VGMStatus = () => {
                 </thead>
                 <tbody>
                   {requests.map((req, i) => {
-                    const displayStatus = getDisplayStatus(req); // Pass entire object
+                    const displayStatus = getDisplayStatus(req);
                     const remarks = getRemarks(req);
 
                     return (
@@ -340,7 +369,6 @@ const VGMStatus = () => {
                             {displayStatus}
                           </span>
                         </td>
-                        {/* Remarks Column with Red Color for Errors */}
                         <td
                           style={{
                             maxWidth: "250px",
@@ -409,7 +437,7 @@ const VGMStatus = () => {
                 className="close-btn"
                 onClick={() => setSelectedRequest(null)}
               >
-                &times;
+                ×
               </button>
             </div>
             <div className="modal-body">
@@ -452,7 +480,7 @@ const VGMStatus = () => {
                     borderRadius: "4px",
                     overflowX: "auto",
                     maxHeight: "200px",
-                    whiteSpace: "pre-wrap", // Allows text wrapping for long error messages
+                    whiteSpace: "pre-wrap",
                   }}
                 >
                   {typeof selectedRequest.response === "string"
@@ -461,6 +489,7 @@ const VGMStatus = () => {
                 </pre>
               </div>
             </div>
+            setUploads
             <div className="modal-footer">
               <button
                 className="btn btn-primary"

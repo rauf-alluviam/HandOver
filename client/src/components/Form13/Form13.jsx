@@ -1,47 +1,80 @@
 // src/components/Form13/Form13.jsx
 
 import React, { useState, useEffect } from "react";
-import {
-  Container,
-  Box,
-  Paper,
-  Typography,
-  Button,
-  Alert,
-  CircularProgress,
-  Divider,
-  Fab,
-  Stack,
-  Snackbar,
-} from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { Save as SaveIcon, Send as SendIcon } from "@mui/icons-material";
 import { useAuth } from "../../context/AuthContext";
 import { form13API } from "../../services/form13API";
-import Form13HeaderSection from "./Form13HeaderSection";
-import Form13ContainerSection from "./Form13ContainerSection";
-import Form13ShippingBillSection from "./Form13ShippingBillSection";
-import Form13AttachmentSection from "./Form13AttachmentSection";
 import TopNavDropdown from "../TopNavDropdown";
+import { masterData } from "../../data/masterData";
+import {
+  isFieldRequired,
+  getRequiredAttachments,
+  getFieldLabel,
+  validateFormData,
+  isFieldVisible,
+  getFieldDescription,
+  needsNhavashevaCodeValidation,
+  isEarlyGateInApplicable,
+  isSpecialStowRequired,
+  LOCATION_SPECIFIC_RULES,
+} from "../../utils/form13Validations";
+import "../../styles/Form13.scss";
+
+// In Form13.jsx, add these imports
+import {
+  parseSchemaValidationErrors,
+  parseSchemaErrors,
+} from "../../utils/schemaValidationParser";
+// Icons
+import {
+  Save as SaveIcon,
+  Send as SendIcon,
+  Add as AddIcon,
+  Remove as RemoveIcon,
+  Info as InfoIcon,
+  Error as ErrorIcon,
+  CheckCircle as CheckCircleIcon,
+  CloudUpload as CloudUploadIcon,
+  AttachFile as AttachFileIcon,
+  Warning as WarningIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
+  Visibility as VisibilityIcon,
+  VisibilityOff as VisibilityOffIcon,
+  Delete as DeleteIcon,
+  FileDownload as FileDownloadIcon,
+  Print as PrintIcon,
+  ArrowBack as ArrowBackIcon,
+} from "@mui/icons-material";
+
 const Form13 = () => {
   const { userData } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [validationErrors, setValidationErrors] = useState({});
-
+  const [schemaValidationErrors, setSchemaValidationErrors] = useState({});
   // Master Data States
   const [vessels, setVessels] = useState([]);
   const [pods, setPods] = useState([]);
+  const [availableTerminals, setAvailableTerminals] = useState([]);
+  const [availableServices, setAvailableServices] = useState([]);
+  const [allPODs, setAllPODs] = useState([]);
   const [masterDataLoaded, setMasterDataLoaded] = useState(false);
 
-  // Form Data State - Complete structure matching API requirements
-  // HARDCODE YOUR HASHKEY HERE
+  // UI States
+  const [expandedSections, setExpandedSections] = useState({
+    header: true,
+    containers: true,
+    shippingBills: true,
+    attachments: true,
+  });
 
-  const [formData, setFormData] = useState({
+  // Initial Form State
+  const initialFormState = {
     // Header Section
-    odexRefNo: "",
-    reqId: "",
     pyrCode: userData?.pyrCode || "",
     bnfCode: "",
     locId: "",
@@ -74,17 +107,9 @@ const Form13 = () => {
     IECode: "",
     CHACode: "",
     Notify_TO: "",
-    stuffTp: "",
-    icdLoadingPort: "",
-    voyageNo: "",
-    haulageTp: "",
-    railOperator: "",
-    bookLinId: "",
-    placeOfDel: "",
-    contactPerson: "",
-    outsideWindowIssue: false,
+    hashKey: "",
 
-    // Container Section (cntrList in API)
+    // Container Section
     containers: [
       {
         cntnrReqId: "",
@@ -96,8 +121,8 @@ const Form13 = () => {
         vgmWt: "",
         vgmViaODeX: "N",
         doNo: "",
-        temp: "0",
-        volt: "0",
+        temp: "",
+        volt: "",
         imoNo1: "",
         unNo1: "",
         imoNo2: "",
@@ -106,11 +131,11 @@ const Form13 = () => {
         unNo3: "",
         imoNo4: "",
         unNo4: "",
-        rightDimensions: "0.00",
-        topDimensions: "0.00",
-        backDimensions: "0.00",
-        leftDimensions: "0.00",
-        frontDimensions: "0.00",
+        rightDimensions: "",
+        topDimensions: "",
+        backDimensions: "",
+        leftDimensions: "",
+        frontDimensions: "",
         odcUnits: "",
         chaRemarks: "",
         vehicleNo: "",
@@ -121,11 +146,10 @@ const Form13 = () => {
         spclStowRemark: "",
         status: "REQUESTED",
         shpInstructNo: "",
-        cntnrTareWgt: 0,
-        cargoVal: 0,
-        commodityName: "",
         hsnCode: "",
-        // Shipping Bill Details embedded in container
+        commodityName: "",
+
+        // Shipping Bill Details
         sbDtlsVo: [
           {
             shipBillInvNo: "",
@@ -136,21 +160,54 @@ const Form13 = () => {
             chaPan: "",
             exporterNm: "",
             exporterIec: "",
-            noOfPkg: 0,
+            noOfPkg: "",
           },
         ],
       },
     ],
 
-    // Attachments Section (attList in API)
+    // Attachments Section
     attachments: [],
-  });
+  };
 
-  // Load Master Data on component mount
+  // Form Data State
+  const [formData, setFormData] = useState(initialFormState);
+
+  // Helper Functions
+  // const extractAllPODs = (podData) => {
+  //   const podOptions = [];
+  //   const podSet = new Set();
+
+  //   podData.forEach((location) => {
+  //     location.terminal?.forEach((terminal) => {
+  //       terminal.service?.forEach((service) => {
+  //         service.pod?.forEach((pod) => {
+  //           const podKey = `${pod.podCd}|${pod.podNm}`;
+  //           if (!podSet.has(podKey) && pod.status === "ACTIVE") {
+  //             podSet.add(podKey);
+  //             podOptions.push({
+  //               value: pod.podCd,
+  //               label: `${pod.podNm} (${pod.podCd})`,
+  //               location: location.locId,
+  //               terminal: terminal.terminalId,
+  //               service: service.serviceNm,
+  //               status: pod.status,
+  //             });
+  //           }
+  //         });
+  //       });
+  //     });
+  //   });
+
+  //   return podOptions;
+  // };
+
+  // Load Master Data
   useEffect(() => {
     loadMasterData();
   }, []);
 
+  // In Form13.jsx - update the loadMasterData function:
   const loadMasterData = async () => {
     try {
       setLoading(true);
@@ -168,33 +225,79 @@ const Form13 = () => {
         .replace("T", " ")
         .split(".")[0];
 
-      // Get hashkey
-      const hashKeyResponse = await form13API.getHashKey({
-        pyrCode: pyrCode,
-        timestamp,
-      });
+      // Step 1: Get hashkey from backend
+      let hashKey = "";
+      try {
+        const hashKeyResponse = await form13API.getHashKey({
+          pyrCode: pyrCode,
+          timestamp: timestamp,
+        });
 
-      const hashKey = hashKeyResponse.data.hashKey;
+        if (hashKeyResponse.data && hashKeyResponse.data.hashKey) {
+          hashKey = hashKeyResponse.data.hashKey;
+          console.log("Hash key received:", hashKey);
+        } else {
+          throw new Error("Hash key not received from server");
+        }
+      } catch (hashError) {
+        console.error("Hash key error:", hashError);
+        setError(
+          `Failed to get hash key: ${
+            hashError.response?.data?.error || hashError.message
+          }`
+        );
+        setLoading(false);
+        return;
+      }
 
-      // Load Vessel Master Data
+      // Store hashKey in formData for later use
+      setFormData((prev) => ({
+        ...prev,
+        hashKey: hashKey,
+      }));
+
+      // Step 2: Load Vessel Master Data using the hash key
       const vesselRequest = {
         pyrCode: pyrCode,
         fromTs: timestamp,
-        hashKey,
+        hashKey: hashKey,
       };
 
-      const vesselResponse = await form13API.getVesselMaster(vesselRequest);
-      setVessels(vesselResponse.data || []);
+      console.log("Vessel request payload:", vesselRequest);
 
-      // Load POD Master Data
+      const vesselResponse = await form13API.getVesselMaster(vesselRequest);
+      console.log("Vessel API response:", vesselResponse);
+
+      if (vesselResponse.data && Array.isArray(vesselResponse.data)) {
+        setVessels(vesselResponse.data);
+        console.log("Vessels loaded:", vesselResponse.data.length);
+      } else {
+        console.warn(
+          "Vessel data not in expected format:",
+          vesselResponse.data
+        );
+        setVessels([]);
+      }
+
+      // Step 3: Load POD Master Data using the same hash key
       const podRequest = {
         pyrCode: pyrCode,
         fromTs: timestamp,
-        hashKey,
+        hashKey: hashKey,
       };
 
+      console.log("POD request payload:", podRequest);
+
       const podResponse = await form13API.getPODMaster(podRequest);
-      setPods(podResponse.data || []);
+      console.log("POD API response:", podResponse);
+
+      if (podResponse.data && Array.isArray(podResponse.data)) {
+        setPods(podResponse.data);
+        console.log("PODs loaded:", podResponse.data.length);
+      } else {
+        console.warn("POD data not in expected format:", podResponse.data);
+        setPods([]);
+      }
 
       setMasterDataLoaded(true);
       setSuccess("Master data loaded successfully");
@@ -202,7 +305,7 @@ const Form13 = () => {
       console.error("Master data loading error:", err);
       setError(
         `Failed to load master data: ${
-          err.response?.data?.error || err.message
+          err.response?.data?.error || err.message || "Unknown error"
         }`
       );
     } finally {
@@ -210,547 +313,174 @@ const Form13 = () => {
     }
   };
 
-  // Comprehensive Validation Function
-  const validateForm = () => {
-    const errors = {};
-
-    // Header Validations - Mandatory Fields
-    if (!formData.bnfCode) errors.bnfCode = "Shipping Line is required";
-    if (!formData.locId) errors.locId = "Location is required";
-    if (!formData.vesselNm) errors.vesselNm = "Vessel Name is required";
-    if (!formData.terminalCode)
-      errors.terminalCode = "Terminal Code is required";
-    if (!formData.service) errors.service = "Service is required";
-    if (!formData.pod) errors.pod = "POD is required";
-    if (!formData.cargoTp) errors.cargoTp = "Cargo Type is required";
-    if (!formData.origin) errors.origin = "Origin is required";
-    if (!formData.shipperNm) errors.shipperNm = "Shipper Name is required";
-    if (!formData.cntnrStatus)
-      errors.cntnrStatus = "Container Status is required";
-    if (!formData.formType) errors.formType = "Form Type is required";
-
-    // Mobile Number Validation (12 digits max)
-    if (!formData.mobileNo) {
-      errors.mobileNo = "Mobile No. is required";
-    } else if (!/^\d{10,12}$/.test(formData.mobileNo)) {
-      errors.mobileNo = "Mobile No. must be 10-12 digits";
-    }
-
-    // Location-Specific Validations
-    const locationSpecificLocs = [
-      "INMAA1", // Chennai
-      "INPRT1", // Paradip
-      "INKAT1", // Kattupalli
-      "INCCU1", // Kolkata
-      "INENN1", // Ennore
-      "INMUN1", // Mundra
-    ];
-
-    if (locationSpecificLocs.includes(formData.locId)) {
-      if (!formData.consigneeNm)
-        errors.consigneeNm = "Consignee Name is required for this location";
-      if (!formData.consigneeAddr)
-        errors.consigneeAddr =
-          "Consignee Address is required for this location";
-      if (!formData.cargoDesc)
-        errors.cargoDesc = "Cargo Description is required for this location";
-      if (!formData.terminalLoginId)
-        errors.terminalLoginId =
-          "Terminal Login ID is required for this location";
-    }
-
-    // FPOD Validation
-    if (
-      ["INMAA1", "INPRT1", "INKAT1", "INCCU1", "INENN1"].includes(
-        formData.locId
-      ) &&
-      !formData.fpod
-    ) {
-      errors.fpod = "FPOD is required for this location";
-    }
-
-    // Nhavasheva (INNSA1) - One of CHA/FF/IE Code required
-    if (formData.locId === "INNSA1") {
-      if (!formData.CHACode && !formData.FFCode && !formData.IECode) {
-        errors.CHACode =
-          "One of CHA Code, FF Code, or IE Code is required for Nhavasheva";
-      }
-    }
-
-    // Tuticorin Specific (INTUT1)
-    if (formData.locId === "INTUT1" && formData.terminalCode === "DBGT") {
-      if (!formData.ShipperCity) {
-        errors.ShipperCity =
-          "Shipper City is required for Tuticorin DBGT terminal";
-      }
-    }
-
-    // Shipping Line Specific Validations
-    // MSC Specific
-    if (formData.bnfCode === "MSCU" && !formData.bookNo) {
-      errors.bookNo = "Booking No is mandatory for MSC";
-    }
-
-    // Hapag Lloyd Specific
-    if (
-      formData.bnfCode === "Hapag Llyod" &&
-      formData.cargoTp !== "REF" &&
-      !formData.bookCopyBlNo
-    ) {
-      errors.bookCopyBlNo =
-        "BL Number is required for Hapag Lloyd (non-reefer cargo)";
-    }
-
-    // Origin-Based Validations
-    // Dock Destuff requires CFS
-    if (formData.origin === "C" && !formData.cfsCode) {
-      errors.cfsCode = "CFS is required when Origin is Dock Destuff";
-    }
-
-    // Factory Stuffed or ICD by Road requires Vehicle No for Mundra
-    if (
-      formData.locId === "INMUN1" &&
-      (formData.origin === "F" || formData.origin === "R")
-    ) {
-      formData.containers.forEach((container, index) => {
-        if (!container.vehicleNo) {
-          errors[`container_${index}_vehicleNo`] = `Container ${
-            index + 1
-          }: Vehicle No is required for Factory Stuffed/ICD by Road at Mundra`;
-        }
-      });
-    }
-
-    // VIA No Validation
-    if (!formData.viaNo) {
-      errors.viaNo = "VIA No. is required";
-    }
-
-    // Container Validations
-    formData.containers.forEach((container, index) => {
-      // Mandatory container fields
-      if (!container.cntnrNo) {
-        errors[`container_${index}_cntnrNo`] = `Container ${
-          index + 1
-        }: Container No is required`;
-      } else if (!/^[A-Z]{4}\d{7}$/.test(container.cntnrNo.toUpperCase())) {
-        errors[`container_${index}_cntnrNo`] = `Container ${
-          index + 1
-        }: Invalid format (4 letters + 7 numbers)`;
-      }
-
-      if (!container.cntnrSize) {
-        errors[`container_${index}_cntnrSize`] = `Container ${
-          index + 1
-        }: Container Size is required`;
-      }
-
-      if (!container.iso) {
-        errors[`container_${index}_iso`] = `Container ${
-          index + 1
-        }: ISO Code is required`;
-      }
-
-      if (!container.agentSealNo) {
-        errors[`container_${index}_agentSealNo`] = `Container ${
-          index + 1
-        }: Agent Seal No is required`;
-      }
-
-      if (!container.customSealNo) {
-        errors[`container_${index}_customSealNo`] = `Container ${
-          index + 1
-        }: Custom Seal No is required`;
-      }
-
-      if (!container.driverNm) {
-        errors[`container_${index}_driverNm`] = `Container ${
-          index + 1
-        }: Driver Name is required`;
-      }
-
-      // VGM Validation
-      if (container.vgmViaODeX === "N" && !container.vgmWt) {
-        errors[`container_${index}_vgmWt`] = `Container ${
-          index + 1
-        }: VGM Weight is required when not via ODeX`;
-      }
-
-      // Cargo Type Specific Validations
-      // Hazardous Cargo
-      if (formData.cargoTp === "HAZ" || formData.cargoTp.includes("HAZ")) {
-        if (!container.imoNo1) {
-          errors[`container_${index}_imoNo1`] = `Container ${
-            index + 1
-          }: IMO No 1 is required for hazardous cargo`;
-        }
-        if (!container.unNo1) {
-          errors[`container_${index}_unNo1`] = `Container ${
-            index + 1
-          }: UN No 1 is required for hazardous cargo`;
-        }
-      }
-
-      // Reefer Cargo
-      if (formData.cargoTp === "REF" || formData.cargoTp.includes("REF")) {
-        if (!container.temp || container.temp === "0") {
-          errors[`container_${index}_temp`] = `Container ${
-            index + 1
-          }: Temperature is required for reefer cargo`;
-        }
-      }
-
-      // ODC Cargo
-      if (formData.cargoTp === "ODC" || formData.cargoTp.includes("ODC")) {
-        if (
-          !container.rightDimensions ||
-          container.rightDimensions === "0.00"
-        ) {
-          errors[`container_${index}_rightDimensions`] = `Container ${
-            index + 1
-          }: Right Dimensions required for ODC`;
-        }
-        if (!container.topDimensions || container.topDimensions === "0.00") {
-          errors[`container_${index}_topDimensions`] = `Container ${
-            index + 1
-          }: Top Dimensions required for ODC`;
-        }
-        if (!container.backDimensions || container.backDimensions === "0.00") {
-          errors[`container_${index}_backDimensions`] = `Container ${
-            index + 1
-          }: Back Dimensions required for ODC`;
-        }
-        if (!container.leftDimensions || container.leftDimensions === "0.00") {
-          errors[`container_${index}_leftDimensions`] = `Container ${
-            index + 1
-          }: Left Dimensions required for ODC`;
-        }
-        if (
-          !container.frontDimensions ||
-          container.frontDimensions === "0.00"
-        ) {
-          errors[`container_${index}_frontDimensions`] = `Container ${
-            index + 1
-          }: Front Dimensions required for ODC`;
-        }
-        if (!container.odcUnits) {
-          errors[`container_${index}_odcUnits`] = `Container ${
-            index + 1
-          }: ODC Units required for ODC`;
-        }
-      }
-
-      // Special Stow for NSICT/NSIGT/BMCT/CCTL/ICT terminals
-      if (
-        formData.locId === "INNSA1" &&
-        ["NSICT", "NSIGT", "BMCT", "CCTL", "ICT"].includes(
-          formData.terminalCode
-        )
-      ) {
-        if (!container.spclStow) {
-          errors[`container_${index}_spclStow`] = `Container ${
-            index + 1
-          }: Special Stow is required for this terminal`;
-        }
-        if (!container.spclStowRemark) {
-          errors[`container_${index}_spclStowRemark`] = `Container ${
-            index + 1
-          }: Special Stow Remark is required for this terminal`;
-        }
-      }
-
-      // MSC Shipping Instruction Number validation
-      if (formData.bnfCode === "MSCU" && !container.shpInstructNo) {
-        errors[`container_${index}_shpInstructNo`] = `Container ${
-          index + 1
-        }: Shipping Instruction No is mandatory for MSC`;
-      }
-
-      // Shipping Bill Validations (embedded in container)
-      const sbDetails = container.sbDtlsVo && container.sbDtlsVo[0];
-      if (sbDetails) {
-        if (!sbDetails.shipBillInvNo) {
-          errors[`container_${index}_shipBillInvNo`] = `Container ${
-            index + 1
-          }: Shipping Bill No is required`;
-        }
-        if (!sbDetails.shipBillDt) {
-          errors[`container_${index}_shipBillDt`] = `Container ${
-            index + 1
-          }: Shipping Bill Date is required`;
-        }
-        if (!sbDetails.chaNm) {
-          errors[`container_${index}_chaNm`] = `Container ${
-            index + 1
-          }: CHA Name is required`;
-        }
-        if (!sbDetails.chaPan) {
-          errors[`container_${index}_chaPan`] = `Container ${
-            index + 1
-          }: CHA PAN is required`;
-        } else if (!/^[A-Z]{5}\d{4}[A-Z]{1}$/.test(sbDetails.chaPan)) {
-          errors[`container_${index}_chaPan`] = `Container ${
-            index + 1
-          }: Invalid CHA PAN format (5 letters + 4 digits + 1 letter)`;
-        }
-        if (!sbDetails.exporterNm) {
-          errors[`container_${index}_exporterNm`] = `Container ${
-            index + 1
-          }: Exporter Name is required`;
-        }
-        if (!sbDetails.exporterIec) {
-          errors[`container_${index}_exporterIec`] = `Container ${
-            index + 1
-          }: Exporter IEC is required`;
-        } else if (!/^\d{10}$/.test(sbDetails.exporterIec)) {
-          errors[`container_${index}_exporterIec`] = `Container ${
-            index + 1
-          }: Exporter IEC must be 10 digits`;
-        }
-        if (!sbDetails.noOfPkg || sbDetails.noOfPkg <= 0) {
-          errors[`container_${index}_noOfPkg`] = `Container ${
-            index + 1
-          }: Number of Packages is required`;
-        }
-      }
-    });
-
-    // Attachment Validations
-    const requiredAttachments = getRequiredAttachments();
-    requiredAttachments.forEach((reqAtt) => {
-      const hasAttachment = formData.attachments.some(
-        (att) => att.title === reqAtt.code
-      );
-      if (reqAtt.required && !hasAttachment) {
-        errors[`attachment_${reqAtt.code}`] = `${reqAtt.name} is required`;
-      }
-    });
-
-    return errors;
-  };
+  // Filtered vessels based on location and shipping line
+  const [filteredVessels, setFilteredVessels] = useState([]);
 
   useEffect(() => {
-    console.log(validationErrors);
-  }, [validationErrors]);
+    if (formData.locId && formData.bnfCode) {
+      const filtered = vessels.filter(
+        (vessel) =>
+          vessel.locId === formData.locId && vessel.bnfCode === formData.bnfCode
+      );
+      setFilteredVessels(filtered);
 
-  // Get Required Attachments based on location, cargo type, and origin
-  const getRequiredAttachments = () => {
-    const required = [];
-    const { locId, cargoTp, origin, terminalCode } = formData;
+      // Extract unique terminals and services
+      const terminals = [...new Set(filtered.map((v) => v.terminalCode))];
+      const services = [...new Set(filtered.map((v) => v.service))];
 
-    // BOOKING_COPY - Mandatory for all locations
-    required.push({
-      code: "BOOKING_COPY",
-      name: "Booking Copy",
-      required: true,
+      setAvailableTerminals(terminals);
+      setAvailableServices(services);
+    }
+  }, [formData.locId, formData.bnfCode, vessels]);
+
+  // Update available PODs when terminal and service are selected
+  useEffect(() => {
+    if (formData.locId && formData.terminalCode && formData.service) {
+      const locationData = pods.find((p) => p.locId === formData.locId);
+      if (locationData) {
+        const terminalData = locationData.terminal.find(
+          (t) => t.terminalId === formData.terminalCode
+        );
+        if (terminalData) {
+          const serviceData = terminalData.service.find(
+            (s) => s.serviceNm === formData.service
+          );
+          if (serviceData) {
+            // Update available PODs
+            // Note: You might need to adjust this based on actual POD structure
+          }
+        }
+      }
+    }
+  }, [formData.locId, formData.terminalCode, formData.service, pods]);
+  const extractAllPODs = (podData) => {
+    const podSet = new Set();
+    const podOptions = [];
+
+    podData.forEach((location) => {
+      location.terminal?.forEach((terminal) => {
+        terminal.service?.forEach((service) => {
+          service.pod?.forEach((pod) => {
+            const podKey = `${pod.podCd}|${pod.podNm}`;
+            if (!podSet.has(podKey) && pod.status === "ACTIVE") {
+              podSet.add(podKey);
+              podOptions.push({
+                value: pod.podCd,
+                label: `${pod.podNm} (${pod.podCd})`,
+                original: pod,
+              });
+            }
+          });
+        });
+      });
     });
 
-    // Location-specific mandatory attachments
-    const chennaiKattupalli_EnoreLocations = ["INMAA1", "INKAT1", "INENN1"];
-    if (
-      chennaiKattupalli_EnoreLocations.includes(locId) &&
-      ["HAZ", "ODC", "GEN", "ONION", "REF"].includes(cargoTp)
-    ) {
-      required.push({
-        code: "BOOK_CNFRM_CPY",
-        name: "Booking Confirmation Copy",
-        required: true,
-      });
-      required.push({ code: "CHK_LIST", name: "Check List", required: true });
-      if (["HAZ", "ODC"].includes(cargoTp)) {
-        required.push({
-          code: "FIRE_OFC_CRTFCT",
-          name: "Fire Office Certificate",
-          required: true,
-        });
-        required.push({
-          code: "MMD_APPRVL",
-          name: "MMD Approval",
-          required: true,
-        });
-        required.push({
-          code: "MSDS_SHEET",
-          name: "MSDS Sheet",
-          required: true,
-        });
-        required.push({
-          code: "SURVY_RPRT",
-          name: "Survey Report",
-          required: true,
-        });
-      }
-    }
-
-    // Nhava Sheva, Mundra, and other major port requirements
-    const majorPorts = [
-      "INNSA1",
-      "INMUN1",
-      "INMAA5",
-      "INTUT1",
-      "INCCU1",
-      "INPAV1",
-      "INHZR1",
-      "INMRM1",
-      "INCOK1",
-      "INVTZ1",
-      "INHLD1",
-      "INKRI1",
-      "INKND1",
-    ];
-
-    if (majorPorts.includes(locId)) {
-      // Clean Certificate for HAZ + Empty container
-      if (cargoTp === "HAZ" && formData.cntnrStatus === "EMPTY") {
-        required.push({
-          code: "CLN_CRTFCT",
-          name: "Cleaning Certificate",
-          required: true,
-        });
-      }
-
-      // Container Load Plan for Dock Stuff
-      if (origin === "D") {
-        required.push({
-          code: "CNTNR_LOAD_PLAN",
-          name: "Container Load Plan",
-          required: true,
-        });
-      }
-
-      // Customs Examination Report for On Wheel
-      if (origin === "W") {
-        required.push({
-          code: "CUSTOMS_EXAM_REPORT",
-          name: "Customs Examination Report",
-          required: true,
-        });
-      }
-
-      // DG Declaration for HAZ/ODC
-      if (["HAZ", "ODC"].includes(cargoTp)) {
-        required.push({
-          code: "DG_DCLRTION",
-          name: "DG Declaration",
-          required: true,
-        });
-        required.push({
-          code: "HAZ_DG_DECLARATION",
-          name: "HAZ DG Declaration",
-          required: true,
-        });
-        required.push({
-          code: "LASHING_CERTIFICATE",
-          name: "Lashing Certificate",
-          required: true,
-        });
-        required.push({ code: "MSDS", name: "MSDS", required: true });
-        required.push({
-          code: "ODC_SURVEYOR_REPORT_PHOTOS",
-          name: "ODC Surveyor Report + Photos",
-          required: true,
-        });
-      }
-
-      // Delivery Order for Factory Stuff, Dock Stuff, Empty Tank
-      if (["F", "D", "E"].includes(origin)) {
-        required.push({
-          code: "DLVRY_ORDER",
-          name: "Delivery Order",
-          required: true,
-        });
-      }
-
-      // Invoice for Factory Stuff, Empty Tank
-      if (["F", "E"].includes(origin)) {
-        required.push({ code: "INVOICE", name: "Invoice", required: true });
-      }
-
-      // Packing List for Factory Stuff
-      if (origin === "F") {
-        required.push({
-          code: "PACK_LIST",
-          name: "Packing List",
-          required: true,
-        });
-      }
-
-      // Shipping Bill for Dock Stuff, Factory Stuff, On Wheel, Empty Tank
-      if (["D", "F", "W", "E"].includes(origin)) {
-        required.push({
-          code: "SHIP_BILL",
-          name: "Shipping Bill",
-          required: true,
-        });
-      }
-
-      // VGM Annexure 1
-      if (["D", "F", "W", "E"].includes(origin)) {
-        required.push({
-          code: "VGM_ANXR1",
-          name: "VGM-Annexure 1",
-          required: true,
-        });
-      }
-    }
-
-    // Vishakapatnam specific
-    if (locId === "INVTZ1") {
-      if (["D", "F"].includes(origin) && origin === "W") {
-        required.push({
-          code: "BOOKING_CONF_COPY",
-          name: "Booking Confirmation Copy",
-          required: true,
-        });
-      }
-      if (["D", "F", "W", "E"].includes(origin)) {
-        required.push({
-          code: "SHIPPING_INSTRUCTION",
-          name: "Shipping Instruction (SI)",
-          required: true,
-        });
-      }
-    }
-
-    // Chennai specific
-    if (locId === "INMAA1") {
-      required.push({
-        code: "PRE_EGM",
-        name: "Pre-EGM",
-        required: false,
-      });
-    }
-
-    return required;
+    return podOptions;
   };
-
-  // Form Data Change Handler
-  const handleFormDataChange = (section, field, value, index = null) => {
+  // Handle form data changes
+  const handleFormDataChange = (
+    field,
+    value,
+    containerIndex = null,
+    subField = null
+  ) => {
     setFormData((prev) => {
-      if (section === "header") {
-        return { ...prev, [field]: value };
-      } else if (section === "containers") {
-        const newContainers = [...prev.containers];
-        if (index !== null) {
-          newContainers[index] = { ...newContainers[index], [field]: value };
+      let newData = { ...prev };
+
+      if (containerIndex === null) {
+        // Header field
+        newData[field] = value;
+
+        // Reset dependent fields when certain fields change
+        if (field === "locId") {
+          newData.terminalCode = "";
+          newData.service = "";
+          newData.vesselNm = "";
+          newData.viaNo = "";
+          newData.pod = "";
+          newData.fpod = "";
+          newData.cfsCode = "";
         }
-        return { ...prev, containers: newContainers };
-      } else if (section === "shippingBills") {
-        const newShippingBills = [...prev.containers];
-        if (index !== null && newShippingBills[index].sbDtlsVo) {
-          newShippingBills[index].sbDtlsVo[0] = {
-            ...newShippingBills[index].sbDtlsVo[0],
+
+        if (field === "bnfCode") {
+          newData.vesselNm = "";
+          newData.viaNo = "";
+          newData.bookNo = "";
+          newData.shpInstructNo = "";
+          newData.bookCopyBlNo = "";
+        }
+
+        if (field === "vesselNm") {
+          // Find viaNo for selected vessel
+          const selectedVessel = vessels.find(
+            (v) =>
+              v.vesselNm === value &&
+              v.locId === newData.locId &&
+              v.bnfCode === newData.bnfCode
+          );
+          if (selectedVessel) {
+            newData.viaNo = selectedVessel.viaNo || "";
+            newData.terminalCode = selectedVessel.terminalCode || "";
+            newData.service = selectedVessel.service || "";
+          }
+        }
+
+        if (field === "cargoTp") {
+          // Reset cargo-specific fields
+          newData.containers = newData.containers.map((container) => ({
+            ...container,
+            imoNo1: "",
+            unNo1: "",
+            imoNo2: "",
+            unNo2: "",
+            imoNo3: "",
+            unNo3: "",
+            imoNo4: "",
+            unNo4: "",
+            temp: "",
+            rightDimensions: "",
+            topDimensions: "",
+            backDimensions: "",
+            leftDimensions: "",
+            frontDimensions: "",
+            odcUnits: "",
+          }));
+        }
+
+        if (field === "origin") {
+          newData.cfsCode = "";
+          newData.containers = newData.containers.map((container) => ({
+            ...container,
+            vehicleNo: "",
+          }));
+        }
+      } else {
+        // Container field
+        const newContainers = [...prev.containers];
+
+        if (subField === null) {
+          newContainers[containerIndex] = {
+            ...newContainers[containerIndex],
             [field]: value,
           };
+        } else {
+          // Sub-field (e.g., sbDtlsVo)
+          if (field === "sbDtlsVo") {
+            newContainers[containerIndex].sbDtlsVo[0] = {
+              ...newContainers[containerIndex].sbDtlsVo[0],
+              [subField]: value,
+            };
+          }
         }
-        return { ...prev, containers: newShippingBills };
-      } else if (section === "attachments") {
-        return { ...prev, attachments: value };
+
+        newData.containers = newContainers;
       }
-      return prev;
+
+      return newData;
     });
   };
 
-  // Add Container
+  // Container Management
   const handleAddContainer = () => {
     setFormData((prev) => ({
       ...prev,
@@ -766,8 +496,8 @@ const Form13 = () => {
           vgmWt: "",
           vgmViaODeX: "N",
           doNo: "",
-          temp: "0",
-          volt: "0",
+          temp: "",
+          volt: "",
           imoNo1: "",
           unNo1: "",
           imoNo2: "",
@@ -776,11 +506,11 @@ const Form13 = () => {
           unNo3: "",
           imoNo4: "",
           unNo4: "",
-          rightDimensions: "0.00",
-          topDimensions: "0.00",
-          backDimensions: "0.00",
-          leftDimensions: "0.00",
-          frontDimensions: "0.00",
+          rightDimensions: "",
+          topDimensions: "",
+          backDimensions: "",
+          leftDimensions: "",
+          frontDimensions: "",
           odcUnits: "",
           chaRemarks: "",
           vehicleNo: "",
@@ -791,10 +521,8 @@ const Form13 = () => {
           spclStowRemark: "",
           status: "REQUESTED",
           shpInstructNo: "",
-          cntnrTareWgt: 0,
-          cargoVal: 0,
-          commodityName: "",
           hsnCode: "",
+          commodityName: "",
           sbDtlsVo: [
             {
               shipBillInvNo: "",
@@ -805,7 +533,7 @@ const Form13 = () => {
               chaPan: "",
               exporterNm: "",
               exporterIec: "",
-              noOfPkg: 0,
+              noOfPkg: "",
             },
           ],
         },
@@ -813,22 +541,6 @@ const Form13 = () => {
     }));
   };
 
-  const fieldToLabel = (fieldName) => {
-    const labelMap = {
-      vesselNm: "Vessel Name",
-      viaNo: "VIA No",
-      cntnrStatus: "Container Status",
-      pod: "POD",
-      issueTo: "Issue To",
-      cfsCode: "CFS Code",
-      CHACode: "CHA Code",
-      // Add more mappings as needed
-    };
-
-    return labelMap[fieldName] || fieldName;
-  };
-
-  // Remove Container
   const handleRemoveContainer = (index) => {
     if (formData.containers.length > 1) {
       setFormData((prev) => ({
@@ -837,158 +549,172 @@ const Form13 = () => {
       }));
     }
   };
-  const formatBusinessErrors = (businessErrors) => {
-    const errors = {};
 
-    if (!businessErrors) return errors;
+  // Attachment Management
+  const handleAttachmentUpload = (event) => {
+    const files = Array.from(event.target.files);
+    const newAttachments = files.map((file) => ({
+      file,
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      title: "BOOKING_COPY",
+    }));
 
-    console.log("🔧 Raw business errors:", businessErrors);
+    setFormData((prev) => ({
+      ...prev,
+      attachments: [...prev.attachments, ...newAttachments],
+    }));
+  };
 
-    // Split by number pattern like "1 -", "2 -", etc.
-    const errorLines = businessErrors
-      .split(/\d+\s*-\s*/)
-      .filter((line) => line.trim());
+  const handleRemoveAttachment = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      attachments: prev.attachments.filter((_, i) => i !== index),
+    }));
+  };
 
-    console.log("🔧 Parsed error lines:", errorLines);
+  const handleAttachmentTitleChange = (index, title) => {
+    setFormData((prev) => {
+      const newAttachments = [...prev.attachments];
+      newAttachments[index].title = title;
+      return { ...prev, attachments: newAttachments };
+    });
+  };
 
-    errorLines.forEach((line, index) => {
-      const trimmedLine = line.trim();
+  // Validation
+  // In your validateForm function, add:
+  // In Form13.jsx, update the validateForm function:
+  const validateForm = () => {
+    // Only validate fields that are visible/required based on conditions
+    const errors = validateFormData(formData);
 
-      // Map specific error messages to form fields
-      if (trimmedLine.includes("Vessel Name or Via No. is invalid")) {
-        errors.vesselNm = "Vessel Name or Via No. is invalid";
-        errors.viaNo = "Vessel Name or Via No. is invalid";
-      }
+    // Filter out errors for fields that shouldn't be shown
+    const filteredErrors = {};
 
-      if (trimmedLine.includes("Container status is invalid")) {
-        errors.cntnrStatus =
-          "Container status is invalid for the selected vessel";
-      }
-
-      if (trimmedLine.includes("POD is Invalid")) {
-        errors.pod = "POD is invalid for the provided Booking No";
-      }
-
-      if (trimmedLine.includes("Issue To is required")) {
-        errors.issueTo = "Issue To is required";
-      }
-
-      if (trimmedLine.includes("CFS is required")) {
-        errors.cfsCode = "CFS is required";
-      }
-
-      if (trimmedLine.includes("invalid CHA code")) {
-        errors.CHACode = "Invalid CHA code";
-      }
-
-      // If no specific field mapping found, add as generic error
-      if (Object.keys(errors).length === 0 && index === 0) {
-        errors.generic = businessErrors;
+    Object.entries(errors).forEach(([key, error]) => {
+      const shouldShowError = shouldValidateField(key, formData);
+      if (shouldShowError) {
+        filteredErrors[key] = error;
       }
     });
 
-    // If we still have no errors, add the raw business errors
-    if (Object.keys(errors).length === 0) {
-      errors.generic = businessErrors;
-    }
-
-    console.log("🔧 Formatted errors:", errors);
-    return errors;
+    return filteredErrors;
   };
 
-  // ADD THE MISSING FUNCTION - formatSchemaErrors
-  const formatSchemaErrors = (schemaErrors) => {
-    const errors = {};
+  // Add this helper function:
+  // Add this helper function in your Form13 component
+  const shouldValidateField = (fieldKey, formData) => {
+    // Handle attachments separately
+    if (fieldKey === "attachments") {
+      return true; // Always validate attachments
+    }
 
-    if (!schemaErrors) return errors;
+    // Extract field name and container index
+    const isContainerField = fieldKey.startsWith("container_");
 
-    console.log("🔧 Raw schema errors:", schemaErrors);
+    if (isContainerField) {
+      const match = fieldKey.match(/container_(\d+)_(.+)/);
+      if (match) {
+        const [, index, fieldName] = match;
+        const containerIndex = parseInt(index);
 
-    try {
-      if (typeof schemaErrors === "string") {
-        // Try to parse as JSON if it's a string
-        try {
-          const parsedErrors = JSON.parse(schemaErrors);
-          Object.keys(parsedErrors).forEach((key) => {
-            errors[key] = parsedErrors[key];
-          });
-        } catch (e) {
-          // If it's not JSON, treat it as a generic error message
-          errors.generic = schemaErrors;
+        // Check field-specific conditions
+        switch (fieldName) {
+          case "driverNm":
+            // Only validate driver name if origin is CFS
+            return formData.origin === "CFS";
+
+          case "temp":
+            // Only validate temperature for reefer cargo
+            return formData.cargoTp === "REEFER";
+
+          case "shipBillInvNo":
+          case "shipBillDt":
+          case "chaNm":
+          case "chaPan":
+          case "exporterNm":
+          case "exporterIec":
+          case "noOfPkg":
+            // Only validate shipping bill fields for specific locations
+            // Make sure needsNhavashevaCodeValidation exists
+            if (typeof needsNhavashevaCodeValidation === "function") {
+              return needsNhavashevaCodeValidation(formData);
+            }
+            return false; // Don't validate if function doesn't exist
+
+          default:
+            return true;
         }
-      } else if (typeof schemaErrors === "object") {
-        Object.keys(schemaErrors).forEach((key) => {
-          errors[key] = schemaErrors[key];
-        });
       }
-    } catch (e) {
-      console.warn("Could not parse schema errors:", e);
-      errors.generic = "Schema validation failed";
     }
 
-    console.log("🔧 Formatted schema errors:", errors);
-    return errors;
+    // For non-container fields, always validate
+    return true;
   };
-  // Convert file to Base64
-  const fileToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        // Remove the data:application/pdf;base64, prefix
-        const base64String = reader.result.split(",")[1];
-        resolve(base64String);
-      };
-      reader.onerror = (error) => reject(error);
-    });
-  };
-
-  // Submit Form
-  // src/components/Form13/Form13.jsx
-
-  // Update the handleSubmit function with proper error handling
-  // src/components/Form13/Form13.jsx
-
-  // src/components/Form13/Form13.jsx
 
   const handleSubmit = async () => {
     try {
-      setLoading(true);
+      setSubmitting(true);
       setError("");
       setSuccess("");
       setValidationErrors({});
+      // setSchemaValidationErrors({});
 
       // Validate form
       const errors = validateForm();
-      if (Object.keys(errors).length > 0) {
-        setValidationErrors(errors);
+
+      // Debug: Show validation errors in console
+      console.log("Validation errors before filtering:", errors);
+
+      // Filter out errors for fields that aren't visible/required
+      const filteredErrors = {};
+      Object.entries(errors).forEach(([key, error]) => {
+        const shouldShowError = shouldValidateField(key, formData);
+        if (shouldShowError) {
+          filteredErrors[key] = error;
+        }
+      });
+
+      console.log("Filtered validation errors:", filteredErrors);
+
+      if (Object.keys(filteredErrors).length > 0) {
+        setValidationErrors(filteredErrors);
         setError(
           `Please fix ${
-            Object.keys(errors).length
+            Object.keys(filteredErrors).length
           } validation error(s) before submitting`
         );
-        setLoading(false);
+
+        // Highlight the first error
+        const firstErrorKey = Object.keys(filteredErrors)[0];
+        setTimeout(() => {
+          const errorElement = document.querySelector(
+            `[data-field="${firstErrorKey}"]`
+          );
+          if (errorElement) {
+            errorElement.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+            errorElement.focus();
+          }
+        }, 100);
+
+        setSubmitting(false);
         return;
       }
 
-      // Prepare attachments with base64 encoding
-      const attList = await Promise.all(
-        formData.attachments.map(async (file) => ({
-          attReqId: "",
-          attNm: file.name,
-          attData: await fileToBase64(file),
-          attTitle: file.title || "BOOKING_COPY",
-        }))
-      );
+      // Ensure we have hash key
+      if (!formData.hashKey) {
+        setError("Hash key is missing. Please reload the page and try again.");
+        setSubmitting(false);
+        return;
+      }
 
-      const hardcodedHashKey = "5XRMN8PVXKQT";
-
-      // Prepare API payload
+      // Prepare payload with hash key
       const payload = {
         formType: "F13",
-        hashKey: hardcodedHashKey,
-        odexRefNo: formData.odexRefNo,
-        reqId: formData.reqId,
         bookNo: formData.bookNo,
         bnfCode: formData.bnfCode,
         locId: formData.locId,
@@ -1010,24 +736,16 @@ const Form13 = () => {
         consigneeAddr: formData.consigneeAddr,
         cargoDesc: formData.cargoDesc,
         terminalLoginId: formData.terminalLoginId,
-        stuffTp: formData.stuffTp,
-        icdLoadingPort: formData.icdLoadingPort,
-        voyageNo: formData.voyageNo,
-        haulageTp: formData.haulageTp,
         isEarlyGateIn: formData.IsEarlyGateIn,
         shipperCd: formData.shipperCd,
-        railOperator: formData.railOperator,
         shipperCity: formData.ShipperCity,
         ffCode: formData.FFCode,
         ieCode: formData.IECode,
-        bookLinId: formData.bookLinId,
-        notifyTo: formData.Notify_TO,
         chaCode: formData.CHACode,
-        placeOfDel: formData.placeOfDel,
-        contactPerson: formData.contactPerson,
-        outsideWindowIssue: formData.outsideWindowIssue,
-        cntrList: formData.containers.map((container) => ({
-          cntnrReqId: container.cntnrReqId,
+        notifyTo: formData.Notify_TO,
+        hashKey: formData.hashKey, // Make sure hash key is included
+        cntrList: formData.containers.map((container, index) => ({
+          cntnrReqId: container.cntnrReqId || `CONTAINER_${index + 1}`,
           cntnrNo: container.cntnrNo,
           cntnrSize: container.cntnrSize,
           iso: container.iso,
@@ -1060,157 +778,1768 @@ const Form13 = () => {
           status: container.status,
           spclStow: container.spclStow,
           spclStowRemark: container.spclStowRemark,
-          cntnrTareWgt: container.cntnrTareWgt,
-          cargoVal: container.cargoVal,
-          commodityName: container.commodityName,
           shpInstructNo: container.shpInstructNo,
+          hsnCode: container.hsnCode,
+          commodityName: container.commodityName,
           sbDtlsVo: container.sbDtlsVo,
         })),
-        attList: attList,
+        attList: await Promise.all(
+          formData.attachments.map(async (att) => ({
+            attReqID: "",
+            attNm: att.name,
+            attData: await fileToBase64(att.file),
+            attTitle: att.title,
+          }))
+        ),
       };
 
-      console.log("📤 Sending payload:", payload);
+      console.log("Submitting payload:", payload);
 
       // Call API
       const response = await form13API.submitForm13(payload);
+      console.log("Submit response:", response);
 
-      console.log("📥 Raw API Response:", response);
-      console.log("📥 Response data:", response?.data);
-
-      // FIXED: The response data is directly at response.data level
-      const respData = response?.data || {};
-
-      console.log("🔍 Parsed response data:", respData);
-      console.log("🔍 Business validation:", respData.business_validation);
-      console.log("🔍 Business errors:", respData.business_validations);
-
-      // Handle Business Validation Failures - Check directly in respData
-
-      // Handle Schema Validation Failures
-      const schemaFlag = respData.schema_validation;
-      const schemaErrors = respData.schema_validations;
-
-      if (schemaFlag === "FAIL" && schemaErrors) {
-        console.log("🚨 Schema validation failed");
-        const formattedSchemaErrors = formatSchemaErrors(schemaErrors);
-        setError("Schema Validation Failed");
-        setValidationErrors(formattedSchemaErrors);
-        setLoading(false);
-        return;
-      }
-
-      // Check if the form was actually successful
-      // Since your API returns success: true even with business validation failures,
-      // we need to check the business_validation flag instead
-      const odexRefNo = respData.odexRefNo;
-
-      if (odexRefNo && businessFlag !== "FAIL") {
-        console.log("✅ Form submitted successfully");
+      if (response.data && response.data.odexRefNo) {
         setSuccess(
-          `Form 13 submitted successfully! Reference No: ${odexRefNo}`
+          `Form 13 submitted successfully! Reference No: ${response.data.odexRefNo}`
         );
-      } else {
-        console.log("❌ Form submission failed or has validation errors");
-        // Show generic error if we didn't catch specific validation errors
+        // Reset form after successful submission
+        setTimeout(() => {
+          setFormData({
+            ...initialFormState,
+            pyrCode: userData?.pyrCode || "",
+            hashKey: formData.hashKey, // Preserve hash key
+          });
+        }, 3000);
+      } else if (response.data && response.data.schema_validations) {
+        // Handle schema validation errors
+        const schemaErrors = parseSchemaErrors(
+          response.data.schema_validations
+        );
+        setSchemaValidationErrors(schemaErrors);
+
+        // Also show them in validation errors for highlighting
+        setValidationErrors((prev) => ({
+          ...prev,
+          ...schemaErrors,
+        }));
+
         setError(
-          "Form submission failed. Please check your inputs and try again."
+          `Schema validation failed: ${response.data.schema_validations.length} errors found`
         );
+
+        // Log for debugging
+        console.log(
+          "Schema validation errors:",
+          response.data.schema_validations
+        );
+        console.log("Parsed schema errors:", schemaErrors);
+      } else {
+        setError("Submission failed. Please try again.");
       }
     } catch (err) {
-      console.error("💥 Form submission error:", err);
-      console.error("💥 Error response:", err.response);
+      console.error("Submission error:", err);
+      setError(err.response?.data?.error || err.message || "Submission failed");
 
-      let errorMessage = err.response?.data?.error || err.message;
-
-      if (errorMessage.includes("Form type is required")) {
-        errorMessage = "Form Type is required. Please contact support.";
-      } else if (errorMessage.includes("ODeX Error:")) {
-        errorMessage = errorMessage.replace("ODeX Error: ", "");
-      } else if (
-        errorMessage.includes("Network Error") ||
-        errorMessage.includes("timeout")
-      ) {
-        errorMessage =
-          "Network connection issue. Please check your internet and try again.";
-      } else if (errorMessage.includes("500")) {
-        errorMessage = "Server error. Please try again in a few moments.";
+      if (err.response?.data?.schema_validations) {
+        const schemaErrors = parseSchemaErrors(
+          err.response.data.schema_validations
+        );
+        setSchemaValidationErrors(schemaErrors);
+        setValidationErrors(schemaErrors);
+        setError(
+          `Schema validation failed: ${err.response.data.schema_validations.length} errors found`
+        );
+      } else {
+        setError(
+          err.response?.data?.error || err.message || "Submission failed"
+        );
       }
-
-      setError(`Failed to submit form: ${errorMessage}`);
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
+  // Add this function for client-side schema validation
+  const validateSchemaRules = (formData) => {
+    const errors = {};
+
+    // Book No validation
+    if (formData.bookNo && !/^[a-zA-Z0-9 ,./_-]+$/.test(formData.bookNo)) {
+      errors.bookNo =
+        "Book No can only contain letters, numbers, spaces, and these characters: ,./_-";
+    }
+
+    // Issue To max length
+    if (formData.issueTo && formData.issueTo.length > 50) {
+      errors.issueTo = "Issue To cannot exceed 50 characters";
+    }
+
+    // Consignee Name max length
+    if (formData.consigneeNm && formData.consigneeNm.length > 35) {
+      errors.consigneeNm = "Consignee Name cannot exceed 35 characters";
+    }
+
+    // Validate each container
+    formData.containers.forEach((container, index) => {
+      // DO No max length
+      if (container.doNo && container.doNo.length > 50) {
+        errors[`container_${index}_doNo`] = "DO No cannot exceed 50 characters";
+      }
+
+      // ISO max length
+      if (container.iso && container.iso.length > 50) {
+        errors[`container_${index}_iso`] = "ISO cannot exceed 50 characters";
+      }
+
+      // Seal numbers max length
+      if (container.agentSealNo && container.agentSealNo.length > 20) {
+        errors[`container_${index}_agentSealNo`] =
+          "Agent Seal No cannot exceed 20 characters";
+      }
+
+      if (container.customSealNo && container.customSealNo.length > 20) {
+        errors[`container_${index}_customSealNo`] =
+          "Custom Seal No cannot exceed 20 characters";
+      }
+
+      // Dimensions pattern validation
+      const dimensionPattern = /^\d{1,3}(\.\d{1,2})?$/;
+
+      [
+        "backDimensions",
+        "leftDimensions",
+        "frontDimensions",
+        "topDimensions",
+        "rightDimensions",
+      ].forEach((dimField) => {
+        if (
+          container[dimField] &&
+          !dimensionPattern.test(container[dimField])
+        ) {
+          errors[`container_${index}_${dimField}`] = `${dimField.replace(
+            "Dimensions",
+            " Dimension"
+          )} must be a number (e.g., 100 or 100.50)`;
+        }
+      });
+
+      // Volt pattern
+      const voltPattern = /^\d{1,7}(\.\d{1,2})?$/;
+      if (container.volt && !voltPattern.test(container.volt)) {
+        errors[`container_${index}_volt`] =
+          "Volt must be a number (max 7 digits before decimal)";
+      }
+
+      // Shipping bill validations
+      if (container.sbDtlsVo?.[0]) {
+        const sb = container.sbDtlsVo[0];
+
+        // No of Packages must be a number
+        if (sb.noOfPkg && isNaN(Number(sb.noOfPkg))) {
+          errors[`container_${index}_noOfPkg`] =
+            "No of Packages must be a number";
+        }
+
+        // Date pattern validation
+        const datePattern =
+          /^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+
+        if (sb.leoDt && !datePattern.test(sb.leoDt)) {
+          errors[`container_${index}_leoDt`] =
+            "LEO Date must be in YYYY-MM-DD format";
+        }
+
+        if (sb.shipBillDt && !datePattern.test(sb.shipBillDt)) {
+          errors[`container_${index}_shipBillDt`] =
+            "Shipping Bill Date must be in YYYY-MM-DD format";
+        }
+      }
+    });
+
+    return errors;
+  };
+
+  // Update your validateForm function to include schema rules
+  // Helper functions
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result.split(",")[1]);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const toggleSection = (section) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+  const hasFieldError = (fieldName, containerIndex = null) => {
+    const errorKey =
+      containerIndex !== null
+        ? `container_${containerIndex}_${fieldName}`
+        : fieldName;
+
+    return !!(validationErrors[errorKey] || schemaValidationErrors[errorKey]);
+  };
+
+  const getFieldError = (fieldName, containerIndex = null) => {
+    const errorKey =
+      containerIndex !== null
+        ? `container_${containerIndex}_${fieldName}`
+        : fieldName;
+
+    return validationErrors[errorKey] || schemaValidationErrors[errorKey];
+  };
+  const renderFieldIndicator = (fieldName, containerIndex = null) => {
+    const isRequired = isFieldRequired(fieldName, formData, containerIndex);
+    const errorKey =
+      containerIndex !== null
+        ? `container_${containerIndex}_${fieldName}`
+        : fieldName;
+    const hasError = validationErrors[errorKey];
+    const description = getFieldDescription(fieldName);
+
+    return (
+      <span className="d-flex gap-1">
+        {isRequired && <span className="required">*</span>}
+        {description && (
+          <span className="field-info-icon" title={description}>
+            <InfoIcon
+              style={{ fontSize: 14, color: "#64748b", cursor: "help" }}
+            />
+          </span>
+        )}
+        {hasError && (
+          <span className="error-icon" title={hasError}>
+            <ErrorIcon style={{ fontSize: 14, color: "#dc2626" }} />
+          </span>
+        )}
+      </span>
+    );
+  };
+  const getFilteredPODs = () => {
+    const { locId, terminalCode, service } = formData;
+
+    if (!locId) return [];
+
+    // If you have the full POD master data structure, you can filter like this:
+    const locationData = pods.find((p) => p.locId === locId);
+    if (!locationData) return allPODs;
+
+    const terminalData = locationData.terminal?.find(
+      (t) => t.terminalId === terminalCode || !terminalCode
+    );
+    if (!terminalData) return allPODs;
+
+    const serviceData = terminalData.service?.find(
+      (s) => s.serviceNm === service || !service
+    );
+
+    if (serviceData && serviceData.pod) {
+      return serviceData.pod
+        .filter((pod) => pod.status === "ACTIVE")
+        .map((pod) => ({
+          value: pod.podCd,
+          label: `${pod.podNm} (${pod.podCd})`,
+        }));
+    }
+
+    return allPODs;
+  };
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
+  // Get required attachments
+  const requiredAttachments = getRequiredAttachments(formData);
+
+  if (loading) {
+    return (
+      <div className="loading">
+        <div className="spinner"></div>
+        <span>Loading master data...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="form13-container">
       <TopNavDropdown />
 
+      {/* Header */}
       <div className="page-header">
-        <h2>Export Gate Pass (Form 13)</h2>
-        <div className="d-flex gap-2">
-          {!masterDataLoaded && (
-            <span className="text-muted" style={{ fontSize: "12px" }}>
-              Loading Master Data...
+        <div>
+          <h2>Export Gate Pass (Form 13)</h2>
+          <div className="d-flex gap-2 mt-1">
+            <span className="header-meta">
+              Payor: {userData?.pyrName || "N/A"}
             </span>
-          )}
+            <span className="header-meta">
+              Code: {userData?.pyrCode || "N/A"}
+            </span>
+            {masterDataLoaded && (
+              <span className="badge badge-success">Master Data Loaded</span>
+            )}
+          </div>
+        </div>
+        <div className="d-flex gap-2">
+          <button className="btn btn-outline" onClick={() => window.print()}>
+            <PrintIcon fontSize="small" />
+            Print
+          </button>
+          <button className="btn btn-outline" onClick={() => navigate(-1)}>
+            <ArrowBackIcon fontSize="small" />
+            Back
+          </button>
         </div>
       </div>
 
-      {error && <div className="alert alert-error">{error}</div>}
-      {success && <div className="alert alert-success">{success}</div>}
+      {/* Error/Success Messages */}
+      {error && (
+        <div className="alert alert-error">
+          <ErrorIcon fontSize="small" />
+          <span>{error}</span>
+          <button
+            className="btn btn-icon ml-2"
+            onClick={() => setError("")}
+            style={{ marginLeft: "auto" }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault(); /* handleSubmit(); */
-        }}
-      >
+      {success && (
+        <div className="alert alert-success">
+          <CheckCircleIcon fontSize="small" />
+          <span>{success}</span>
+          <button
+            className="btn btn-icon ml-2"
+            onClick={() => setSuccess("")}
+            style={{ marginLeft: "auto" }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* Main Form Sections */}
+      <div className="form-sections">
         {/* Header Section */}
         <div className="panel">
-          <Form13HeaderSection
-            formData={formData}
-            vessels={vessels}
-            pods={pods}
-            masterDataLoaded={masterDataLoaded}
-            onFormDataChange={handleFormDataChange}
-            validationErrors={validationErrors}
-          />
+          <div
+            className="panel-title d-flex justify-between"
+            onClick={() => toggleSection("header")}
+            style={{ cursor: "pointer" }}
+          >
+            <span>Header Information</span>
+            <span>
+              {expandedSections.header ? (
+                <ExpandLessIcon fontSize="small" />
+              ) : (
+                <ExpandMoreIcon fontSize="small" />
+              )}
+            </span>
+          </div>
+
+          {expandedSections.header && (
+            <div className="form-grid">
+              {/* Location & Shipping Line */}
+              <div className="form-group">
+                <label>Location {renderFieldIndicator("locId")}</label>
+                <select
+                  className="form-control"
+                  value={formData.locId}
+                  onChange={(e) =>
+                    handleFormDataChange("locId", e.target.value)
+                  }
+                >
+                  <option value="">Select Location</option>
+                  {/* Extract unique locations from vessels */}
+                  {Array.from(new Set(vessels.map((v) => v.locId)))
+                    .filter((locId) => locId) // Remove null/undefined
+                    .map((locId) => {
+                      const vessel = vessels.find((v) => v.locId === locId);
+                      return (
+                        <option key={locId} value={locId}>
+                          {vessel?.locNm || locId}
+                        </option>
+                      );
+                    })}
+                </select>
+                {hasFieldError("locId") && (
+                  <div className="error-text">{getFieldError("locId")}</div>
+                )}
+              </div>
+              <div className="form-group">
+                <label>Shipping Line {renderFieldIndicator("bnfCode")}</label>
+                <select
+                  className="form-control"
+                  value={formData.bnfCode}
+                  onChange={(e) =>
+                    handleFormDataChange("bnfCode", e.target.value)
+                  }
+                >
+                  <option value="">Select Shipping Line</option>
+                  {/* Extract unique shipping lines from vessels */}
+                  {Array.from(new Set(vessels.map((v) => v.bnfCode)))
+                    .filter((bnfCode) => bnfCode) // Remove null/undefined
+                    .map((bnfCode) => {
+                      const vessel = vessels.find((v) => v.bnfCode === bnfCode);
+                      return (
+                        <option key={bnfCode} value={bnfCode}>
+                          {vessel?.bnfNm || bnfCode}
+                        </option>
+                      );
+                    })}
+                </select>
+                {validationErrors.bnfCode && (
+                  <div className="error-text">{validationErrors.bnfCode}</div>
+                )}
+              </div>
+
+              {/* Vessel Information */}
+              <div className="form-group">
+                <label>Vessel Name {renderFieldIndicator("vesselNm")}</label>
+                <select
+                  className="form-control"
+                  value={formData.vesselNm}
+                  onChange={(e) =>
+                    handleFormDataChange("vesselNm", e.target.value)
+                  }
+                  disabled={!formData.locId || !formData.bnfCode}
+                >
+                  <option value="">Select Vessel</option>
+                  {filteredVessels.map((vessel) => (
+                    <option key={vessel.vesselId} value={vessel.vesselNm}>
+                      {vessel.vesselNm}
+                    </option>
+                  ))}
+                </select>
+                {validationErrors.vesselNm && (
+                  <div className="error-text">{validationErrors.vesselNm}</div>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label>VIA No</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={formData.viaNo}
+                  readOnly
+                />
+              </div>
+
+              {/* Terminal & Service */}
+              <div className="form-group">
+                <label>Terminal</label>
+                <select
+                  className="form-control"
+                  value={formData.terminalCode}
+                  onChange={(e) =>
+                    handleFormDataChange("terminalCode", e.target.value)
+                  }
+                >
+                  <option value="">Select Terminal</option>
+                  {availableTerminals.map((terminal) => (
+                    <option key={terminal} value={terminal}>
+                      {terminal}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Service</label>
+                <select
+                  className="form-control"
+                  value={formData.service}
+                  onChange={(e) =>
+                    handleFormDataChange("service", e.target.value)
+                  }
+                >
+                  <option value="">Select Service</option>
+                  {availableServices.map((service) => (
+                    <option key={service} value={service}>
+                      {service}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* POD & FPOD */}
+              <div className="form-group">
+                <label>POD {renderFieldIndicator("pod")}</label>
+                <select
+                  className="form-control"
+                  value={formData.pod}
+                  onChange={(e) => handleFormDataChange("pod", e.target.value)}
+                  disabled={!formData.locId}
+                >
+                  <option value="">Select POD</option>
+                  {getFilteredPODs().map((pod) => (
+                    <option key={pod.value} value={pod.value}>
+                      {pod.label}
+                    </option>
+                  ))}
+                </select>
+                {validationErrors.pod && (
+                  <div className="error-text">{validationErrors.pod}</div>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label>FPOD</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={formData.fpod}
+                  onChange={(e) => handleFormDataChange("fpod", e.target.value)}
+                />
+              </div>
+
+              {/* Cargo & Origin */}
+              <div className="form-group">
+                <label>Cargo Type {renderFieldIndicator("cargoTp")}</label>
+                <select
+                  className="form-control"
+                  value={formData.cargoTp}
+                  onChange={(e) =>
+                    handleFormDataChange("cargoTp", e.target.value)
+                  }
+                >
+                  <option value="">Select Cargo Type</option>
+                  {masterData.cargoTypes &&
+                    masterData.cargoTypes.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.value}
+                      </option>
+                    ))}
+                </select>
+                {validationErrors.cargoTp && (
+                  <div className="error-text">{validationErrors.cargoTp}</div>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label>Origin {renderFieldIndicator("origin")}</label>
+                <select
+                  className="form-control"
+                  value={formData.origin}
+                  onChange={(e) =>
+                    handleFormDataChange("origin", e.target.value)
+                  }
+                >
+                  <option value="">Select Origin</option>
+                  {masterData.originTypes &&
+                    masterData.originTypes.map((origin) => (
+                      <option key={origin.value} value={origin.label}>
+                        {origin.label}
+                      </option>
+                    ))}
+                </select>
+                {validationErrors.origin && (
+                  <div className="error-text">{validationErrors.origin}</div>
+                )}
+              </div>
+
+              {/* Booking Details */}
+              <div className="form-group">
+                <label>
+                  Shipping Instruction No{" "}
+                  {renderFieldIndicator("shpInstructNo")}
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={formData.shpInstructNo}
+                  onChange={(e) =>
+                    handleFormDataChange("shpInstructNo", e.target.value)
+                  }
+                  data-field="shpInstructNo"
+                />
+                {validationErrors.shpInstructNo && (
+                  <div className="error-text">
+                    {validationErrors.shpInstructNo}
+                  </div>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label>Booking No {renderFieldIndicator("bookNo")}</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={formData.bookNo}
+                  onChange={(e) =>
+                    handleFormDataChange("bookNo", e.target.value)
+                  }
+                />
+                {validationErrors.bookNo && (
+                  <div className="error-text">{validationErrors.bookNo}</div>
+                )}
+              </div>
+
+              {/* Container Status */}
+              <div className="form-group">
+                <label>
+                  Container Status {renderFieldIndicator("cntnrStatus")}
+                </label>
+                <select
+                  className="form-control"
+                  value={formData.cntnrStatus}
+                  onChange={(e) =>
+                    handleFormDataChange("cntnrStatus", e.target.value)
+                  }
+                >
+                  <option value="">Select Status</option>
+                  <option value="FULL">Full</option>
+                  <option value="EMPTY">Empty</option>
+                  <option value="MT">MT</option>
+                  <option value="ODC">ODC</option>
+                </select>
+                {validationErrors.cntnrStatus && (
+                  <div className="error-text">
+                    {validationErrors.cntnrStatus}
+                  </div>
+                )}
+              </div>
+
+              {/* Contact Information */}
+              <div className="form-group">
+                <label>Mobile No {renderFieldIndicator("mobileNo")}</label>
+                <input
+                  type="tel"
+                  className="form-control"
+                  value={formData.mobileNo}
+                  onChange={(e) =>
+                    handleFormDataChange("mobileNo", e.target.value)
+                  }
+                />
+                {validationErrors.mobileNo && (
+                  <div className="error-text">{validationErrors.mobileNo}</div>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label>Issue To</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={formData.issueTo}
+                  onChange={(e) =>
+                    handleFormDataChange("issueTo", e.target.value)
+                  }
+                />
+              </div>
+
+              {/* Shipper & Consignee */}
+              <div className="form-group">
+                <label>Shipper Name</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={formData.shipperNm}
+                  onChange={(e) =>
+                    handleFormDataChange("shipperNm", e.target.value)
+                  }
+                />
+              </div>
+
+              <div className="form-group">
+                <label>
+                  Consignee Name {renderFieldIndicator("consigneeNm")}
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={formData.consigneeNm}
+                  onChange={(e) =>
+                    handleFormDataChange("consigneeNm", e.target.value)
+                  }
+                />
+                {validationErrors.consigneeNm && (
+                  <div className="error-text">
+                    {validationErrors.consigneeNm}
+                  </div>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label>Consignee Address</label>
+                <textarea
+                  className="form-control"
+                  value={formData.consigneeAddr}
+                  onChange={(e) =>
+                    handleFormDataChange("consigneeAddr", e.target.value)
+                  }
+                  rows="3"
+                />
+              </div>
+
+              {/* Additional Fields */}
+              <div className="form-group">
+                <label>CFS Code</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={formData.cfsCode}
+                  onChange={(e) =>
+                    handleFormDataChange("cfsCode", e.target.value)
+                  }
+                  disabled={formData.origin !== "CFS"}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Cargo Description</label>
+                <textarea
+                  className="form-control"
+                  value={formData.cargoDesc}
+                  onChange={(e) =>
+                    handleFormDataChange("cargoDesc", e.target.value)
+                  }
+                  rows="2"
+                />
+              </div>
+
+              {/* Early Gate In */}
+              {isEarlyGateInApplicable(formData) && (
+                <div className="form-group">
+                  <label>Early Gate In</label>
+                  <div className="radio-group">
+                    <label>
+                      <input
+                        type="radio"
+                        name="IsEarlyGateIn"
+                        value="Y"
+                        checked={formData.IsEarlyGateIn === "Y"}
+                        onChange={(e) =>
+                          handleFormDataChange("IsEarlyGateIn", e.target.value)
+                        }
+                      />
+                      Yes
+                    </label>
+                    <label>
+                      <input
+                        type="radio"
+                        name="IsEarlyGateIn"
+                        value="N"
+                        checked={formData.IsEarlyGateIn === "N"}
+                        onChange={(e) =>
+                          handleFormDataChange("IsEarlyGateIn", e.target.value)
+                        }
+                      />
+                      No
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {/* Email & Terminal Login */}
+              <div className="form-group">
+                <label>Email ID</label>
+                <input
+                  type="email"
+                  className="form-control"
+                  value={formData.email_Id}
+                  onChange={(e) =>
+                    handleFormDataChange("email_Id", e.target.value)
+                  }
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Terminal Login ID</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={formData.terminalLoginId}
+                  onChange={(e) =>
+                    handleFormDataChange("terminalLoginId", e.target.value)
+                  }
+                />
+              </div>
+
+              {/* Code Fields */}
+              <div className="form-group">
+                <label>Shipper Code</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={formData.shipperCd}
+                  onChange={(e) =>
+                    handleFormDataChange("shipperCd", e.target.value)
+                  }
+                />
+              </div>
+
+              <div className="form-group">
+                <label>FF Code</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={formData.FFCode}
+                  onChange={(e) =>
+                    handleFormDataChange("FFCode", e.target.value)
+                  }
+                />
+              </div>
+
+              <div className="form-group">
+                <label>IE Code</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={formData.IECode}
+                  onChange={(e) =>
+                    handleFormDataChange("IECode", e.target.value)
+                  }
+                />
+              </div>
+
+              <div className="form-group">
+                <label>CHA Code</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={formData.CHACode}
+                  onChange={(e) =>
+                    handleFormDataChange("CHACode", e.target.value)
+                  }
+                />
+              </div>
+
+              {/* Last Row */}
+              <div className="form-group">
+                <label>Book Copy/BL No</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={formData.bookCopyBlNo}
+                  onChange={(e) =>
+                    handleFormDataChange("bookCopyBlNo", e.target.value)
+                  }
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Notify To</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={formData.Notify_TO}
+                  onChange={(e) =>
+                    handleFormDataChange("Notify_TO", e.target.value)
+                  }
+                />
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Containers Section */}
+        {/* Container Section */}
         <div className="panel">
-          <Form13ContainerSection
-            formData={formData}
-            onFormDataChange={handleFormDataChange}
-            onAddContainer={handleAddContainer}
-            onRemoveContainer={handleRemoveContainer}
-            validationErrors={validationErrors}
-          />
+          <div
+            className="panel-title d-flex justify-between"
+            onClick={() => toggleSection("containers")}
+            style={{ cursor: "pointer" }}
+          >
+            <div className="d-flex gap-2">
+              <span>Container Details</span>
+              <span className="badge badge-info">
+                {formData.containers.length} Container(s)
+              </span>
+            </div>
+            <div className="d-flex gap-2">
+              <button
+                className="btn btn-icon btn-outline"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAddContainer();
+                }}
+                title="Add Container"
+              >
+                <AddIcon fontSize="small" />
+              </button>
+              <span>
+                {expandedSections.containers ? (
+                  <ExpandLessIcon fontSize="small" />
+                ) : (
+                  <ExpandMoreIcon fontSize="small" />
+                )}
+              </span>
+            </div>
+          </div>
+
+          {expandedSections.containers && (
+            <div>
+              {formData.containers.map((container, containerIndex) => (
+                <div key={containerIndex} className="container-card mb-3">
+                  <div className="container-header">
+                    <h3>Container #{containerIndex + 1}</h3>
+                    <div className="container-actions">
+                      {formData.containers.length > 1 && (
+                        <button
+                          className="btn btn-icon btn-outline"
+                          onClick={() => handleRemoveContainer(containerIndex)}
+                          title="Remove Container"
+                        >
+                          <RemoveIcon fontSize="small" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="container-body">
+                    <div className="form-grid">
+                      {/* Container Basic Info */}
+                      <div className="form-group">
+                        <label>
+                          Container No{" "}
+                          {renderFieldIndicator("cntnrNo", containerIndex)}
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={container.cntnrNo}
+                          onChange={(e) =>
+                            handleFormDataChange(
+                              "cntnrNo",
+                              e.target.value,
+                              containerIndex
+                            )
+                          }
+                        />
+                        {hasFieldError("cntnrNo", containerIndex) && (
+                          <div className="error-text">
+                            {getFieldError("cntnrNo", containerIndex)}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="form-group">
+                        <label>
+                          Container Size{" "}
+                          {renderFieldIndicator("cntnrSize", containerIndex)}
+                        </label>
+                        <select
+                          className="form-control"
+                          value={container.cntnrSize}
+                          onChange={(e) =>
+                            handleFormDataChange(
+                              "cntnrSize",
+                              e.target.value,
+                              containerIndex
+                            )
+                          }
+                        >
+                          <option value="">Select Size</option>
+                          {masterData.containerSizes &&
+                            masterData.containerSizes.map((size) => (
+                              <option key={size.value} value={size.value}>
+                                {size.label}
+                              </option>
+                            ))}
+                        </select>
+                        {validationErrors[
+                          `container_${containerIndex}_cntnrSize`
+                        ] && (
+                          <div className="error-text">
+                            {
+                              validationErrors[
+                                `container_${containerIndex}_cntnrSize`
+                              ]
+                            }
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="form-group">
+                        <label>ISO Code</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={container.iso}
+                          onChange={(e) =>
+                            handleFormDataChange(
+                              "iso",
+                              e.target.value,
+                              containerIndex
+                            )
+                          }
+                        />
+                      </div>
+
+                      {/* Seal Numbers */}
+                      <div className="form-group">
+                        <label>Agent Seal No</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={container.agentSealNo}
+                          onChange={(e) =>
+                            handleFormDataChange(
+                              "agentSealNo",
+                              e.target.value,
+                              containerIndex
+                            )
+                          }
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label>Custom Seal No</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={container.customSealNo}
+                          onChange={(e) =>
+                            handleFormDataChange(
+                              "customSealNo",
+                              e.target.value,
+                              containerIndex
+                            )
+                          }
+                        />
+                      </div>
+
+                      {/* VGM */}
+                      <div className="form-group">
+                        <label>
+                          VGM Weight (KGS){" "}
+                          {renderFieldIndicator("vgmWt", containerIndex)}
+                        </label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          value={container.vgmWt}
+                          onChange={(e) =>
+                            handleFormDataChange(
+                              "vgmWt",
+                              e.target.value,
+                              containerIndex
+                            )
+                          }
+                          step="0.01"
+                        />
+                        {validationErrors[
+                          `container_${containerIndex}_vgmWt`
+                        ] && (
+                          <div className="error-text">
+                            {
+                              validationErrors[
+                                `container_${containerIndex}_vgmWt`
+                              ]
+                            }
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="form-group">
+                        <label>VGM via ODeX</label>
+                        <div className="radio-group">
+                          <label>
+                            <input
+                              type="radio"
+                              name={`vgmViaODeX_${containerIndex}`}
+                              value="Y"
+                              checked={container.vgmViaODeX === "Y"}
+                              onChange={(e) =>
+                                handleFormDataChange(
+                                  "vgmViaODeX",
+                                  e.target.value,
+                                  containerIndex
+                                )
+                              }
+                            />
+                            Yes
+                          </label>
+                          <label>
+                            <input
+                              type="radio"
+                              name={`vgmViaODeX_${containerIndex}`}
+                              value="N"
+                              checked={container.vgmViaODeX === "N"}
+                              onChange={(e) =>
+                                handleFormDataChange(
+                                  "vgmViaODeX",
+                                  e.target.value,
+                                  containerIndex
+                                )
+                              }
+                            />
+                            No
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* DO No */}
+                      <div className="form-group">
+                        <label>DO No</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={container.doNo}
+                          onChange={(e) =>
+                            handleFormDataChange(
+                              "doNo",
+                              e.target.value,
+                              containerIndex
+                            )
+                          }
+                        />
+                      </div>
+
+                      {/* Dangerous Goods - Only show for dangerous cargo */}
+                      {(formData.cargoTp === "DG" ||
+                        formData.cargoTp === "IMDG") && (
+                        <>
+                          <div className="form-group">
+                            <label>IMO No 1</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={container.imoNo1}
+                              onChange={(e) =>
+                                handleFormDataChange(
+                                  "imoNo1",
+                                  e.target.value,
+                                  containerIndex
+                                )
+                              }
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label>UN No 1</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={container.unNo1}
+                              onChange={(e) =>
+                                handleFormDataChange(
+                                  "unNo1",
+                                  e.target.value,
+                                  containerIndex
+                                )
+                              }
+                            />
+                          </div>
+
+                          {/* Additional IMO/UN fields can be added similarly */}
+                        </>
+                      )}
+
+                      {/* Temperature for reefer cargo */}
+                      {/* Temperature - Only show for Reefer cargo */}
+                      {formData.cargoTp === "REF" && (
+                        <div className="form-group">
+                          <label>
+                            Temperature (°C){" "}
+                            {renderFieldIndicator("temp", containerIndex)}
+                          </label>
+                          <input
+                            type="number"
+                            className={`form-control ${
+                              hasFieldError("temp", containerIndex)
+                                ? "error"
+                                : ""
+                            }`}
+                            value={container.temp}
+                            onChange={(e) =>
+                              handleFormDataChange(
+                                "temp",
+                                e.target.value,
+                                containerIndex
+                              )
+                            }
+                          />
+                          {hasFieldError("temp", containerIndex) && (
+                            <div className="error-text">
+                              {getFieldError("temp", containerIndex)}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* ODC Dimensions */}
+                      {formData.cntnrStatus === "ODC" && (
+                        <>
+                          <div className="form-group">
+                            <label>Right Dimensions</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={container.rightDimensions}
+                              onChange={(e) =>
+                                handleFormDataChange(
+                                  "rightDimensions",
+                                  e.target.value,
+                                  containerIndex
+                                )
+                              }
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label>Top Dimensions</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={container.topDimensions}
+                              onChange={(e) =>
+                                handleFormDataChange(
+                                  "topDimensions",
+                                  e.target.value,
+                                  containerIndex
+                                )
+                              }
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label>Left Dimensions</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={container.leftDimensions}
+                              onChange={(e) =>
+                                handleFormDataChange(
+                                  "leftDimensions",
+                                  e.target.value,
+                                  containerIndex
+                                )
+                              }
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label>ODC Units</label>
+                            <input
+                              type="number"
+                              className="form-control"
+                              value={container.odcUnits}
+                              onChange={(e) =>
+                                handleFormDataChange(
+                                  "odcUnits",
+                                  e.target.value,
+                                  containerIndex
+                                )
+                              }
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Special Stowage */}
+                      {isSpecialStowRequired(formData) && (
+                        <>
+                          <div className="form-group">
+                            <label>Special Stow</label>
+                            <select
+                              className="form-control"
+                              value={container.spclStow}
+                              onChange={(e) =>
+                                handleFormDataChange(
+                                  "spclStow",
+                                  e.target.value,
+                                  containerIndex
+                                )
+                              }
+                            >
+                              <option value="">Select Option</option>
+                              <option value="Y">Yes</option>
+                              <option value="N">No</option>
+                            </select>
+                          </div>
+
+                          {container.spclStow === "Y" && (
+                            <div className="form-group">
+                              <label>Special Stow Remarks</label>
+                              <textarea
+                                className="form-control"
+                                value={container.spclStowRemark}
+                                onChange={(e) =>
+                                  handleFormDataChange(
+                                    "spclStowRemark",
+                                    e.target.value,
+                                    containerIndex
+                                  )
+                                }
+                                rows="2"
+                              />
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      {/* Transport Details for CFS origin */}
+                      {formData.origin === "CFS" && (
+                        <>
+                          <div className="form-group">
+                            <label>Vehicle No</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={container.vehicleNo}
+                              onChange={(e) =>
+                                handleFormDataChange(
+                                  "vehicleNo",
+                                  e.target.value,
+                                  containerIndex
+                                )
+                              }
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label>Driver License No</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={container.driverLicNo}
+                              onChange={(e) =>
+                                handleFormDataChange(
+                                  "driverLicNo",
+                                  e.target.value,
+                                  containerIndex
+                                )
+                              }
+                            />
+                          </div>
+
+                          {/* Driver Name - Only show for CFS origin */}
+                          {formData.origin === "CFS" && (
+                            <div className="form-group">
+                              <label>
+                                Driver Name{" "}
+                                {renderFieldIndicator(
+                                  "driverNm",
+                                  containerIndex
+                                )}
+                              </label>
+                              <input
+                                type="text"
+                                className={`form-control ${
+                                  hasFieldError("driverNm", containerIndex)
+                                    ? "error"
+                                    : ""
+                                }`}
+                                value={container.driverNm}
+                                onChange={(e) =>
+                                  handleFormDataChange(
+                                    "driverNm",
+                                    e.target.value,
+                                    containerIndex
+                                  )
+                                }
+                              />
+                              {hasFieldError("driverNm", containerIndex) && (
+                                <div className="error-text">
+                                  {getFieldError("driverNm", containerIndex)}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          <div className="form-group">
+                            <label>Haulier</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={container.haulier}
+                              onChange={(e) =>
+                                handleFormDataChange(
+                                  "haulier",
+                                  e.target.value,
+                                  containerIndex
+                                )
+                              }
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Commodity Details */}
+                      <div className="form-group">
+                        <label>HSN Code</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={container.hsnCode}
+                          onChange={(e) =>
+                            handleFormDataChange(
+                              "hsnCode",
+                              e.target.value,
+                              containerIndex
+                            )
+                          }
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label>Commodity Name</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={container.commodityName}
+                          onChange={(e) =>
+                            handleFormDataChange(
+                              "commodityName",
+                              e.target.value,
+                              containerIndex
+                            )
+                          }
+                        />
+                      </div>
+
+                      {/* CHA Remarks */}
+                      <div className="form-group">
+                        <label>CHA Remarks</label>
+                        <textarea
+                          className="form-control"
+                          value={container.chaRemarks}
+                          onChange={(e) =>
+                            handleFormDataChange(
+                              "chaRemarks",
+                              e.target.value,
+                              containerIndex
+                            )
+                          }
+                          rows="2"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Shipping Bill Details - Only show for certain locations */}
+                    {/* Shipping Bill Details - Only show for certain locations */}
+                    {needsNhavashevaCodeValidation(formData) && (
+                      <div className="mt-3">
+                        <div className="section-header">
+                          Shipping Bill Details (Required)
+                        </div>
+                        <div className="form-grid">
+                          <div className="form-group">
+                            <label>
+                              Shipping Bill/Invoice No{" "}
+                              {renderFieldIndicator(
+                                "shipBillInvNo",
+                                containerIndex
+                              )}
+                            </label>
+                            <input
+                              type="text"
+                              className={`form-control ${
+                                hasFieldError("shipBillInvNo", containerIndex)
+                                  ? "error"
+                                  : ""
+                              }`}
+                              value={container.sbDtlsVo[0].shipBillInvNo}
+                              onChange={(e) =>
+                                handleFormDataChange(
+                                  "sbDtlsVo",
+                                  e.target.value,
+                                  containerIndex,
+                                  "shipBillInvNo"
+                                )
+                              }
+                            />
+                            {hasFieldError("shipBillInvNo", containerIndex) && (
+                              <div className="error-text">
+                                {getFieldError("shipBillInvNo", containerIndex)}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="form-group">
+                            <label>Shipping Bill Date</label>
+                            <input
+                              type="date"
+                              className="form-control"
+                              value={container.sbDtlsVo[0].shipBillDt}
+                              onChange={(e) =>
+                                handleFormDataChange(
+                                  "sbDtlsVo",
+                                  e.target.value,
+                                  containerIndex,
+                                  "shipBillDt"
+                                )
+                              }
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label>LEO No</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={container.sbDtlsVo[0].leoNo}
+                              onChange={(e) =>
+                                handleFormDataChange(
+                                  "sbDtlsVo",
+                                  e.target.value,
+                                  containerIndex,
+                                  "leoNo"
+                                )
+                              }
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label>LEO Date</label>
+                            <input
+                              type="date"
+                              className="form-control"
+                              value={container.sbDtlsVo[0].leoDt}
+                              onChange={(e) =>
+                                handleFormDataChange(
+                                  "sbDtlsVo",
+                                  e.target.value,
+                                  containerIndex,
+                                  "leoDt"
+                                )
+                              }
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label>CHA PAN</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={container.sbDtlsVo[0].chaPan}
+                              onChange={(e) =>
+                                handleFormDataChange(
+                                  "sbDtlsVo",
+                                  e.target.value,
+                                  containerIndex,
+                                  "chaPan"
+                                )
+                              }
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label>Exporter Name</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={container.sbDtlsVo[0].exporterNm}
+                              onChange={(e) =>
+                                handleFormDataChange(
+                                  "sbDtlsVo",
+                                  e.target.value,
+                                  containerIndex,
+                                  "exporterNm"
+                                )
+                              }
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label>Exporter IEC</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={container.sbDtlsVo[0].exporterIec}
+                              onChange={(e) =>
+                                handleFormDataChange(
+                                  "sbDtlsVo",
+                                  e.target.value,
+                                  containerIndex,
+                                  "exporterIec"
+                                )
+                              }
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label>No of Packages</label>
+                            <input
+                              type="number"
+                              className="form-control"
+                              value={container.sbDtlsVo[0].noOfPkg}
+                              onChange={(e) =>
+                                handleFormDataChange(
+                                  "sbDtlsVo",
+                                  e.target.value,
+                                  containerIndex,
+                                  "noOfPkg"
+                                )
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Attachments Section */}
         <div className="panel">
-          <Form13AttachmentSection
-            formData={formData}
-            onFormDataChange={handleFormDataChange}
-            validationErrors={validationErrors}
-          />
-        </div>
-
-        {/* Actions */}
-        <div className="panel d-flex justify-end gap-2">
-          <button type="button" className="btn btn-outline">
-            Save Draft
-          </button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            disabled={loading || !masterDataLoaded}
+          <div
+            className="panel-title d-flex justify-between"
+            onClick={() => toggleSection("attachments")}
+            style={{ cursor: "pointer" }}
           >
-            {loading ? "Submitting..." : "Submit Application"}
+            <div className="d-flex gap-2">
+              <span>Attachments</span>
+              <span className="badge badge-info">
+                {formData.attachments.length} File(s)
+              </span>
+            </div>
+            <span>
+              {expandedSections.attachments ? (
+                <ExpandLessIcon fontSize="small" />
+              ) : (
+                <ExpandMoreIcon fontSize="small" />
+              )}
+            </span>
+          </div>
+
+          {expandedSections.attachments && (
+            <div>
+              {/* Required Attachments Info */}
+              {requiredAttachments.length > 0 && (
+                <div className="alert alert-info mb-3">
+                  <InfoIcon fontSize="small" />
+                  <div>
+                    <strong>Required Attachments:</strong>
+                    <ul style={{ margin: "4px 0 0 0", paddingLeft: "20px" }}>
+                      {requiredAttachments.map((att, index) => (
+                        <li
+                          key={index}
+                          style={att.required ? { color: "#dc2626" } : {}}
+                        >
+                          {att.name} {att.required && "(Required)"}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
+
+              {/* File Upload Area */}
+              <div className="file-upload mb-3">
+                <input
+                  type="file"
+                  id="file-upload"
+                  multiple
+                  onChange={handleAttachmentUpload}
+                />
+                <label htmlFor="file-upload" className="upload-label">
+                  <CloudUploadIcon fontSize="large" />
+                  <span>Click to upload files</span>
+                  <span style={{ fontSize: "11px", color: "#64748b" }}>
+                    Supported: PDF, JPG, PNG (Max 10MB each)
+                  </span>
+                </label>
+              </div>
+
+              {/* Attachments List */}
+              {formData.attachments.length > 0 && (
+                <div className="file-list">
+                  {formData.attachments.map((attachment, index) => (
+                    <div key={index} className="file-item">
+                      <div className="file-info">
+                        <AttachFileIcon fontSize="small" color="primary" />
+                        <div>
+                          <div className="file-name">{attachment.name}</div>
+                          <div className="file-size">
+                            {formatFileSize(attachment.size)}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="d-flex gap-2 align-items-center">
+                        <select
+                          className="form-control"
+                          style={{ width: "150px", fontSize: "12px" }}
+                          value={attachment.title}
+                          onChange={(e) =>
+                            handleAttachmentTitleChange(index, e.target.value)
+                          }
+                        >
+                          <option value="BOOKING_COPY">Booking Copy</option>
+                          <option value="SHIPPING_BILL">Shipping Bill</option>
+                          <option value="INVOICE">Invoice</option>
+                          <option value="PACKING_LIST">Packing List</option>
+                          <option value="CERTIFICATE">Certificate</option>
+                          <option value="VGM_ANNEXURE_1">VGM-Annexure 1</option>
+                          <option value="DELIVERY_ORDER">Delivery Order</option>
+                        </select>
+
+                        <button
+                          className="btn btn-icon btn-outline"
+                          onClick={() => handleRemoveAttachment(index)}
+                          title="Remove File"
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {validationErrors.attachments && (
+                <div className="error-text mt-2">
+                  {validationErrors.attachments}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="panel mt-3">
+        <div className="d-flex justify-end gap-2">
+          <button
+            className="btn btn-outline"
+            onClick={() => {
+              setFormData(initialFormState);
+              setValidationErrors({});
+              setError("");
+              setSuccess("");
+            }}
+            disabled={submitting}
+          >
+            Reset
+          </button>
+
+          <button
+            className="btn btn-primary"
+            onClick={handleSubmit}
+            disabled={submitting || !masterDataLoaded}
+          >
+            {submitting ? (
+              <>
+                <span className="spinner"></span>
+                Submitting...
+              </>
+            ) : (
+              <>
+                <SendIcon fontSize="small" />
+                Submit Form 13
+              </>
+            )}
           </button>
         </div>
-      </form>
+      </div>
     </div>
   );
 };
