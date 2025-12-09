@@ -1,15 +1,14 @@
 // server/src/app.js
+import dotenv from "dotenv";
+dotenv.config();
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import helmet from "helmet";
 
-import dotenv from "dotenv";
 import apiLogRoutes from "./routes/apiLogRoutes.js";
 import form13 from "./routes/form13.js";
-import deleteFromS3Routes from "./routes/deleteFromS3.js";
-import handleS3Deletion from "./routes/handleS3Deletion.mjs";
-dotenv.config();
+import handleS3Deletion from "./routes/handleS3Deletion.js";
 
 const app = express();
 
@@ -34,7 +33,6 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use("/api", apiLogRoutes);
 app.use("/api/form13", form13);
-app.use(deleteFromS3Routes);
 app.use(handleS3Deletion);
 // Health check
 app.get("/health", (req, res) => {

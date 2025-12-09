@@ -1,6 +1,8 @@
+
 import express from "express";
 import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
-
+import dotenv from "dotenv";
+dotenv.config();
 const router = express.Router();
 
 // Check for required environment variables first
