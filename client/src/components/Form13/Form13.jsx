@@ -571,7 +571,7 @@ const Form13 = () => {
   // FORM SUBMISSION
   // ==============================================
 
-  const handleSubmit = async () => {
+const handleSubmit = async () => {
     try {
       setSubmitting(true);
       setError('');
@@ -607,88 +607,150 @@ const Form13 = () => {
         return;
       }
 
-      // Prepare payload with hash key
+      // Helper function to only include non-empty values
+      const cleanValue = (value) => {
+        if (value === '' || value === null || value === undefined) {
+          return undefined;
+        }
+        return value;
+      };
+
+      // Build payload with only mandatory and conditional fields that have values
       const payload = {
         formType: 'F13',
-        bookNo: formData.bookNo,
+        pyrCode: formData.pyrCode,
         bnfCode: formData.bnfCode,
         locId: formData.locId,
         vesselNm: formData.vesselNm,
-        viaNo: formData.viaNo,
         terminalCode: formData.terminalCode,
         service: formData.service,
         pod: formData.pod,
-        fpod: formData.fpod,
         cargoTp: formData.cargoTp,
         origin: formData.origin,
-        shpInstructNo: formData.shpInstructNo,
         cntnrStatus: formData.cntnrStatus,
         mobileNo: formData.mobileNo,
-        issueTo: formData.issueTo,
         shipperNm: formData.shipperNm,
-        pyrCode: formData.pyrCode,
-        consigneeNm: formData.consigneeNm,
-        consigneeAddr: formData.consigneeAddr,
-        cargoDesc: formData.cargoDesc,
-        terminalLoginId: formData.terminalLoginId,
-        isEarlyGateIn: formData.IsEarlyGateIn,
-        shipperCd: formData.shipperCd,
-        shipperCity: formData.ShipperCity,
-        ffCode: formData.FFCode,
-        ieCode: formData.IECode,
-        chaCode: formData.CHACode,
-        notifyTo: formData.NotifyTO,
-        hashKey: formData.hashKey, // Make sure hash key is included
-        
-        cntrList: formData.containers.map((container, index) => ({
-          cntnrReqId: container.cntnrReqId || `CONTAINER_${index + 1}`,
+        hashKey: formData.hashKey,
+      };
+
+      // Add optional/conditional fields only if they have values
+      if (formData.viaNo) payload.viaNo = formData.viaNo;
+      if (formData.bookNo) payload.bookNo = formData.bookNo;
+      if (formData.fpod) payload.fpod = formData.fpod;
+      if (formData.shpInstructNo) payload.shpInstructNo = formData.shpInstructNo;
+      if (formData.cfsCode) payload.cfsCode = formData.cfsCode;
+      if (formData.issueTo) payload.issueTo = formData.issueTo;
+      if (formData.consigneeNm) payload.consigneeNm = formData.consigneeNm;
+      if (formData.consigneeAddr) payload.consigneeAddr = formData.consigneeAddr;
+      if (formData.cargoDesc) payload.cargoDesc = formData.cargoDesc;
+      if (formData.terminalLoginId) payload.terminalLoginId = formData.terminalLoginId;
+      if (formData.emailId) payload.email_Id = formData.emailId;
+      if (formData.bookCopyBlNo) payload.bookCopyBlNo = formData.bookCopyBlNo;
+      if (formData.IsEarlyGateIn) payload.isEarlyGateIn = formData.IsEarlyGateIn;
+      if (formData.shipperCd) payload.shipperCd = formData.shipperCd;
+      if (formData.ShipperCity) payload.shipperCity = formData.ShipperCity;
+      if (formData.FFCode) payload.ffCode = formData.FFCode;
+      if (formData.IECode) payload.ieCode = formData.IECode;
+      if (formData.CHACode) payload.chaCode = formData.CHACode;
+      if (formData.NotifyTO) payload.notifyTo = formData.NotifyTO;
+
+      // Build container list
+      payload.cntrList = formData.containers.map((container, index) => {
+        const cntr = {
           cntnrNo: container.cntnrNo,
           cntnrSize: container.cntnrSize,
           iso: container.iso,
           agentSealNo: container.agentSealNo,
           customSealNo: container.customSealNo,
-          vgmWt: container.vgmWt,
           vgmViaODeX: container.vgmViaODeX,
-          doNo: container.doNo,
-          temp: container.temp,
-          volt: container.volt,
-          chaRemarks: container.chaRemarks,
-          vehicleNo: container.vehicleNo,
-          driverLicNo: container.driverLicNo,
-          driverNm: container.driverNm,
-          haulier: container.haulier,
-          imoNo1: container.imoNo1,
-          unNo1: container.unNo1,
-          imoNo2: container.imoNo2,
-          unNo2: container.unNo2,
-          imoNo3: container.imoNo3,
-          unNo3: container.unNo3,
-          imoNo4: container.imoNo4,
-          unNo4: container.unNo4,
-          rightDimensions: container.rightDimensions,
-          topDimensions: container.topDimensions,
-          backDimensions: container.backDimensions,
-          leftDimensions: container.leftDimensions,
-          frontDimensions: container.frontDimensions,
-          odcUnits: container.odcUnits,
-          status: container.status,
-          spclStow: container.spclStow,
-          spclStowRemark: container.spclStowRemark,
-          shpInstructNo: container.SHIP_INSTRUCT_NO, // Map to correct field
-          hsnCode: container.hsnCode,
-          commodityName: container.commodityName,
-          sbDtlsVo: container.sbDtlsVo,
-        })),
+          status: container.status || 'REQUESTED',
+        };
 
-        attList: await Promise.all(
+        // Add VGM weight only if VGM via ODeX is N and value exists
+        if (container.vgmViaODeX === 'N' && container.vgmWt) {
+          cntr.vgmWt = parseFloat(container.vgmWt).toFixed(2);
+        }
+
+        // Add optional container fields if they have values
+        if (container.cntnrReqId) cntr.cntnrReqId = container.cntnrReqId;
+        if (container.doNo) cntr.doNo = container.doNo;
+        if (container.chaRemarks) cntr.chaRemarks = container.chaRemarks;
+        if (container.hsnCode) cntr.hsnCode = container.hsnCode;
+        if (container.commodityName) cntr.commodityName = container.commodityName;
+
+        // Add cargo-specific fields
+        if (formData.cargoTp === 'REF' && container.temp) {
+          cntr.temp = parseFloat(container.temp).toFixed(2);
+        }
+        if (container.volt) cntr.volt = parseFloat(container.volt).toFixed(2);
+
+        // Add hazardous cargo fields
+        if (['HAZ', 'ODC(HAZ)', 'REF(HAZ)', 'FLT(HAZ)'].includes(formData.cargoTp)) {
+          if (container.imoNo1) cntr.imoNo1 = container.imoNo1;
+          if (container.unNo1) cntr.unNo1 = container.unNo1;
+          if (container.imoNo2) cntr.imoNo2 = container.imoNo2;
+          if (container.unNo2) cntr.unNo2 = container.unNo2;
+          if (container.imoNo3) cntr.imoNo3 = container.imoNo3;
+          if (container.unNo3) cntr.unNo3 = container.unNo3;
+          if (container.imoNo4) cntr.imoNo4 = container.imoNo4;
+          if (container.unNo4) cntr.unNo4 = container.unNo4;
+        }
+
+        // Add ODC dimensions
+        if (['ODC', 'ODC(HAZ)'].includes(formData.cargoTp)) {
+          if (container.rightDimensions) cntr.rightDimensions = parseFloat(container.rightDimensions).toFixed(2);
+          if (container.topDimensions) cntr.topDimensions = parseFloat(container.topDimensions).toFixed(2);
+          if (container.backDimensions) cntr.backDimensions = parseFloat(container.backDimensions).toFixed(2);
+          if (container.leftDimensions) cntr.leftDimensions = parseFloat(container.leftDimensions).toFixed(2);
+          if (container.frontDimensions) cntr.frontDimensions = parseFloat(container.frontDimensions).toFixed(2);
+          if (container.odcUnits) cntr.odcUnits = parseFloat(container.odcUnits).toFixed(2);
+        }
+
+        // Add transport details
+        if (container.vehicleNo) cntr.vehicleNo = container.vehicleNo;
+        if (container.driverLicNo) cntr.driverLicNo = container.driverLicNo;
+        if (container.driverNm) cntr.driverNm = container.driverNm;
+        if (container.haulier) cntr.haulier = container.haulier;
+
+        // Add special stowage
+        if (container.spclStow) cntr.spclStow = container.spclStow;
+        if (container.spclStowRemark) cntr.spclStowRemark = container.spclStowRemark;
+
+        // Add MSC shipping instruction
+        if (formData.bnfCode?.toUpperCase() === 'MSCU' && container.SHIP_INSTRUCT_NO) {
+          cntr.shpInstructNo = container.SHIP_INSTRUCT_NO;
+        }
+
+        // Add shipping bill details if needed
+        if (needsNhavashevaCodeValidation(formData)) {
+          const sbDetails = container.sbDtlsVo[0];
+          cntr.sbDtlsVo = [{
+            shipBillInvNo: sbDetails.shipBillInvNo,
+            shipBillDt: sbDetails.shipBillDt || '',
+            chaNm: sbDetails.chaNm,
+            chaPan: sbDetails.chaPan,
+            exporterNm: sbDetails.exporterNm,
+            exporterIec: sbDetails.exporterIec,
+            noOfPkg: parseInt(sbDetails.noOfPkg) || 0,
+          }];
+          
+          if (sbDetails.leoNo) cntr.sbDtlsVo[0].leoNo = sbDetails.leoNo;
+          if (sbDetails.leoDt) cntr.sbDtlsVo[0].leoDt = sbDetails.leoDt;
+        }
+
+        return cntr;
+      });
+
+      // Build attachments list
+      if (formData.attachments.length > 0) {
+        payload.attList = await Promise.all(
           formData.attachments.map(async (att) => ({
-            attReqID: '',
             attNm: att.name,
             attData: await fileToBase64(att.file),
             attTitle: att.title,
           }))
-        ),
-      };
+        );
+      }
 
       console.log('Submitting payload:', payload);
 
@@ -696,6 +758,35 @@ const Form13 = () => {
       const response = await form13API.submitForm13(payload);
       console.log('Submit response:', response);
 
+      // Check for schema validation errors
+      if (response.data?.schema_validation === 'FAIL' && response.data?.schema_validations) {
+        const schemaErrors = {};
+        response.data.schema_validations.forEach((error, index) => {
+          if (index === 0) return; // Skip summary line
+          
+          // Parse error message to extract field and issue
+          const match = error.match(/#\/(.+?):/);
+          if (match) {
+            const fieldPath = match[1];
+            const errorMsg = error.split(':')[1]?.trim() || error;
+            schemaErrors[fieldPath] = errorMsg;
+          }
+        });
+        
+        setSchemaValidationErrors(schemaErrors);
+        setError(`Schema validation failed: ${response.data.schema_validations[0]}`);
+        setSubmitting(false);
+        return;
+      }
+
+      // Check for business validation errors
+      if (response.data?.business_validation === 'FAIL' && response.data?.business_validations) {
+        setError(`Business validation failed: ${response.data.business_validations.join(', ')}`);
+        setSubmitting(false);
+        return;
+      }
+
+      // Success case
       if (response.data && response.data.odexRefNo) {
         setSuccess(`Form 13 submitted successfully! Reference No: ${response.data.odexRefNo}`);
         
@@ -704,15 +795,33 @@ const Form13 = () => {
           setFormData({
             ...initialFormState,
             pyrCode: userData?.pyrCode,
-            hashKey: formData.hashKey, // Preserve hash key
+            hashKey: formData.hashKey,
           });
         }, 3000);
+      } else if (response.data?.responseMessage) {
+        setSuccess(response.data.responseMessage);
       } else {
-        setError('Submission failed. Please try again.');
+        setError('Submission completed but no reference number received.');
       }
     } catch (err) {
       console.error('Submission error:', err);
-      setError(err.response?.data?.error || err.message || 'Submission failed');
+      
+      // Handle API error responses
+      if (err.response?.data) {
+        const errorData = err.response.data;
+        
+        if (errorData.schema_validations) {
+          setError(`Schema validation error: ${errorData.schema_validations[0] || 'Invalid data format'}`);
+        } else if (errorData.business_validations) {
+          setError(`Validation error: ${errorData.business_validations.join(', ')}`);
+        } else if (errorData.error) {
+          setError(errorData.error);
+        } else {
+          setError('Submission failed. Please check your data and try again.');
+        }
+      } else {
+        setError(err.message || 'Submission failed due to network error');
+      }
     } finally {
       setSubmitting(false);
     }
