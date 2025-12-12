@@ -324,10 +324,19 @@ export const getVGMRequests = async (req, res) => {
 
     // Booking number filter
     if (bookingNo) {
-      filterQuery["request.body.bookNo"] = {
-        $regex: bookingNo,
-        $options: "i",
-      };
+      if (req.query.exactMatch === "true") {
+        filterQuery["request.body.bookNo"] = bookingNo;
+      } else {
+        filterQuery["request.body.bookNo"] = {
+          $regex: bookingNo,
+          $options: "i",
+        };
+      }
+    }
+
+    // Liner/Shipping Line filter
+    if (req.query.linerId) {
+      filterQuery["request.body.linerId"] = req.query.linerId;
     }
 
     // Date range filter

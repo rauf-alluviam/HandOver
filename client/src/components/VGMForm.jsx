@@ -23,6 +23,9 @@ import {
   getTerminalCodesByPort,
 } from "../utils/constants/masterDataVGM.js";
 import "../styles/VGM.scss";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
 
 // --- Helper Components ---
 const InputField = ({
@@ -100,12 +103,13 @@ const VGMForm = ({
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { enqueueSnackbar } = useSnackbar();
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const { userData, shippers } = useAuth();
   const [loading, setLoading] = useState(false);
   const [attachments, setAttachments] = useState([]);
   const [isEditMode, setIsEditMode] = useState(editMode);
   const [requestData, setRequestData] = useState(existingRequest);
+  const [isPdfDownloaded, setIsPdfDownloaded] = useState(false);
 
   const [formValues, setFormValues] = useState({
     linerId: "",
@@ -126,7 +130,6 @@ const VGMForm = ({
     cargoTp: "GEN",
     cscPlateMaxWtLimit: "",
     cscPlateMaxWtUom: "KG",
-    isQuickResponse: "N",
     cargoWt: "",
     cargoWtUom: "KG",
     tareWt: "",
@@ -299,7 +302,6 @@ const VGMForm = ({
       cargoTp: requestBody.cargoTp || "GEN",
       cscPlateMaxWtLimit: requestBody.cscPlateMaxWtLimit || "",
       cscPlateMaxWtUom: requestBody.cscPlateMaxWtUom || "KG",
-      isQuickResponse: requestBody.isQuickResponse || "N",
       cargoWt: requestBody.cargoWt || "",
       cargoWtUom: requestBody.cargoWtUom || "KG",
       tareWt: requestBody.tareWt || "",
@@ -331,6 +333,121 @@ const VGMForm = ({
 
     // if (requestBody.vgmWbAttList) setAttachments(requestBody.vgmWbAttList);
     // enqueueSnackbar("Form pre-filled with existing data", { variant: "info" });
+  };
+
+  const loadExistingBooking = async (vgmId) => {
+    try {
+      setLoading(true);
+      const response = await vgmAPI.getRequestById(vgmId);
+      prefillForm(response.data);
+      enqueueSnackbar("Form data copied from existing booking.", {
+        variant: "success",
+      });
+    } catch (error) {
+      enqueueSnackbar("Failed to load existing booking details", {
+        variant: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const checkBookingExists = async (e) => {
+    // Determine the current value (from event if available, else from formik state)
+    // When onBlur triggers, e.target.value is the current value of the field being left.
+    // For bookNo input, e.target.value is the booking number.
+    const currentBookNo = e?.target?.value || formik.values.bookNo;
+    const currentLinerId = formik.values.linerId;
+
+    if (!currentBookNo || !currentLinerId) return;
+
+    // Avoid self-check in edit mode if values haven't changed?
+    // But duplicate check implies checking against OTHER records usually.
+    // Ideally we ignore the current record ID.
+    // But getRequests filtering is basic. We can filter client side or just show the prompt.
+    // If it's the SAME record (Edit Mode), we probably shouldn't prompt to copy from itself.
+    
+    try {
+      const response = await vgmAPI.getRequests({
+        bookingNo: currentBookNo,
+        linerId: currentLinerId,
+        limit: 5, // Get a few to filter
+      });
+      
+      if (response.data && response.data.requests && response.data.requests.length > 0) {
+        // Filter out current ID if in edit mode
+        const validRequests = response.data.requests.filter(r => 
+          !isEditMode || (requestData && (r.vgmId !== requestData._id && r.vgmId !== requestData.vgmId))
+        );
+
+        if (validRequests.length > 0) {
+           const match = validRequests[0]; // Take the most recent one
+           
+           enqueueSnackbar(
+            "Booking information for this Shipping Line and Booking No. exists. Do you wish to copy here?",
+            {
+              variant: "default",
+              persist: true,
+              anchorOrigin: {
+                vertical: 'top',
+                horizontal: 'center',
+              },
+              content: (key, message) => (
+                 <div style={{
+                    backgroundColor: '#333',
+                    color: '#fff',
+                    padding: '12px 24px',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px',
+                    boxShadow: '0 3px 5px -1px rgba(0,0,0,0.2), 0 6px 10px 0 rgba(0,0,0,0.14), 0 1px 18px 0 rgba(0,0,0,0.12)',
+                    maxWidth: '600px',
+                    fontSize: '0.95rem'
+                 }}>
+                    <div style={{ flex: 1 }}>{message}</div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <button 
+                            onClick={() => {
+                                closeSnackbar(key);
+                                loadExistingBooking(match.vgmId);
+                            }}
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: '#90caf9',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                padding: '4px 8px',
+                                textTransform: 'uppercase'
+                            }}
+                        >
+                            Yes
+                        </button>
+                        <button 
+                             onClick={() => closeSnackbar(key)}
+                             style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: '#f48fb1',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                padding: '4px 8px',
+                                textTransform: 'uppercase'
+                             }}
+                        >
+                            No
+                        </button>
+                    </div>
+                 </div>
+              )
+            }
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error checking for duplicate booking:", error);
+    }
   };
 
   const hasShipperAuth = shippers.some(
@@ -368,6 +485,113 @@ const VGMForm = ({
     else navigate("/dashboard");
   };
 
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    const values = formik.values;
+
+    // Header
+    doc.setFontSize(14);
+    doc.text("INFORMATION ABOUT VERIFIED GROSS MASS OF CONTAINER", 105, 20, { align: "center" });
+    doc.setFontSize(10);
+    doc.text("To HAPAG LLOYD INDIA PVT LTD,", 14, 30);
+    doc.text("Annexure-1", 180, 15, { align: "right" });
+
+    const tableData = [
+      ["1", "Name of the Shipper", values.shipperNm || "-"],
+      [
+        "2",
+        "Shipper Registration/License No. (IEC No./CIN No.)",
+        values.shipRegNo || "-",
+      ],
+      [
+        "3",
+        "Name and designation of official of the shipper authorised to sign document",
+        `${values.authPrsnNm || ""} - ${values.authDesignation || ""}`,
+      ],
+      [
+        "4",
+        "24 x 7 contact details of authorised official of shipper",
+        values.authMobNo || "-",
+      ],
+      ["5", "Container No.", values.cntnrNo || "-"],
+      ["6", "Container Size (TEU/FEU/Other)", values.cntnrSize || "-"],
+      [
+        "7",
+        "Maximum permissible weight of container as per the CSC plate",
+        `${values.cscPlateMaxWtLimit || ""} ${values.cscPlateMaxWtUom || ""}`,
+      ],
+      [
+        "8",
+        "Weighbridge registration no. & Address of Weighbridge",
+        `${values.weighBridgeRegNo || ""}\n${
+          values.weighBridgeAddrLn1 || ""
+        }, ${values.weighBridgeAddrLn2 || ""}, ${
+          values.weighBridgeAddrLn3 || ""
+        }`,
+      ],
+      [
+        "9",
+        "Verified gross mass of container (Method-1/Method-2)",
+        `${values.totWt || ""} ${values.totWtUom || ""} (${
+          values.vgmEvalMethod === "M1" ? "METHOD-1" : "METHOD-2"
+        })`,
+      ],
+      [
+        "10",
+        "Date and time of weighing",
+        values.weighBridgeWtTs?.replace("T", " ").slice(0, 16) || "-",
+      ],
+      ["11", "Weighing slip no.", values.weighBridgeSlipNo || "-"],
+      [
+        "12",
+        "Type (Normal/Reefer/Hazardous/Others)",
+        values.cargoTp === "GEN" ? "Normal" : values.cargoTp || "-",
+      ],
+      [
+        "13",
+        "If Hazardous, UN No., IMDG class",
+        values.cargoTp === "HAZ"
+          ? `${values.unNo1 || ""} / ${values.imoNo1 || ""}`
+          : "-",
+      ],
+    ];
+
+    autoTable(doc, {
+      startY: 40,
+      head: [["Sr. No.", "Details of Information", "Particulars"]],
+      body: tableData,
+      theme: "grid",
+      headStyles: { fillColor: [255, 255, 255], textColor: 0, lineWidth: 0.1 },
+      styles: {
+        lineColor: [0, 0, 0],
+        lineWidth: 0.1,
+        fontSize: 10,
+        cellPadding: 3,
+      },
+      columnStyles: {
+        0: { cellWidth: 15 },
+        1: { cellWidth: 100 },
+        2: { cellWidth: "auto" },
+      },
+    });
+
+    const finalY = doc.lastAutoTable.finalY + 20;
+
+    doc.text("Signature of authorised person of shipper", 120, finalY);
+    doc.text(`Name - ${values.authPrsnNm || ""}`, 120, finalY + 10);
+    doc.text(
+      `Date - ${new Date().toLocaleDateString("en-GB")}`,
+      120,
+      finalY + 20
+    );
+
+    doc.save(`VGM_Annexure1_${values.cntnrNo || "draft"}.pdf`);
+    setIsPdfDownloaded(true);
+    enqueueSnackbar("PDF Downloaded. You can now submit.", {
+      variant: "success",
+    });
+  };
+
   return (
     <FormikProvider value={formik}>
       <div className="vgm-container">
@@ -386,7 +610,15 @@ const VGMForm = ({
               />
               {/* <InputField label="Vessel Name" name="vesselNm" />
               <InputField label="Voyage Number" name="voyageNo" /> */}
-              <InputField label="Booking Number" name="bookNo" required />
+              <InputField 
+                label="Booking Number" 
+                name="bookNo" 
+                required 
+                onBlur={(e) => {
+                    formik.handleBlur(e);
+                    checkBookingExists(e);
+                }}
+              />
               <SelectField label="Port" name="locId" options={PORTS} required />
               {/* <SelectField
                 label="Handover Location"
@@ -515,20 +747,6 @@ const VGMForm = ({
                 required
               />
 
-              <div className="form-group" style={{ gridColumn: "span 1" }}>
-                <label>
-                  Quick Response <span className="required">*</span>
-                </label>
-                <select
-                  name="isQuickResponse"
-                  value={formik.values.isQuickResponse}
-                  onChange={formik.handleChange}
-                  className="form-control"
-                >
-                  <option value="N">No - Wait for weighment</option>
-                  <option value="Y">Yes - Immediate</option>
-                </select>
-              </div>
             </div>
 
             {/* Method 2 Specifics */}
@@ -755,9 +973,18 @@ const VGMForm = ({
               </button>
 
               <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={generatePDF}
+                disabled={loading}
+              >
+                Download PDF
+              </button>
+
+              <button
                 type="submit"
                 className="btn btn-primary"
-                disabled={loading}
+                disabled={loading || !isPdfDownloaded}
               >
                 {loading
                   ? "Processing..."

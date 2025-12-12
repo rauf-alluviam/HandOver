@@ -32,6 +32,63 @@ $spacing-base: 0.75rem; // 12px padding
   min-height: 100vh;
 }
 
+// --- Warning Banner ---
+.vgm-warning-banner {
+  background-color: #dc2626;
+  color: white;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: $radius;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: $font-size-sm;
+  line-height: 1.5;
+
+  .warning-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  .warning-content {
+    flex: 1;
+
+    strong {
+      font-weight: 600;
+    }
+  }
+}
+
+// --- VGM Info Bar ---
+.vgm-info-bar {
+  background-color: $surface;
+  border: 1px solid $border;
+  border-radius: $radius;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: $font-size-base;
+
+  .vgm-count,
+  .plan-expiry {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .info-label {
+      font-weight: 600;
+      color: $text-muted;
+    }
+
+    .info-value {
+      font-weight: 700;
+      color: $text-main;
+    }
+  }
+}
+
 .page-header {
   margin-bottom: 1rem;
   display: flex;
@@ -89,9 +146,12 @@ $spacing-base: 0.75rem; // 12px padding
   @media (min-width: 640px) {
     grid-template-columns: repeat(2, 1fr);
   }
+
   @media (min-width: 1024px) {
     grid-template-columns: repeat(4, 1fr);
-  } // 4 Columns for density
+  }
+
+  // 4 Columns for density
 }
 
 .form-group {
@@ -133,6 +193,7 @@ $spacing-base: 0.75rem; // 12px padding
       border-color: $danger;
       background-color: #fef2f2;
     }
+
     &:disabled {
       background-color: #f8fafc;
       color: $text-muted;
@@ -144,6 +205,40 @@ $spacing-base: 0.75rem; // 12px padding
     font-size: 11px;
     color: $danger;
     margin-top: 1px;
+  }
+}
+
+// --- Radio Button Group ---
+.radio-group {
+  .radio-options {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 0.25rem;
+
+    .radio-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      font-size: $font-size-base;
+      color: $text-main;
+      font-weight: 500;
+
+      input[type="radio"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        accent-color: $primary;
+      }
+
+      span {
+        user-select: none;
+      }
+
+      &:hover {
+        color: $primary;
+      }
+    }
   }
 }
 
@@ -166,6 +261,7 @@ $spacing-base: 0.75rem; // 12px padding
   &.btn-primary {
     background-color: $primary;
     color: white;
+
     &:hover:not(:disabled) {
       background-color: $primary-hover;
     }
@@ -175,6 +271,7 @@ $spacing-base: 0.75rem; // 12px padding
     background-color: white;
     border-color: $border;
     color: $text-main;
+
     &:hover {
       background-color: #f8fafc;
       border-color: color.adjust($border, $lightness: -10%);
@@ -190,7 +287,30 @@ $spacing-base: 0.75rem; // 12px padding
     opacity: 0.6;
     cursor: not-allowed;
   }
+
+  &.btn-save {
+    background-color: #16a34a;
+    color: white;
+    font-weight: 700;
+    min-width: 120px;
+
+    &:hover:not(:disabled) {
+      background-color: #15803d;
+    }
+  }
+
+  &.btn-back {
+    background-color: #dc2626;
+    color: white;
+    font-weight: 700;
+    min-width: 120px;
+
+    &:hover:not(:disabled) {
+      background-color: #b91c1c;
+    }
+  }
 }
+
 
 // --- Alerts (Slim) ---
 .alert {
@@ -208,6 +328,7 @@ $spacing-base: 0.75rem; // 12px padding
     color: #1e40af;
     border-color: #dbeafe;
   }
+
   &.alert-warning {
     background: #fffbeb;
     color: #92400e;
@@ -231,6 +352,7 @@ $spacing-base: 0.75rem; // 12px padding
 
   thead {
     background-color: #f8fafc;
+
     th {
       text-align: left;
       padding: 0.5rem 0.75rem;
@@ -244,13 +366,16 @@ $spacing-base: 0.75rem; // 12px padding
   tbody {
     tr {
       border-bottom: 1px solid $border;
+
       &:last-child {
         border-bottom: none;
       }
+
       &:hover {
         background-color: #f8fafc;
       }
     }
+
     td {
       padding: 0.4rem 0.75rem;
       color: $text-main;
@@ -276,16 +401,19 @@ $spacing-base: 0.75rem; // 12px padding
     color: #166534;
     border: 1px solid #bbf7d0;
   }
+
   &.badge-warning {
     background: #fef3c7;
     color: #92400e;
     border: 1px solid #fde68a;
   }
+
   &.badge-info {
     background: #dbeafe;
     color: #1e40af;
     border: 1px solid #bfdbfe;
   }
+
   &.badge-error {
     background: #fee2e2;
     color: #991b1b;
@@ -298,18 +426,23 @@ $spacing-base: 0.75rem; // 12px padding
   display: flex;
   align-items: center;
 }
+
 .justify-between {
   justify-content: space-between;
 }
+
 .gap-2 {
   gap: 0.5rem;
 }
+
 .text-right {
   text-align: right;
 }
+
 .w-full {
   width: 100%;
 }
+
 .mt-2 {
   margin-top: 0.5rem;
 }
@@ -326,15 +459,18 @@ $spacing-base: 0.75rem; // 12px padding
   &:last-child {
     border-bottom: none;
   }
+
   .file-label {
     width: 30%;
     font-weight: 500;
   }
+
   .file-name {
     width: 40%;
     color: $text-muted;
     font-style: italic;
   }
+
   .file-actions {
     width: 30%;
     text-align: right;
@@ -351,6 +487,7 @@ $spacing-base: 0.75rem; // 12px padding
   justify-content: center;
   align-items: center;
 }
+
 .modal-content {
   background: white;
   width: 95%;
@@ -367,18 +504,31 @@ $spacing-base: 0.75rem; // 12px padding
     display: flex;
     justify-content: space-between;
     align-items: center;
+
     h3 {
       margin: 0;
       font-size: 1rem;
     }
   }
+
   .modal-body {
     padding: 1rem;
     overflow-y: auto;
   }
+
   .modal-footer {
     padding: 0.75rem 1rem;
     border-top: 1px solid $border;
     text-align: right;
   }
+}
+
+// --- Action Buttons ---
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem 0;
+  margin-top: 1rem;
+  border-top: 1px solid $border;
 }
