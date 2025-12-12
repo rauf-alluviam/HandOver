@@ -15,10 +15,7 @@ export const vgmValidationSchema = Yup.object({
   locId: Yup.string()
     .required("Port ID is required")
     .max(10, "Max 10 characters allowed"),
-  shipperTp: Yup.string()
-    .required("Shipper Type is required")
-    .max(10, "Max 10 characters allowed")
-    .oneOf(["S", "O"], "Must be S (Self) or O (Other)"),
+
   authPrsnNm: Yup.string()
     .required("Authorized Person Name is required")
     .max(200, "Max 200 characters allowed"),
@@ -72,10 +69,10 @@ export const vgmValidationSchema = Yup.object({
     .default("KG"),
 
   // Quick Response Flag - MANDATORY
-  isQuickResponse: Yup.string()
-    .required("Quick Response flag is required")
-    .max(1, "Max 1 character allowed")
-    .oneOf(["Y", "N"], "Must be Y or N"),
+  // isQuickResponse: Yup.string()
+  //   .required("Quick Response flag is required")
+  //   .max(1, "Max 1 character allowed")
+  //   .oneOf(["Y", "N"], "Must be Y or N"),
 
   // Weight Details - More flexible validation
   totWt: Yup.mixed()
@@ -259,8 +256,8 @@ export const vgmValidationSchema = Yup.object({
       "third-party-shipper-name",
       "Shipper Name is required for third party without Shipper ID",
       function (value) {
-        const { shipperTp, shipId } = this.parent;
-        if (shipperTp === "O" && !shipId) {
+        const {shipId } = this.parent;
+        if ( !shipId) {
           return value && value.length > 0;
         }
         return true;
@@ -273,8 +270,8 @@ export const vgmValidationSchema = Yup.object({
       "third-party-reg-type",
       "Registration Type is required for third party without Shipper ID",
       function (value) {
-        const { shipperTp, shipId } = this.parent;
-        if (shipperTp === "O" && !shipId) {
+        const { shipId } = this.parent;
+        if (!shipId) {
           return (
             value &&
             [
@@ -296,9 +293,9 @@ export const vgmValidationSchema = Yup.object({
       "third-party-reg-number",
       "Registration Number is required for third party without Shipper ID",
       function (value) {
-        const { shipperTp, shipId, shipRegTP } = this.parent;
+        const { shipId, shipRegTP } = this.parent;
 
-        if (shipperTp === "O" && !shipId) {
+        if ( !shipId) {
           if (!value || value.length === 0) return false;
 
           // PAN number validation

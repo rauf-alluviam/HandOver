@@ -164,7 +164,8 @@ const VGMForm = ({
       }
       setLoading(true);
       try {
-        const payload = { ...values };
+        const payload = { ...values,     shipperTp: "S"  // Override regardless of selection
+};
         // Manual Transformations
         payload.cscPlateMaxWtLimit = values.cscPlateMaxWtLimit?.toString();
         payload.totWt = values.totWt?.toString();
@@ -179,14 +180,14 @@ const VGMForm = ({
           payload.tareWt = values.tareWt?.toString();
         }
 
-        if (values.shipperTp === "O") {
+      
           if (values.shipId) payload.shipId = values.shipId;
           else {
             payload.shipperNm = values.shipperNm;
             payload.shipRegTP = values.shipRegTP;
             payload.shipRegNo = values.shipRegNo;
           }
-        }
+        
 
         if (attachments.length > 0) payload.vgmWbAttList = attachments;
 
@@ -229,12 +230,12 @@ const VGMForm = ({
               { variant: "success" }
             );
 
-            if (!isEditMode) {
-              formik.resetForm();
-              setAttachments([]);
-            } else {
-              navigate("/vgm-status");
-            }
+            // if (!isEditMode) {
+            //   formik.resetForm();
+            //   setAttachments([]);
+            // } else {
+            //   navigate("/vgm-status");
+            // }
           }
         }
       } catch (error) {
@@ -383,15 +384,15 @@ const VGMForm = ({
                 options={LINERS}
                 required
               />
-              <InputField label="Vessel Name" name="vesselNm" />
-              <InputField label="Voyage Number" name="voyageNo" />
+              {/* <InputField label="Vessel Name" name="vesselNm" />
+              <InputField label="Voyage Number" name="voyageNo" /> */}
               <InputField label="Booking Number" name="bookNo" required />
               <SelectField label="Port" name="locId" options={PORTS} required />
-              <SelectField
+              {/* <SelectField
                 label="Handover Location"
                 name="handoverLoc"
                 options={HANDOVER_LOCATIONS}
-              />
+              /> */}
 
               {/* Terminal Code */}
               <div className="form-group">
@@ -421,38 +422,34 @@ const VGMForm = ({
                 required
               />
 
-              {formik.values.shipperTp === "O" && (
+       
                 <>
-                  <SelectField
-                    label="Authorized Shipper"
-                    name="shipId"
-                    options={shippers.map((s) => ({
-                      value: s.shipperId,
-                      label: `${s.shipperNm} (${s.shipperId})`,
-                    }))}
-                  />
-                  {!hasShipperAuth && (
                     <>
                       <InputField
                         label="Shipper Name"
                         name="shipperNm"
                         required
+                                               disabled={formik.values.shipperTp === "O"}
+
                       />
                       <SelectField
                         label="Reg Type"
                         name="shipRegTP"
                         options={REGISTRATION_TYPES}
                         required
+                                               disabled={formik.values.shipperTp === "O"}
+
                       />
                       <InputField
                         label="Reg Number"
                         name="shipRegNo"
                         required
+                                               disabled={formik.values.shipperTp === "O"}
+
                       />
                     </>
-                  )}
                 </>
-              )}
+              
             </div>
 
             <div className="form-grid mt-4">
@@ -696,17 +693,6 @@ const VGMForm = ({
                     fontSize: "0.9rem",
                   }}
                 >
-                  {type.label}
-                  {((type.value === "DG_DECLARATION" &&
-                    formik.values.cargoTp === "HAZ") ||
-                    (type.value === "AUTH_LETTER" &&
-                      formik.values.shipperTp === "O" &&
-                      !hasShipperAuth)) && (
-                    <span className="required" style={{ color: "red" }}>
-                      {" "}
-                      *
-                    </span>
-                  )}
                 </div>
 
                 {/* CONTROLS SECTION */}
