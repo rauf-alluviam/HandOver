@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useFormik, FormikProvider, useFormikContext } from "formik";
 import { useSnackbar } from "notistack";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -110,6 +110,9 @@ const VGMForm = ({
   const [isEditMode, setIsEditMode] = useState(editMode);
   const [requestData, setRequestData] = useState(existingRequest);
   const [isPdfDownloaded, setIsPdfDownloaded] = useState(false);
+  const checkingBookingRef = useRef(false);
+  const lastCheckedBookingRef = useRef({ bookNo: "", linerId: "" });
+  const bookingCheckTimerRef = useRef(null);
 
   const [formValues, setFormValues] = useState({
     linerId: "",
@@ -266,6 +269,15 @@ const VGMForm = ({
     initializeEditMode();
   }, [location.state, editMode, existingRequest]);
 
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (bookingCheckTimerRef.current) {
+        clearTimeout(bookingCheckTimerRef.current);
+      }
+    };
+  }, []);
+
   const fetchRequestDetails = async (vgmId) => {
     try {
       setLoading(true);
@@ -352,27 +364,63 @@ const VGMForm = ({
     }
   };
 
-  const checkBookingExists = async (e) => {
-    // Determine the current value (from event if available, else from formik state)
-    // When onBlur triggers, e.target.value is the current value of the field being left.
-    // For bookNo input, e.target.value is the booking number.
-    const currentBookNo = e?.target?.value || formik.values.bookNo;
-    const currentLinerId = formik.values.linerId;
+  // Debounced booking check that triggers while typing
+  const debouncedCheckBooking = (bookNo, linerId) => {
+    // Clear existing timer
+    if (bookingCheckTimerRef.current) {
+      clearTimeout(bookingCheckTimerRef.current);
+    }
 
-    if (!currentBookNo || !currentLinerId) return;
+    // Set new timer - check after 800ms of no typing
+    bookingCheckTimerRef.current = setTimeout(() => {
+      console.log('[BOOKING CHECK] Debounce timer fired for:', bookNo);
+      checkBookingExists(bookNo, linerId);
+    }, 800);
+  };
 
-    // Avoid self-check in edit mode if values haven't changed?
-    // But duplicate check implies checking against OTHER records usually.
-    // Ideally we ignore the current record ID.
-    // But getRequests filtering is basic. We can filter client side or just show the prompt.
-    // If it's the SAME record (Edit Mode), we probably shouldn't prompt to copy from itself.
+  const checkBookingExists = async (bookNo, linerId) => {
+    console.log('[BOOKING CHECK] Check triggered at:', new Date().toISOString());
+    const currentBookNo = bookNo || formik.values.bookNo;
+    const currentLinerId = linerId || formik.values.linerId;
+
+    // Early returns for invalid state
+    if (!currentBookNo || !currentLinerId) {
+      console.log('[BOOKING CHECK] Skipped - missing data:', { currentBookNo, currentLinerId });
+      return;
+    }
     
+    // Prevent duplicate checks if already checking
+    if (checkingBookingRef.current) {
+      console.log('[BOOKING CHECK] Skipped - already checking');
+      return;
+    }
+    
+    // Skip if we already checked this exact combination
+    if (
+      lastCheckedBookingRef.current.bookNo === currentBookNo &&
+      lastCheckedBookingRef.current.linerId === currentLinerId
+    ) {
+      console.log('[BOOKING CHECK] Skipped - already checked this combination');
+      return;
+    }
+
     try {
+      checkingBookingRef.current = true;
+      lastCheckedBookingRef.current = { bookNo: currentBookNo, linerId: currentLinerId };
+      
+      console.log('[BOOKING CHECK] Starting API call at:', new Date().toISOString());
+      const startTime = performance.now();
+      
+      // Use exact matching to prevent partial matches
       const response = await vgmAPI.getRequests({
         bookingNo: currentBookNo,
         linerId: currentLinerId,
-        limit: 5, // Get a few to filter
+        limit: 5,
+        exactMatch: true, // Only match exact booking numbers
       });
+      
+      const endTime = performance.now();
+      console.log(`[BOOKING CHECK] API call completed in ${(endTime - startTime).toFixed(2)}ms`);
       
       if (response.data && response.data.requests && response.data.requests.length > 0) {
         // Filter out current ID if in edit mode
@@ -381,8 +429,13 @@ const VGMForm = ({
         );
 
         if (validRequests.length > 0) {
-           const match = validRequests[0]; // Take the most recent one
+           const match = validRequests[0];
+           console.log('[BOOKING CHECK] Match found, showing notification at:', new Date().toISOString());
            
+           // Close any existing persistent snackbars to prevent maxSnack warning
+           closeSnackbar();
+           
+           // Show notification immediately (removed delay)
            enqueueSnackbar(
             "Booking information for this Shipping Line and Booking No. exists. Do you wish to copy here?",
             {
@@ -443,10 +496,18 @@ const VGMForm = ({
               )
             }
           );
+          console.log('[BOOKING CHECK] Notification enqueued at:', new Date().toISOString());
+        } else {
+          console.log('[BOOKING CHECK] No valid requests after filtering');
         }
+      } else {
+        console.log('[BOOKING CHECK] No matching requests found');
       }
     } catch (error) {
-      console.error("Error checking for duplicate booking:", error);
+      console.error("[BOOKING CHECK] Error:", error);
+    } finally {
+      checkingBookingRef.current = false;
+      console.log('[BOOKING CHECK] Check completed at:', new Date().toISOString());
     }
   };
 
@@ -613,10 +674,11 @@ const VGMForm = ({
               <InputField 
                 label="Booking Number" 
                 name="bookNo" 
-                required 
-                onBlur={(e) => {
-                    formik.handleBlur(e);
-                    checkBookingExists(e);
+                required
+                onChange={(e) => {
+                  formik.handleChange(e);
+                  // Trigger debounced check while typing
+                  debouncedCheckBooking(e.target.value, formik.values.linerId);
                 }}
               />
               <SelectField label="Port" name="locId" options={PORTS} required />
