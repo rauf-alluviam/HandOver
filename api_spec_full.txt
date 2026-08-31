@@ -1,0 +1,1855 @@
+ODeX Shipping Bill Integration API Document
+Doc. ID | Author | Ver. No. | Classification | Issue Date | Owner
+Doc. ID
+Author
+Ver. No.
+Classification
+Issue Date
+Owner
+OISPL_ITD_Export_ShippingBill_Integration_API_RC001.docx | Vedant Sawale | 1.0 | Confidential | 25-08-2025 | ODeX
+OISPL_ITD_Export_ShippingBill_Integration_API_RC001.docx
+Vedant Sawale
+1.0
+Confidential
+25-08-2025
+ODeX
+OISPL_ITD_Export_ShippingBill_Integration_API_RC001.docx | Sameer Kulkarni | 1.1 | Confidential | 12-05-2026 | ODeX
+OISPL_ITD_Export_ShippingBill_Integration_API_RC001.docx
+Sameer Kulkarni
+1.1
+Confidential
+12-05-2026
+ODeX
+Prepared BY: ODeX Integration Team
+© Copyrights – ODeX India Solutions Pvt. Ltd.
+No part of this document may be reproduced or transmitted in any form or by any means, electronic or mechanical, including photocopying or recording, for any purpose, without the express written consent of ODeX India Solutions Pvt. Ltd.
+1. Document Review
+This document provides a comprehensive technical and functional overview of the Shipping Bill API Integration process, which is a key digital workflow for port operations within the ODeX platform. Shipping Bill is a critical document used in Indian ports (e.g., JNPT, Mundra, etc) for onboarding permissions of containers, and this documentation aims to guide technical teams, integration partners, and stakeholders through its end-to-end automation.
+The manual is intended to support both API consumers (such as shipping lines or third-party software vendors) and system implementers by detailing the process of submitting, validating, and managing Shipping Bill data via secure RESTful APIs.
+Objectives:
+To outline the structure, data flow, and system interactions required for successful Shipping Bill integration.
+To define API request/response standards, including field-level rules, mandatory checks, and sample payloads.
+To ensure consistency and error-handling mechanisms across all Shipping Bill submissions.
+To support faster onboarding of external systems or clients integrating with ODeX.
+Audience:
+Backend/API Developers
+Integration Teams of Shipping Lines/Agents
+Business Analysts and Project Managers
+QA Teams involved in testing integration
+ODeX Internal IT & Support teams
+2. Business Use Case
+Shipping Bill (SB) is a mandatory document issued by shipping lines which serves as a declaration to customs authorities, providing details about the goods being shipped, their value, quantity, and destination. This document is essential for customs clearance, facilitating the movement of goods out of the country, and plays a vital role in claiming duty drawbacks and export incentives. Traditionally handled via email or manual systems, Shipping Bill is now being digitized through API integration to improve turnaround time, reduce manual errors, and ensure regulatory compliance.
+The Shipping Bill Integration enables seamless, real-time submission of requests directly from the Payor's internal system to the ODeX System. This not only simplifies submission of Shipping Bill requests but also enhances operational efficiency, especially in high-volume export scenarios.
+Stakeholders Involved:
+Stakeholders | Role
+Stakeholders
+Role
+Payor | Submits Shipping Bill for export containers
+Payor
+Submits Shipping Bill for export containers
+ODeX Platform | Acts as an intermediary, validating and forwarding Shipping Bill data
+ODeX Platform
+Acts as an intermediary, validating and forwarding Shipping Bill data
+Shipping Lines | Validates Shipping Bill data
+Shipping Lines
+Validates Shipping Bill data
+Customer (Exporter/CHA) | Receive Shipping Bill request status as a response
+Customer (Exporter/CHA)
+Receive Shipping Bill request status as a response
+Key Goals:
+Automate the submission of Shipping Bill from Payor systems
+Enable faster approval of export containers from Shipping lines
+Reduce errors and rejections due to data mismatch or manual entry
+Provide real-time visibility of Shipping Bill status to stakeholders
+Current Challenges (Without Integration):
+Manual data entry leads to errors or inconsistencies
+Delays due to email-based communication
+High support overhead to resolve submission/rejection issues
+Proposed Solution (With API Integration):
+Submit Shipping Bill through a secure REST API with proper validation
+Ensure container, vessel, and POD data is validated against ODeX master
+Receive instant response for success or actionable error messages
+Track Shipping Bill submission, status, amendment and rejections in real time
+3. Integration Scope
+Overview:
+This integration enables Payor's to submit Shipping Bill data directly to ODeX via REST APIs. Shipping line validates, and ODeX shares the response back to the Payor.
+In Scope:
+Shipping Bill Transaction API for submitting container gate-in data.
+Master APIs for Vessel, POD, etc.
+Validations for mandatory fields and data formats.
+API Responses for success and error handling.
+Amendments of submitted Shipping Bill.
+Retry Support for failed transactions.
+Status Tracking (if enabled on ODeX UI or API).
+Out of Scope:
+EDI/SFTP-based submissions.
+Interfaces:
+Payor System → ODeX API Gateway → Shipping Line Review
+ODeX manages downstream logic and responses.
+Security:
+Auth via API key/code (shared securely).
+HTTPS is mandatory.
+Available in UAT & Production environments
+4. High-Level Architecture
+Overview:
+This section outlines the data flow between a Payor, ODeX platform, and the shipping line for successful Shipping Bill processing via APIs.
+Steps Explained:
+Shipping Bill Submission: The Payor's system sends a POST request with container gate-in details.
+Validation & Processing (ODeX): ODeX validates Vessel, POD, Terminal against Master APIs and Mandatory fields and format.
+Visibility of request on ODeX for Shipping Line: Upon successful validation, ODeX forwards the Shipping Bill response back to the Payor.
+Environment | URL | Use Case
+Environment
+URL
+Use Case
+UAT | https://staging.odexglobal.com/RS/iEGMService/ | Integration testing
+UAT
+https://staging.odexglobal.com/RS/iEGMService/
+Integration testing
+Production | https://www.odexglobal.com/RS/iEGMService/ | Real-time operations
+Production
+https://www.odexglobal.com/RS/iEGMService/
+Real-time operations
+API Type | Purpose
+API Type
+Purpose
+Master APIs | Validate vessels, ports, terminals
+Master APIs
+Validate vessels, ports, terminals
+Transaction API | Submit Shipping Bill data
+Transaction API
+Submit Shipping Bill data
+Response API | Return status or error messages and Get Shipping Bill Request Status
+Response API
+Return status or error messages and Get Shipping Bill Request Status
+5. API Specifications
+General Info:
+API Type: RESTful
+Format: JSON
+Protocol: HTTPS
+Authentication: API Key or Token
+Method: POST
+Environment: UAT and Production
+Field type:
+Type | Code | Description
+Type
+Code
+Description
+Integer | INT | 0-9
+Integer
+INT
+0-9
+Decimal (defined places e.g. up to 2 decimal places) | DEC | 0.00 – 0.99
+Decimal (defined places e.g. up to 2 decimal places)
+DEC
+0.00 – 0.99
+Alphabetic | ALPHA | A-Z, a-z
+Alphabetic
+ALPHA
+A-Z, a-z
+Alphanumeric | AN | A-Z, a-z, 0-9
+Alphanumeric
+AN
+A-Z, a-z, 0-9
+Date | DATE | DDMMYYYY
+Date
+DATE
+DDMMYYYY
+Date & Time | DTM | DDMMYYYYHHMMSS
+Date & Time
+DTM
+DDMMYYYYHHMMSS
+File | FILE | File in Base 64 format
+File
+FILE
+File in Base 64 format
+Field requirement:
+Requirement | Description | Remarks
+Requirement
+Description
+Remarks
+M | Mandatory | Value is always expected
+M
+Mandatory
+Value is always expected
+O | Optional | This is up to the user whether to provide this value
+O
+Optional
+This is up to the user whether to provide this value
+C | Conditional | In any specific condition this value must be provided
+C
+Conditional
+In any specific condition this value must be provided
+6. Vessel Master API
+In this Vessel master API request, users will be able to get those data which are defined in ODeX by liner (and Admin) and required shipping bill request. Line Location wise Vessel name, CHA Valid from-to (So customer will send Shipping Bill request within this time only), All these are defined by Shipping line while creating vessel information. Until these data are correct in the request, ODeX will not accept the same.
+Message Header
+API Type | RESTful API
+API Type
+RESTful API
+EDI Type | JSON
+EDI Type
+JSON
+Method | POST
+Method
+POST
+URL | https://staging.odexglobal.com/RS/iEGMService/json/getSbVesselMst
+URL
+https://staging.odexglobal.com/RS/iEGMService/json/getSbVesselMst
+Hosted By | ODeX
+Hosted By
+ODeX
+Requested By | Client
+Requested By
+Client
+Request Message
+Sr No | Field Name | API Field | Data Type & Length | M/O/C | Description / Additional Details
+Sr No
+Field Name
+API Field
+Data Type & Length
+M/O/C
+Description / Additional Details
+1 | CHA-Name | pyrCode | ANS-200 | M | Auto pull from Logged in user. Payor will have to send either its Payor ID or unique key, which will be shared by ODeX with the Payor
+1
+CHA-Name
+pyrCode
+ANS-200
+M
+Auto pull from Logged in user. Payor will have to send either its Payor ID or unique key, which will be shared by ODeX with the Payor
+2 | HashKey | hashKey | NA | C | Required only if additional security is desired. Mandatory if encryption desired by customer. checksumKey = crc32(pyrcode+timestamp+secretKey)
+2
+HashKey
+hashKey
+NA
+C
+Required only if additional security is desired. Mandatory if encryption desired by customer. checksumKey = crc32(pyrcode+timestamp+secretKey)
+3 | Time Stamp | fromTs | DTM | M | YYYY-MM-DD HH:MM:SS. Response will consist those data only, which are added/updated on or after this time.
+3
+Time Stamp
+fromTs
+DTM
+M
+YYYY-MM-DD HH:MM:SS. Response will consist those data only, which are added/updated on or after this time.
+Request Sample:
+{
+"pyrCode": "ODeX/MH/SHP/2503/00020",
+"hashKey": "3746888286",
+"fromTs": "2025-07-19 00:00:00"
+}
+Response Message
+S.N | Field Name | API Field | Data Type & Length | M/O/C | Description / Additional Details
+S.N
+Field Name
+API Field
+Data Type & Length
+M/O/C
+Description / Additional Details
+1 | Shipping Line | bnfCode | ALPHA-8 | M | Refer Master Data Section
+1
+Shipping Line
+bnfCode
+ALPHA-8
+M
+Refer Master Data Section
+2 | Location (Port) | locId | AN-8 | M | Refer Master Data Section
+2
+Location (Port)
+locId
+AN-8
+M
+Refer Master Data Section
+3 | Vessel | vesselNm | ANS-50 | M | Vessel Name
+3
+Vessel
+vesselNm
+ANS-50
+M
+Vessel Name
+4 | VIA No. | viaNo | AN-20 | O | Voyage Reference
+4
+VIA No.
+viaNo
+AN-20
+O
+Voyage Reference
+5 | Liner/VOA Valid From | linValidFrm | DTM | M | YYYY-MM-DD HH:MM:SS
+5
+Liner/VOA Valid From
+linValidFrm
+DTM
+M
+YYYY-MM-DD HH:MM:SS
+6 | Liner/VOA Valid To | linValidTo | DTM | M | YYYY-MM-DD HH:MM:SS
+6
+Liner/VOA Valid To
+linValidTo
+DTM
+M
+YYYY-MM-DD HH:MM:SS
+7 | CHA Valid From | chaValidFrm | DTM | M | YYYY-MM-DD HH:MM:SS
+7
+CHA Valid From
+chaValidFrm
+DTM
+M
+YYYY-MM-DD HH:MM:SS
+8 | CHA Valid To | chaValidTo | DTM | M | YYYY-MM-DD HH:MM:SS
+8
+CHA Valid To
+chaValidTo
+DTM
+M
+YYYY-MM-DD HH:MM:SS
+9 | COA Valid From | coaValidFrm | DTM | M | YYYY-MM-DD HH:MM:SS
+9
+COA Valid From
+coaValidFrm
+DTM
+M
+YYYY-MM-DD HH:MM:SS
+10 | COA Valid To | coaValidTo | DTM | M | YYYY-MM-DD HH:MM:SS
+10
+COA Valid To
+coaValidTo
+DTM
+M
+YYYY-MM-DD HH:MM:SS
+11 | Last Update Date | lastUpdatedOn | DTM | M | YYYY-MM-DD HH:MM:SS – Latest time at which data is created/updated
+11
+Last Update Date
+lastUpdatedOn
+DTM
+M
+YYYY-MM-DD HH:MM:SS – Latest time at which data is created/updated
+12 | Response Message | responseMessage | AN | O | Failure message if any
+12
+Response Message
+responseMessage
+AN
+O
+Failure message if any
+Response Sample:
+[
+{
+"bnfCode": "HLCU",
+"locId": "INNSA1",
+"vesselNm": "APIVESSEL555",
+"viaNo": "VIA555",
+"terminalCode": null,
+"service": null,
+"chaValidFrmStr": "02-05-2025",
+"chaValidToStr": "11-07-2026",
+"linValidFrmStr": "29-04-2025",
+"linValidToStr": "11-07-2026",
+"responseMessage": ""
+},
+{
+"bnfCode": "MSCU",
+"locId": "INNSA1",
+"vesselNm": "HYUNDAI OAKLAND",
+"viaNo": "F777",
+"terminalCode": null,
+"service": null,
+"chaValidFrmStr": "04-08-2025",
+"chaValidToStr": "11-07-2026",
+"linValidFrmStr": "02-08-2025",
+"linValidToStr": "11-07-2026",
+"responseMessage": ""
+},
+{
+"bnfCode": "HDMU",
+"locId": "INNSA1",
+"vesselNm": "APIVESSEL555",
+"viaNo": "VIA555",
+"terminalCode": null,
+"service": null,
+"chaValidFrmStr": "08-09-2025",
+"chaValidToStr": "11-07-2026",
+"linValidFrmStr": "02-09-2025",
+"linValidToStr": "11-07-2026",
+"responseMessage": ""
+},
+{
+"bnfCode": "ONEY",
+"locId": "INNSA1",
+"vesselNm": "APIVESSEL555",
+"viaNo": "VIA555",
+"terminalCode": null,
+"service": null,
+"chaValidFrmStr": "21-05-2025",
+"chaValidToStr": "30-12-2026",
+"linValidFrmStr": "21-05-2025",
+"linValidToStr": "31-12-2026",
+"responseMessage": ""
+},
+{
+"bnfCode": "COSU",
+"locId": "INNSA1",
+"vesselNm": "APIVESSEL555",
+"viaNo": "VIA555",
+"terminalCode": null,
+"service": null,
+"chaValidFrmStr": "04-06-2025",
+"chaValidToStr": "02-09-2026",
+"linValidFrmStr": "04-06-2025",
+"linValidToStr": "18-05-2027",
+"responseMessage": ""
+}
+]
+7. Shipping Bill Submission API
+In Shipping Bill request API, data will be pulled from payor's internal system and submitted via API. Response of API will provide the status of the request for that container. Request and response sections are divided into header, container and attachment sections for better clarity.
+Message Header:
+API Type | RESTful API
+API Type
+RESTful API
+EDI Type | JSON
+EDI Type
+JSON
+Method | POST
+Method
+POST
+URL | https://staging.odexglobal.com/RS/iEGMService/saveEGMRequestApi
+URL
+https://staging.odexglobal.com/RS/iEGMService/saveEGMRequestApi
+Hosted By | ODeX
+Hosted By
+ODeX
+Requested By | Client
+Requested By
+Client
+Header Section - Request Message
+Field | API Tags | Data Type & Length | M/O/C | Validation
+Field
+API Tags
+Data Type & Length
+M/O/C
+Validation
+ODeX Reference Number | odexRefNo | AN-50 | C | Leave this tag blank. Unique reference No. generated for each request by ODeX. Used in response further.
+ODeX Reference Number
+odexRefNo
+AN-50
+C
+Leave this tag blank. Unique reference No. generated for each request by ODeX. Used in response further.
+Payor ID | pyrCode | AN-50 | M | Example: ODeX/MH/SHP/2503/00019
+Payor ID
+pyrCode
+AN-50
+M
+Example: ODeX/MH/SHP/2503/00019
+Sea / Port | locCode | AN-6 | M | Refer Master Data Section. Example: INNSA1
+Sea / Port
+locCode
+AN-6
+M
+Refer Master Data Section. Example: INNSA1
+Shipping Line | bnfCode | AN-4 | M | Refer Master Data Section. Example: HLCU, MSCU, HDMU
+Shipping Line
+bnfCode
+AN-4
+M
+Refer Master Data Section. Example: HLCU, MSCU, HDMU
+Booking No. | bookNo | AN-20 | M | Example: BOOZE1100001
+Booking No.
+bookNo
+AN-20
+M
+Example: BOOZE1100001
+BL No. | blNo | AN-20 | M | Example: BLZE1100001
+BL No.
+blNo
+AN-20
+M
+Example: BLZE1100001
+Is HBL Involved? | isHBLInvolved | Alpha-1 | M | LOV: Y / N. Update the MBL Number in the BL Number Field if shipment has straight/Direct BL. In case of HBL involved, add the HBL Number in the BL Number Field.
+Is HBL Involved?
+isHBLInvolved
+Alpha-1
+M
+LOV: Y / N. Update the MBL Number in the BL Number Field if shipment has straight/Direct BL. In case of HBL involved, add the HBL Number in the BL Number Field.
+Booking Origin (ICD/Port) | icdLocCode | AN-6 | M | Example: INNSA1
+Booking Origin (ICD/Port)
+icdLocCode
+AN-6
+M
+Example: INNSA1
+SB Processed Location | portOfSBFiled | AN-6 | M | Example: INNSA1
+SB Processed Location
+portOfSBFiled
+AN-6
+M
+Example: INNSA1
+Booking Office Location | gatewayLocCode | AN-6 | C | Mandatory for MSC shipping line at all locations
+Booking Office Location
+gatewayLocCode
+AN-6
+C
+Mandatory for MSC shipping line at all locations
+Vessel Name | vesselNm | AN-50 | M | Includes Special Characters and Spaces. Example: APIVESSEL555
+Vessel Name
+vesselNm
+AN-50
+M
+Includes Special Characters and Spaces. Example: APIVESSEL555
+Via No. | viaNo | AN-20 | M | Special Characters allowed. Example: VIA555
+Via No.
+viaNo
+AN-20
+M
+Special Characters allowed. Example: VIA555
+Container Status | cntStatus | Alpha-3 | M | LOV: FCL / LCL
+Container Status
+cntStatus
+Alpha-3
+M
+LOV: FCL / LCL
+FPOD (SB Destination Port) | pod | AN-6 | M | Example: AOBDD, AEDXB, AEAUH, SGSIN, BEFMA, CAFRE, AUSTA
+FPOD (SB Destination Port)
+pod
+AN-6
+M
+Example: AOBDD, AEDXB, AEAUH, SGSIN, BEFMA, CAFRE, AUSTA
+Nature of Cargo | natureOfCargo | AN-3 | M | LOV: C / CP / DB / LB
+Nature of Cargo
+natureOfCargo
+AN-3
+M
+LOV: C / CP / DB / LB
+Booking Line | bookLine | AN-4 (SCAC) | C | Mandatory if there is an active record with 'is Booking Line Required' as 'Yes' in SB Beneficiary Config
+Booking Line
+bookLine
+AN-4 (SCAC)
+C
+Mandatory if there is an active record with 'is Booking Line Required' as 'Yes' in SB Beneficiary Config
+Container Section - Request Message
+The below section can be multiple in each Shipping Bill request; hence we will need to handle it accordingly in API. E.g.: if there are 3 containers in the request, all these fields must repeat 3 times.
+Field | API Tags | Data Type & Length | M/O/C | Validation
+Field
+API Tags
+Data Type & Length
+M/O/C
+Validation
+Container No. | cntNo | AN-11 | M | Container Format Check. Example: YNZE1000001
+Container No.
+cntNo
+AN-11
+M
+Container Format Check. Example: YNZE1000001
+Shipping Bill No. | shipBillNo | AN-7 | M | Value Length Check. Example: SB74533
+Shipping Bill No.
+shipBillNo
+AN-7
+M
+Value Length Check. Example: SB74533
+Shipping Bill Date | shipBillDt | DD-MM-YYYY | M | Example: 08-09-2025
+Shipping Bill Date
+shipBillDt
+DD-MM-YYYY
+M
+Example: 08-09-2025
+LEO Date | leoDt | DD-MM-YYYY | C | Mandatory if 'is LEO Date Mandatory' = Yes in SB Beneficiary Config
+LEO Date
+leoDt
+DD-MM-YYYY
+C
+Mandatory if 'is LEO Date Mandatory' = Yes in SB Beneficiary Config
+PCIN Number | pcinNo | AN-20 (MANUAL/SEZ allowed) | C | MANUAL and SEZ are exception to length check. Example: SEZ
+PCIN Number
+pcinNo
+AN-20 (MANUAL/SEZ allowed)
+C
+MANUAL and SEZ are exception to length check. Example: SEZ
+POL (SB Processed Loc) | pol | AN-6 | M | Example: INNSA1
+POL (SB Processed Loc)
+pol
+AN-6
+M
+Example: INNSA1
+POD (FPOD) | pod | AN-6 | M | Example: AOBDD
+POD (FPOD)
+pod
+AN-6
+M
+Example: AOBDD
+Cargo + Packaging Weight | grossWt | DEC (9,2) | M | In KGs. Example: 1200.0
+Cargo + Packaging Weight
+grossWt
+DEC (9,2)
+M
+In KGs. Example: 1200.0
+No. of Packages | noOfPkg | Numeric-4 | M | Example: 12
+No. of Packages
+noOfPkg
+Numeric-4
+M
+Example: 12
+Package Type | typOfPackages | ALPHA-3 | M | Example: BDL, BAG, BOX
+Package Type
+typOfPackages
+ALPHA-3
+M
+Example: BDL, BAG, BOX
+Cargo / Net Weight | cargoWt | DEC (9,2) | M | In KGs. Example: 1800.0
+Cargo / Net Weight
+cargoWt
+DEC (9,2)
+M
+In KGs. Example: 1800.0
+Cargo Type | cargoTp | ALPHA-5 | M | LOV: GEN / HAZ / REF / ODC / ONION
+Cargo Type
+cargoTp
+ALPHA-5
+M
+LOV: GEN / HAZ / REF / ODC / ONION
+Type of Shipping Bill | shipBillTp | ALPHA-3 | M | LOV: DFS / DS / LIC
+Type of Shipping Bill
+shipBillTp
+ALPHA-3
+M
+LOV: DFS / DS / LIC
+Exporter Name | exporterNm | AN-100 | M | Includes Special Chars & Spaces. Example: ABC Exporters Pvt Ltd
+Exporter Name
+exporterNm
+AN-100
+M
+Includes Special Chars & Spaces. Example: ABC Exporters Pvt Ltd
+IEC | iec | AN-10 | M | Example: 1234567890
+IEC
+iec
+AN-10
+M
+Example: 1234567890
+Consignee Name | consigneeNm | AN-100 | M | Includes Special Chars & Spaces. Example: XYZ Trading LLC
+Consignee Name
+consigneeNm
+AN-100
+M
+Includes Special Chars & Spaces. Example: XYZ Trading LLC
+Marks and Numbers | markNum | AN-300 | M | Includes Special Chars & Spaces. Example: MARK001
+Marks and Numbers
+markNum
+AN-300
+M
+Includes Special Chars & Spaces. Example: MARK001
+Cargo Description | cargoDesc | AN-250 | M | Example: General Cargo Description
+Cargo Description
+cargoDesc
+AN-250
+M
+Example: General Cargo Description
+HSN Code | hsnCode | AN-8 / comma-sep AN-500 | M | Example: 84211910
+HSN Code
+hsnCode
+AN-8 / comma-sep AN-500
+M
+Example: 84211910
+SOC | socFlag | ALPHA-1 | M | LOV: Y / N
+SOC
+socFlag
+ALPHA-1
+M
+LOV: Y / N
+Container Agent Code | cntnrAgentCode | AN-10 | M | Format: 5 alpha + 4 numeric + 1 alpha. Example: AABCH7319B
+Container Agent Code
+cntnrAgentCode
+AN-10
+M
+Format: 5 alpha + 4 numeric + 1 alpha. Example: AABCH7319B
+Attachment Section - Request Message
+Field | API Tags | Data Type & Length | M/O/C | Validation
+Field
+API Tags
+Data Type & Length
+M/O/C
+Validation
+Attachment Name | attNm | AN-500 | M | e.g.: abc.pdf. Only pdf file is allowed
+Attachment Name
+attNm
+AN-500
+M
+e.g.: abc.pdf. Only pdf file is allowed
+Attachment Data | attData | Base64 | M | File converted to byte array (Base64). Max byte array length: 5,242,880
+Attachment Data
+attData
+Base64
+M
+File converted to byte array (Base64). Max byte array length: 5,242,880
+Attachment Title | attTitle | AN-200 | M | LOV: LOC / EIR / TSR / CLP / SB / O
+Attachment Title
+attTitle
+AN-200
+M
+LOV: LOC / EIR / TSR / CLP / SB / O
+Attachment Description | attDesc | AN-200 | O | Optional description text
+Attachment Description
+attDesc
+AN-200
+O
+Optional description text
+Note: Total Attachment size should not exceed 4MB.
+Request Sample:
+{
+"egmRequestVo": {
+"locCode": "INNSA1",
+"icdLocCode": "INNSA1",
+"gatewayLocCode": "INNSA1",
+"portCode": "INNSA1",
+"bnfCode": "HLCU",
+"pyrCode": "ODeX/MH/SHP/2503/00019",
+"bookNo": "BOOZE1100001",
+"shipmentTp": null,
+"vesselNm": "APIVESSEL555",
+"viaNo": "VIA555",
+"cntStatus": "FCL",
+"natureOfCargo": "C",
+"cargoTp": null,
+"portOfSBFiled": "INNSA1",
+"pod": "AOBDD",
+"srchReqStatus": "",
+"srchCntNo": "",
+"blNo": "BLZE1100001",
+"declarationFlg": true,
+"isHBLInvolved": "N",
+"egmRequestcntnrVoList": [
+{
+"cntNo": "YNZE1000001",
+"grossWt": 1200.0,
+"shipBillNo": "SB74533",
+"shipBillDt": "08-09-2025",
+"shipBillTp": "DFS",
+"exporterNm": "ABC Exporters Pvt Ltd",
+"consigneeNm": "XYZ Trading LLC",
+"markNum": "MARK001",
+"cargoDesc": "General Cargo Description",
+"noOfPkg": 12,
+"ischeck": true,
+"hsnCode": "84211910",
+"pol": "INNSA1",
+"pod": "AOBDD",
+"cargoWt": 1800.0,
+"pcinNo": "SEZ",
+"iec": "1234567890",
+"socFlag": "N",
+"cntnrAgentCode": "AABCH7319B",
+"typOfPackages": "BDL",
+"cargoTp": "GEN"
+}
+],
+"egmReqAttVoList": [
+{
+"attNm": "shipping_bill.pdf",
+"attTitle": "LOC",
+"attDesc": "Shipping Bill / LEO Document",
+"attData": "ZGF3ZHFxd2Rx"
+},
+{
+"attNm": "eir_document.pdf",
+"attTitle": "EIR",
+"attDesc": "Equipment Interchange Report",
+"attData": "ZGF3ZHFxd2Rx"
+},
+{
+"attNm": "tally_sheet.pdf",
+"attTitle": "TSR",
+"attDesc": "Tally Sheet / Stuffing Report",
+"attData": "ZGF3ZHFxd2Rx"
+}
+]
+}
+}
+7.1 Shipping Bill Response API
+Header Section:
+S.N | Field Name | API Field | Description / Additional Details
+S.N
+Field Name
+API Field
+Description / Additional Details
+1 | ODeX Ref No | odexRefNo | Reference number for the submitted request. Example: ODX/SB/2025/00112538
+1
+ODeX Ref No
+odexRefNo
+Reference number for the submitted request. Example: ODX/SB/2025/00112538
+2 | Booking No. | bookNo | Booking number echoed back. Example: BOOZE1100001
+2
+Booking No.
+bookNo
+Booking number echoed back. Example: BOOZE1100001
+3 | Schema Validation | schema_validation | PASS / FAIL
+3
+Schema Validation
+schema_validation
+PASS / FAIL
+4 | Schema Validations | schema_validations | List of schema validation error messages if any
+4
+Schema Validations
+schema_validations
+List of schema validation error messages if any
+5 | Business Validation | business_validation | PASS / FAIL
+5
+Business Validation
+business_validation
+PASS / FAIL
+6 | Business Validations | business_validations | List of business validation error messages if any
+6
+Business Validations
+business_validations
+List of business validation error messages if any
+7 | Response | responseMessage | Refer Error Message section in Master Data for list of error messages
+7
+Response
+responseMessage
+Refer Error Message section in Master Data for list of error messages
+Response Sample (Success):
+{
+"bookNo": "BOOZE1100001",
+"responseMessage": "Shipping Bill request submitted successfully",
+"schema_validation": "PASS",
+"schema_validations": null,
+"business_validation": "PASS",
+"business_validations": null,
+"odexRefNo": "ODX/SB/2025/00112538"
+}
+Response Sample (Failure):
+{
+"bookNo": "BOOZE1100001",
+"responseMessage": "",
+"schema_validation": null,
+"schema_validations": null,
+"business_validation": "FAIL",
+"business_validations": "1 - Request already exists done by a different customer. 2 - BOOZE1100001 : Shipping Bill Request for Booking No.: {0} with BL No.: {1} is already available.",
+"odexRefNo": ""
+}
+7.2 Get Shipping Bill Status API
+Message Header
+API Type | RESTful API
+API Type
+RESTful API
+EDI Type | JSON
+EDI Type
+JSON
+Method | POST
+Method
+POST
+URL | https://staging.odexglobal.com/RS/iEGMService/json/getEGMRequestDetails
+URL
+https://staging.odexglobal.com/RS/iEGMService/json/getEGMRequestDetails
+Hosted By | ODeX
+Hosted By
+ODeX
+Requested By | Client
+Requested By
+Client
+Request Message:
+S.N | Field Name | API Field | Data Type & Length | M/O/C | Description
+S.N
+Field Name
+API Field
+Data Type & Length
+M/O/C
+Description
+1 | Booking No. | bookNo | AN-20 | M | Example: BOOZE1100001
+1
+Booking No.
+bookNo
+AN-20
+M
+Example: BOOZE1100001
+2 | Shipping Line | bnfCode | AN-4 | M | Example: HLCU
+2
+Shipping Line
+bnfCode
+AN-4
+M
+Example: HLCU
+3 | Payor Code | pyrCode | AN-50 | M | Example: ODeX/MH/SHP/2503/00019
+3
+Payor Code
+pyrCode
+AN-50
+M
+Example: ODeX/MH/SHP/2503/00019
+4 | Gateway Location | gatewayLocCode | AN-6 | M | Example: INNSA1
+4
+Gateway Location
+gatewayLocCode
+AN-6
+M
+Example: INNSA1
+Request Sample:
+{
+"bookNo": "BOOZE1100001",
+"bnfCode": "HLCU",
+"pyrCode": "ODeX/MH/SHP/2503/00019",
+"gatewayLocCode": "INNSA1"
+}
+Response Message - Header Section
+S.N | Field Name | API Field | Description
+S.N
+Field Name
+API Field
+Description
+1 | EGM Request ID | egmReqId | Unique numeric identifier
+1
+EGM Request ID
+egmReqId
+Unique numeric identifier
+2 | Booking No. | bookNo | Example: BOOZE1100001
+2
+Booking No.
+bookNo
+Example: BOOZE1100001
+3 | BL No. | blNo | Example: BLZE1100001
+3
+BL No.
+blNo
+Example: BLZE1100001
+4 | Status | status | REQUESTED / VERIFIED / CONFIRMED / REJECTED / AMENDMENT
+4
+Status
+status
+REQUESTED / VERIFIED / CONFIRMED / REJECTED / AMENDMENT
+5 | Vessel Name | vesselNm | Example: APIVESSEL555
+5
+Vessel Name
+vesselNm
+Example: APIVESSEL555
+6 | Via No. | viaNo | Example: VIA555
+6
+Via No.
+viaNo
+Example: VIA555
+7 | Container Status | cntStatus | FCL / LCL
+7
+Container Status
+cntStatus
+FCL / LCL
+8 | POD / FPOD | pod | Example: AOBDD
+8
+POD / FPOD
+pod
+Example: AOBDD
+9 | No. of Containers | noOfCntnr | Total container count
+9
+No. of Containers
+noOfCntnr
+Total container count
+10 | No. of SBs | noOfSB | Number of Shipping Bills
+10
+No. of SBs
+noOfSB
+Number of Shipping Bills
+11 | Remarks | remarks | Liner remarks if any
+11
+Remarks
+remarks
+Liner remarks if any
+12 | Message | message | Success/Error message
+12
+Message
+message
+Success/Error message
+Response Sample:
+{
+"data": {
+"iEgmRequestVo": {
+"egmReqId": 112538,
+"portCode": "INNSA1",
+"bookNo": "BOOZE1100001",
+"shipmentTp": null,
+"vesselNm": "APIVESSEL555",
+"viaNo": "VIA555",
+"cntStatus": "FCL",
+"natureOfCargo": "C",
+"cargoTp": null,
+"portOfSBFiled": "INNSA1",
+"pod": "AOBDD",
+"originalDocRev": false,
+"status": "VERIFIED",
+"remarks": null,
+"shpInstructNo": null,
+"vesselViaNm": null,
+"egmRequestStatVoList": null,
+"egmReqAttVoList": [
+{
+"attDtlsId": null,
+"attTitle": "LOC",
+"attDesc": null,
+"attPath": null,
+"attFile": null,
+"attNm": "shipping_bill.pdf",
+"attData": "VUVzREJCUUFDQWdJQU11QlQxc0FBQUFBQUFBQUFBQUFBQUFSQUFBQVpHOWpVSEp2Y0hNdlkyOXlaUzU0Yld5dGtWMUx3ekFVaHUvN0swTHUyNU4=",
+"validUpto": null,
+"encAttDtlsId": null,
+"encTempAttDtlsId": null,
+"encInvInfoId": null,
+"attUploadDtTs": null,
+"attByteArr": null,
+"attCnfrmDt": null,
+"crUsr": null,
+"crTs": null,
+"pyrNm": null,
+"createTime": null,
+"encAttPath": null,
+"egmReqAttId": null
+},
+{
+"attDtlsId": null,
+"attTitle": "EIR",
+"attDesc": null,
+"attPath": null,
+"attFile": null,
+"attNm": "eir_document.pdf",
+"attData": "VUVzREJCUUFDQWdJQU11QlQxc0FBQUFBQUFBQUFBQUFBQUFSQUFBQVpHOWpVSEp2Y0hNdlkyOXlaUzU0Yld5dGtWMUx3ekFVaHUvN0w=",
+"validUpto": null,
+"egmReqAttId": null
+},
+{
+"attDtlsId": null,
+"attTitle": "TSR",
+"attDesc": null,
+"attPath": null,
+"attFile": null,
+"attNm": "tally_sheet.pdf",
+"attData": "VUVzREJCUUFDQWdJQUcxMVQxc0FBQUFBQUFBQUFBQUFBQUFSQUFBQVpHOWpVSEp2Y0hNdlkyOXlaUzU0Yld5MGwwMVAyMEFRaHUvNUZi",
+"validUpto": null,
+"egmReqAttId": null
+}
+],
+"locId": null,
+"iEgmRequestcntnrVoList": [
+{
+"cntNo": "YNZE1000001",
+"grossWt": 1200.0,
+"shipBillNo": "SB74533",
+"shipBillDt": "08-09-2025",
+"shipBillTp": "DFS",
+"exporterNm": "ABC Exporters Pvt Ltd",
+"consigneeNm": "XYZ Trading LLC",
+"markNum": "MARK001",
+"cargoDesc": "General Cargo Description",
+"noOfPkg": 12,
+"ischeck": null,
+"hsnCode": "84211910",
+"agentSealNo": null,
+"customSealNo": null,
+"pol": "INNSA1",
+"leoNo": null,
+"pod": "AOBDD",
+"cargoWt": 1800.0,
+"leoDt": null,
+"pcinNo": "SEZ",
+"socFlag": "N",
+"cntnrAgentCode": "AABCH7319B",
+"typOfPackages": "BDL",
+"cargoTp": "GEN",
+"iec": "1234567890"
+}
+],
+"noOfCntnr": 1,
+"blNo": "BLZE1100001",
+"isHBLInvolved": "N",
+"pyrCode": "ODeX/MH/SHP/2503/00019",
+"bnfCode": "HLCU",
+"icdLocCode": "INNSA1",
+"gatewayLocCode": "INNSA1",
+"locCode": "INNSA1",
+"noOfSB": 1
+}
+},
+"message": "EGM request details retrieved successfully",
+"status": "SUCCESS"
+}
+7.3 Get Shipping Bill Attachment Details API
+This API returns the list of mandatory and optional attachments to be uploaded for a given Shipping Line + Location + Container Status combination.
+Message Header
+API Type | RESTful API
+API Type
+RESTful API
+EDI Type | JSON
+EDI Type
+JSON
+Method | POST
+Method
+POST
+URL | https://staging.odexglobal.com/RS/iEGMService/json/getSbAttDtls
+URL
+https://staging.odexglobal.com/RS/iEGMService/json/getSbAttDtls
+Hosted By | ODeX
+Hosted By
+ODeX
+Requested By | Client
+Requested By
+Client
+Request Message:
+S.N | Field Name | API Field | Data Type | M/O/C | Description
+S.N
+Field Name
+API Field
+Data Type
+M/O/C
+Description
+1 | Payor Code | pyrCode | AN-50 | M | Example: ODeX/MH/SHP/2503/00020
+1
+Payor Code
+pyrCode
+AN-50
+M
+Example: ODeX/MH/SHP/2503/00020
+2 | Beneficiary ID | bnfId | AN-4 | M | Example: HDMU
+2
+Beneficiary ID
+bnfId
+AN-4
+M
+Example: HDMU
+3 | Location ID | locId | AN-6 | M | Example: INNSA1
+3
+Location ID
+locId
+AN-6
+M
+Example: INNSA1
+4 | Container Status | cntStatus | ALPHA-3 | M | FCL / LCL
+4
+Container Status
+cntStatus
+ALPHA-3
+M
+FCL / LCL
+5 | Hash Key | hashKey | AN | C | Required only if encryption enabled
+5
+Hash Key
+hashKey
+AN
+C
+Required only if encryption enabled
+Request Sample:
+{
+"pyrCode": "ODeX/MH/SHP/2503/00020",
+"bnfId": "HDMU",
+"locId": "INNSA1",
+"cntStatus": "LCL",
+"hashKey": "3746888286"
+}
+Response Sample:
+[
+{
+"codeId": "SB",
+"codeDesc": "Upload .SB File (Checklist)",
+"isReq": false
+},
+{
+"codeId": "LOC",
+"codeDesc": "Shipping Bill / LEO",
+"isReq": true
+},
+{
+"codeId": "CLP",
+"codeDesc": "Container Load Plan (CLP)",
+"isReq": false
+},
+{
+"codeId": "EIR",
+"codeDesc": "Equipment Interchange Report",
+"isReq": true
+},
+{
+"codeId": "O",
+"codeDesc": "Other",
+"isReq": false
+},
+{
+"codeId": "TSR",
+"codeDesc": "Tally Sheet / Stuffing Report",
+"isReq": true
+}
+]
+7.4 Shipping Bill Amendment API
+The Shipping Bill Amendment API enables registered users to withdraw or update a previously submitted Shipping Bill request for export operations. This functionality is essential in scenarios where the original submission contains incorrect information, operational plans change, or the request was submitted in error or duplicate. Amendment can be initiated, provided the Shipping Bill is in an active state such as 'Verified' or 'Confirmed'.
+In cases where the request has already been confirmed, a structured Request for Amendment (RFA) workflow is followed, requiring approval from the relevant Liner authority. The amendment process ensures data integrity, prevents unauthorized access, and facilitates resubmission of corrected Shipping bill details where necessary.
+Status | Description
+Status
+Description
+Requested | The Shipping Bill request has been submitted by the Payor but is yet to be verified or acted upon.
+Requested
+The Shipping Bill request has been submitted by the Payor but is yet to be verified or acted upon.
+Verified | The Shipping bill request has been validated for correctness and meets all required criteria.
+Verified
+The Shipping bill request has been validated for correctness and meets all required criteria.
+Confirmed | Shipping bill has been formally approved by the Liner or the system and is ready for operational use.
+Confirmed
+Shipping bill has been formally approved by the Liner or the system and is ready for operational use.
+Rejected | The Shipping bill request has been rejected due to invalid data, non-compliance, or operational reasons.
+Rejected
+The Shipping bill request has been rejected due to invalid data, non-compliance, or operational reasons.
+Amendment Requested | An amendment request has been initiated after confirmation, pending approval.
+Amendment Requested
+An amendment request has been initiated after confirmation, pending approval.
+Amendment Approved | The amendment request has been approved, and the Shipping bill is officially updated.
+Amendment Approved
+The amendment request has been approved, and the Shipping bill is officially updated.
+Amendment Rejected | The amendment request has been denied, and Shipping bill remains as previously confirmed.
+Amendment Rejected
+The amendment request has been denied, and Shipping bill remains as previously confirmed.
+Message Header:
+API Type | RESTful API
+API Type
+RESTful API
+EDI Type | JSON
+EDI Type
+JSON
+Method | POST
+Method
+POST
+URL | https://staging.odexglobal.com/RS/iEGMService/saveEGMRequestApi
+URL
+https://staging.odexglobal.com/RS/iEGMService/saveEGMRequestApi
+Hosted By | ODeX
+Hosted By
+ODeX
+Requested By | Client
+Requested By
+Client
+Request Sample:
+{
+"egmRequestVo": {
+"egmReqId": 112538,
+"odexRefNo": "ODX/SB/2025/00112538",
+"locCode": "INNSA1",
+"icdLocCode": "INNSA1",
+"gatewayLocCode": "INNSA1",
+"portCode": "INNSA1",
+"bnfCode": "HLCU",
+"pyrCode": "ODeX/MH/SHP/2503/00019",
+"bookNo": "BOOZE1100001",
+"vesselNm": "APIVESSEL555",
+"viaNo": "VIA555",
+"cntStatus": "FCL",
+"natureOfCargo": "C",
+"portOfSBFiled": "INNSA1",
+"pod": "AOBDD",
+"blNo": "BLZE1100001",
+"isHBLInvolved": "N",
+"status": "AMENDMENT",
+"remarks": "Updating Shipping Bill No and Cargo Weight",
+"egmRequestcntnrVoList": [
+{
+"cntNo": "YNZE1000001",
+"grossWt": 1250.0,
+"shipBillNo": "SB74599",
+"shipBillDt": "10-09-2025",
+"shipBillTp": "DFS",
+"exporterNm": "ABC Exporters Pvt Ltd",
+"consigneeNm": "XYZ Trading LLC",
+"markNum": "MARK001",
+"cargoDesc": "General Cargo Description",
+"noOfPkg": 12,
+"hsnCode": "84211910",
+"pol": "INNSA1",
+"pod": "AOBDD",
+"cargoWt": 1850.0,
+"pcinNo": "SEZ",
+"iec": "1234567890",
+"socFlag": "N",
+"cntnrAgentCode": "AABCH7319B",
+"typOfPackages": "BDL",
+"cargoTp": "GEN"
+}
+]
+}
+}
+Response Sample:
+{
+"bookNo": "BOOZE1100001",
+"responseMessage": "Shipping Bill amendment request submitted successfully",
+"schema_validation": "PASS",
+"schema_validations": null,
+"business_validation": "PASS",
+"business_validations": null,
+"odexRefNo": "ODX/SB/2025/00112538",
+"status": "AMENDMENT REQUESTED"
+}
+8. MASTER DATA
+S.N | Field | Value | Description / Additional Details
+S.N
+Field
+Value
+Description / Additional Details
+1 | Container Status | FCL | Full Container Load
+1
+Container Status
+FCL
+Full Container Load
+ |  | LCL | Less than Container Load
+LCL
+Less than Container Load
+2 | Cargo Type | HAZ | Hazardous Shipment Cargo
+2
+Cargo Type
+HAZ
+Hazardous Shipment Cargo
+ |  | GEN | General Shipment Cargo
+GEN
+General Shipment Cargo
+ |  | REF | Reefer Shipment Cargo
+REF
+Reefer Shipment Cargo
+ |  | ONION | Onion Cargo
+ONION
+Onion Cargo
+ |  | ODC | Open Dimension Container Cargo
+ODC
+Open Dimension Container Cargo
+ |  | ODC(HAZ) | ODC Hazardous
+ODC(HAZ)
+ODC Hazardous
+ |  | FLT | Flexi Tank
+FLT
+Flexi Tank
+ |  | REF(HAZ) | Reefer Hazardous
+REF(HAZ)
+Reefer Hazardous
+ |  | FLT(HAZ) | Hazardous Flexi Tank
+FLT(HAZ)
+Hazardous Flexi Tank
+ |  | PERISH | Perishable Cargo
+PERISH
+Perishable Cargo
+3 | Types of Shipping Bills | DFS | Duty Free Shipping
+3
+Types of Shipping Bills
+DFS
+Duty Free Shipping
+ |  | DS | Drawback Shipping
+DS
+Drawback Shipping
+ |  | LIC | Licensed
+LIC
+Licensed
+4 | Nature of Cargo | C | Containerised
+4
+Nature of Cargo
+C
+Containerised
+ |  | CP | Containerised Project Cargo
+CP
+Containerised Project Cargo
+ |  | DB | Dry Bulk
+DB
+Dry Bulk
+ |  | LB | Liquid Bulk
+LB
+Liquid Bulk
+5 | Attachment Title | LOC | Shipping Bill / LEO
+5
+Attachment Title
+LOC
+Shipping Bill / LEO
+ |  | EIR | Equipment Interchange Report
+EIR
+Equipment Interchange Report
+ |  | TSR | Tally Sheet / Stuffing Report
+TSR
+Tally Sheet / Stuffing Report
+ |  | CLP | Container Load Plan
+CLP
+Container Load Plan
+ |  | SB | .SB File (Checklist)
+SB
+.SB File (Checklist)
+ |  | O | Other
+O
+Other
+6 | odexRefNo | Auto-generated | Unique No. for each request. Shared by ODeX in the Acknowledgement file.
+6
+odexRefNo
+Auto-generated
+Unique No. for each request. Shared by ODeX in the Acknowledgement file.
+7 | PayorId | Provided by ODeX | Unique for each Payor. Shared separately for test and production.
+7
+PayorId
+Provided by ODeX
+Unique for each Payor. Shared separately for test and production.
+8 | secretKey | Provided by ODeX | Key used in encrypting the message. Unique for each shipper.
+8
+secretKey
+Provided by ODeX
+Key used in encrypting the message. Unique for each shipper.
+8.1 Liner BNF Codes
+BNF Code | Shipping Line
+BNF Code
+Shipping Line
+HLCU | Hapag-Lloyd
+HLCU
+Hapag-Lloyd
+MSCU | Mediterranean Shipping Company (MSC)
+MSCU
+Mediterranean Shipping Company (MSC)
+HDMU | Hyundai Merchant Marine (HMM)
+HDMU
+Hyundai Merchant Marine (HMM)
+ONEY | Ocean Network Express (ONE)
+ONEY
+Ocean Network Express (ONE)
+COSU | COSCO Shipping Lines
+COSU
+COSCO Shipping Lines
+OOLU | Orient Overseas Container Line (OOCL)
+OOLU
+Orient Overseas Container Line (OOCL)
+CMDU | CMA CGM
+CMDU
+CMA CGM
+MAEU | Maersk Line
+MAEU
+Maersk Line
+KMTC | Korea Marine Transport (KMTC)
+KMTC
+Korea Marine Transport (KMTC)
+RCLA | Regional Container Lines (RCL)
+RCLA
+Regional Container Lines (RCL)
+8.2 Location (Port) Codes
+Port Code | Location
+Port Code
+Location
+INNSA1 | Nhava Sheva (JNPT), Maharashtra, India
+INNSA1
+Nhava Sheva (JNPT), Maharashtra, India
+INMUN1 | Mundra Port, Gujarat, India
+INMUN1
+Mundra Port, Gujarat, India
+INMAA1 | Chennai Port, Tamil Nadu, India
+INMAA1
+Chennai Port, Tamil Nadu, India
+INCOK1 | Cochin Port, Kerala, India
+INCOK1
+Cochin Port, Kerala, India
+INHAL1 | Haldia Port, West Bengal, India
+INHAL1
+Haldia Port, West Bengal, India
+INHZA1 | Hazira Port, Gujarat, India
+INHZA1
+Hazira Port, Gujarat, India
+INTUT1 | Tuticorin Port, Tamil Nadu, India
+INTUT1
+Tuticorin Port, Tamil Nadu, India
+INENR1 | Ennore Port (Kamarajar), Tamil Nadu, India
+INENR1
+Ennore Port (Kamarajar), Tamil Nadu, India
+INKAT1 | Kattupalli Port, Tamil Nadu, India
+INKAT1
+Kattupalli Port, Tamil Nadu, India
+INKRI1 | Krishnapatnam Port, Andhra Pradesh, India
+INKRI1
+Krishnapatnam Port, Andhra Pradesh, India
+INCCU1 | Kolkata Port, West Bengal, India
+INCCU1
+Kolkata Port, West Bengal, India
+INIXY1 | Kandla Port (Deendayal), Gujarat, India
+INIXY1
+Kandla Port (Deendayal), Gujarat, India
+INSNF6 | Sanand ICD, Gujarat, India
+INSNF6
+Sanand ICD, Gujarat, India
+INWFD6 | Whitefield ICD, Karnataka, India
+INWFD6
+Whitefield ICD, Karnataka, India
+INMDD6 | Modi Nagar (Tughlakabad) ICD, India
+INMDD6
+Modi Nagar (Tughlakabad) ICD, India
+INTLG6 | Tughlakabad ICD, Delhi, India
+INTLG6
+Tughlakabad ICD, Delhi, India
+INNGP6 | Nagpur ICD, Maharashtra, India
+INNGP6
+Nagpur ICD, Maharashtra, India
+INBRC6 | Bharuch ICD, Gujarat, India
+INBRC6
+Bharuch ICD, Gujarat, India
+INKNU4 | Kanpur ICD, Uttar Pradesh, India
+INKNU4
+Kanpur ICD, Uttar Pradesh, India
+INIDR4 | Indore ICD, Madhya Pradesh, India
+INIDR4
+Indore ICD, Madhya Pradesh, India
+INAMD4 | Ahmedabad ICD, Gujarat, India
+INAMD4
+Ahmedabad ICD, Gujarat, India
+INBLR5 | Bangalore ICD, Karnataka, India
+INBLR5
+Bangalore ICD, Karnataka, India
+INLUH1 | Ludhiana ICD, Punjab, India
+INLUH1
+Ludhiana ICD, Punjab, India
+INAWM6 | Aurangabad ICD, Maharashtra, India
+INAWM6
+Aurangabad ICD, Maharashtra, India
+INMBD6 | Moradabad ICD, India
+INMBD6
+Moradabad ICD, India
+AOBDD | Boende, Angola (Foreign POD)
+AOBDD
+Boende, Angola (Foreign POD)
+AEDXB | Dubai, United Arab Emirates
+AEDXB
+Dubai, United Arab Emirates
+AEAUH | Abu Dhabi, United Arab Emirates
+AEAUH
+Abu Dhabi, United Arab Emirates
+SGSIN | Singapore
+SGSIN
+Singapore
+BEFMA | Forest Mall, Belgium
+BEFMA
+Forest Mall, Belgium
+CAFRE | Fredericton, Canada
+CAFRE
+Fredericton, Canada
+AUSTA | St. Arnaud, Australia
+AUSTA
+St. Arnaud, Australia
+8.3 Package Type Code and Descriptions
+Package Code | Description
+Package Code
+Description
+BDL | Bundle
+BDL
+Bundle
+BAG | Bag
+BAG
+Bag
+BOX | Box
+BOX
+Box
+CTN | Carton
+CTN
+Carton
+CRT | Crate
+CRT
+Crate
+DRM | Drum
+DRM
+Drum
+PKG | Package
+PKG
+Package
+PLT | Pallet
+PLT
+Pallet
+ROL | Roll
+ROL
+Roll
+CAS | Case
+CAS
+Case
+BLE | Bale
+BLE
+Bale
+BBL | Barrel
+BBL
+Barrel
+9. Errors and Validations
+9.1 List of Schematic Errors
+Field | Validation | Error Messages
+Field
+Validation
+Error Messages
+ODeX Reference Number | Leave this tag blank. Unique reference No. generated for each request by ODeX. Used in response. | —
+ODeX Reference Number
+Leave this tag blank. Unique reference No. generated for each request by ODeX. Used in response.
+—
+Payor ID | Payor ID is not mentioned | Payor ID is required
+Payor ID
+Payor ID is not mentioned
+Payor ID is required
+Booking No. | Booking No is not mentioned | Booking no is required
+Booking No.
+Booking No is not mentioned
+Booking no is required
+Sea / Port | Location is not mentioned | Location is required
+Sea / Port
+Location is not mentioned
+Location is required
+Shipping Line | Beneficiary Code is not mentioned | Shipping Line is required
+Shipping Line
+Beneficiary Code is not mentioned
+Shipping Line is required
+Vessel Name | Vessel Name is not mentioned | Vessel Name is required
+Vessel Name
+Vessel Name is not mentioned
+Vessel Name is required
+Via No. | Via No. is not mentioned | VIA No. is required
+Via No.
+Via No. is not mentioned
+VIA No. is required
+BL No. | BL Number is not mentioned | BL number is required
+BL No.
+BL Number is not mentioned
+BL number is required
+Is HBL Involved? | Is HBL Involved is not mentioned | Is HBL Involved is required
+Is HBL Involved?
+Is HBL Involved is not mentioned
+Is HBL Involved is required
+Booking Origin (ICD/Port) | Booking Origin (ICD/Port) is not mentioned | Booking Origin (ICD/Port) is required
+Booking Origin (ICD/Port)
+Booking Origin (ICD/Port) is not mentioned
+Booking Origin (ICD/Port) is required
+SB Processed Location | SB Processed Location is not mentioned | SB Processed Location is required
+SB Processed Location
+SB Processed Location is not mentioned
+SB Processed Location is required
+Booking Office Location | Mandatory for MSC shipping line at all locations | Booking Office Location is required
+Booking Office Location
+Mandatory for MSC shipping line at all locations
+Booking Office Location is required
+Container Status | Container Status is not mentioned | Container Status is required
+Container Status
+Container Status is not mentioned
+Container Status is required
+FPOD | FPOD is not mentioned | FPOD is required
+FPOD
+FPOD is not mentioned
+FPOD is required
+Container No. | 1) Container No is not mentioned. 2) Container Format Check | 1) Container No. is required. 2) Invalid Container No. (Incorrect format)
+Container No.
+1) Container No is not mentioned. 2) Container Format Check
+1) Container No. is required. 2) Invalid Container No. (Incorrect format)
+Shipping Bill No. | 1) Not mentioned. 2) Data format check | 1) Shipping Bill No is required. 2) Cannot exceed 7 Characters.
+Shipping Bill No.
+1) Not mentioned. 2) Data format check
+1) Shipping Bill No is required. 2) Cannot exceed 7 Characters.
+Shipping Bill Date | 1) Not mentioned. 2) Date range check | 1) Shipping Bill Date is required. 2) Cannot be Greater than Current Date.
+Shipping Bill Date
+1) Not mentioned. 2) Date range check
+1) Shipping Bill Date is required. 2) Cannot be Greater than Current Date.
+LEO Date | LEO Date is not mentioned | LEO Date is required
+LEO Date
+LEO Date is not mentioned
+LEO Date is required
+PCIN Number | 1) PCIN No is not mentioned. 2) Data format check | PCIN number cannot exceed 20 characters
+PCIN Number
+1) PCIN No is not mentioned. 2) Data format check
+PCIN number cannot exceed 20 characters
+Cargo + Packaging Weight (KGs) | Cargo + Packaging Weight is not mentioned | Cargo + Packaging Weight (KGs) is required
+Cargo + Packaging Weight (KGs)
+Cargo + Packaging Weight is not mentioned
+Cargo + Packaging Weight (KGs) is required
+No. of Packages | No. of Packages is not mentioned | No. of Packages is required
+No. of Packages
+No. of Packages is not mentioned
+No. of Packages is required
+Package Type Required | Package Type is not mentioned | Package Type is required
+Package Type Required
+Package Type is not mentioned
+Package Type is required
+Cargo / Net Weight (KGs) | Cargo / Net Weight is not mentioned | Cargo / Net Weight (KGs) is required
+Cargo / Net Weight (KGs)
+Cargo / Net Weight is not mentioned
+Cargo / Net Weight (KGs) is required
+Cargo Type | Cargo Type is not mentioned | Cargo Type is required
+Cargo Type
+Cargo Type is not mentioned
+Cargo Type is required
+Type of Shipping Bill | Type of Shipping Bill is not mentioned | Type of Shipping Bill is required
+Type of Shipping Bill
+Type of Shipping Bill is not mentioned
+Type of Shipping Bill is required
+Exporter Name | Exporter Name is not mentioned | Exporter Name is required
+Exporter Name
+Exporter Name is not mentioned
+Exporter Name is required
+Exporter IEC | IEC is not mentioned | IEC is required
+Exporter IEC
+IEC is not mentioned
+IEC is required
+Consignee Name | Consignee Name is not mentioned | Consignee Name is required
+Consignee Name
+Consignee Name is not mentioned
+Consignee Name is required
+Marks and Numbers | Marks and Numbers are not mentioned | Marks and Numbers is required
+Marks and Numbers
+Marks and Numbers are not mentioned
+Marks and Numbers is required
+Cargo Description | Cargo Description is not mentioned | Cargo Description is required
+Cargo Description
+Cargo Description is not mentioned
+Cargo Description is required
+HSN Code | HSN Code is not mentioned | HSN Code is required
+HSN Code
+HSN Code is not mentioned
+HSN Code is required
+SOC | SOC is not mentioned | SOC is required
+SOC
+SOC is not mentioned
+SOC is required
+Container Agent Code | 1) Not mentioned. 2) Format check | 1) Container Agent Code is required. 2) Format: 5 alphabets + 4 numeric + 1 alphabet.
+Container Agent Code
+1) Not mentioned. 2) Format check
+1) Container Agent Code is required. 2) Format: 5 alphabets + 4 numeric + 1 alphabet.
+9.2 List of Business Errors
+Field | Cause | Errors | Corrective Measures
+Field
+Cause
+Errors
+Corrective Measures
+ODeX Reference Number | 1) Initial response reference number and new file's reference number differ. 2) The file's reference number is already verified/confirmed by liner. | Error (1100) - ODeX Ref no. mismatch. Error (1101) - Already verified/confirmed. | Match the ODeX Ref No. with the initial response. The container is already verified/confirmed.
+ODeX Reference Number
+1) Initial response reference number and new file's reference number differ. 2) The file's reference number is already verified/confirmed by liner.
+Error (1100) - ODeX Ref no. mismatch. Error (1101) - Already verified/confirmed.
+Match the ODeX Ref No. with the initial response. The container is already verified/confirmed.
+Sea / Port | Input data does not match master data | Error (1102) - Location code is invalid. | Location code should match the master data values.
+Sea / Port
+Input data does not match master data
+Error (1102) - Location code is invalid.
+Location code should match the master data values.
+Shipping Line | Input data does not match master data | Error (1103) - Shipping Line code is invalid. | Shipping Line code should match master data values.
+Shipping Line
+Input data does not match master data
+Error (1103) - Shipping Line code is invalid.
+Shipping Line code should match master data values.
+Booking Origin | Input data does not match master data | Error (1104) - Location code is invalid. | Location code should match master data values.
+Booking Origin
+Input data does not match master data
+Error (1104) - Location code is invalid.
+Location code should match master data values.
+SB Processed Location | Input data does not match master data | Error (1105) - Location code is invalid. | Location code should match master data values.
+SB Processed Location
+Input data does not match master data
+Error (1105) - Location code is invalid.
+Location code should match master data values.
+Vessel Name | 1) Vessel does not match available vessel name. 2) Vessel cut-off passed. | Error (1106) - Vessel name is invalid. Error (1107) - Vessel cut-off. | Vessel name should match the actual vessel. Contact shipping line for cut-off.
+Vessel Name
+1) Vessel does not match available vessel name. 2) Vessel cut-off passed.
+Error (1106) - Vessel name is invalid. Error (1107) - Vessel cut-off.
+Vessel name should match the actual vessel. Contact shipping line for cut-off.
+Via No. | Input via no not defined for the vessel | Error (1108) - Via no is not applicable for the used vessel. | Enter the correct Via no.
+Via No.
+Input via no not defined for the vessel
+Error (1108) - Via no is not applicable for the used vessel.
+Enter the correct Via no.
+Container Status | Input does not match available options | Error (1109) - Container status is invalid. | Use FCL or LCL as per master values.
+Container Status
+Input does not match available options
+Error (1109) - Container status is invalid.
+Use FCL or LCL as per master values.
+FPOD | Input does not match master data | Error (1110) - FPOD is invalid. | Enter the correct FPOD value for the used vessel.
+FPOD
+Input does not match master data
+Error (1110) - FPOD is invalid.
+Enter the correct FPOD value for the used vessel.
+Shipping Bill Date | Input date is greater than current date | Error (1111) - Cannot be greater than current date. | Enter the correct Shipping Bill Date.
+Shipping Bill Date
+Input date is greater than current date
+Error (1111) - Cannot be greater than current date.
+Enter the correct Shipping Bill Date.
+LEO Date | Input date is greater than current date | Error (1112) - Cannot be greater than current date. | Enter the correct LEO Date.
+LEO Date
+Input date is greater than current date
+Error (1112) - Cannot be greater than current date.
+Enter the correct LEO Date.
+Package Type | Input does not match master data | Error (1115) - Package Type is invalid. | Package type code should match master data values.
+Package Type
+Input does not match master data
+Error (1115) - Package Type is invalid.
+Package type code should match master data values.
+Cargo Type | Input does not match master data | Error (1116) - Cargo Type is invalid. | Cargo Type code should match master data values.
+Cargo Type
+Input does not match master data
+Error (1116) - Cargo Type is invalid.
+Cargo Type code should match master data values.
+Type of Shipping Bill | Input does not match master data | Error (1117) - Type of Shipping Bill is invalid. | SB type should match master data values (DFS/DS/LIC).
+Type of Shipping Bill
+Input does not match master data
+Error (1117) - Type of Shipping Bill is invalid.
+SB type should match master data values (DFS/DS/LIC).
+Duplicate Request | Same booking and BL already submitted | Error (1118) - Request already exists done by a different customer. | Use a unique booking number / BL combination.
+Duplicate Request
+Same booking and BL already submitted
+Error (1118) - Request already exists done by a different customer.
+Use a unique booking number / BL combination.
+10. Term Glossary
+Term | Description
+Term
+Description
+BNF Code | Unique identifier for the shipping line in ODeX.
+BNF Code
+Unique identifier for the shipping line in ODeX.
+LOC ID | Port location code (e.g., INNSA1 for Nhava Sheva).
+LOC ID
+Port location code (e.g., INNSA1 for Nhava Sheva).
+Vessel Name | Name of the vessel for export.
+Vessel Name
+Name of the vessel for export.
+VIA No. | Unique voyage reference associated with a vessel.
+VIA No.
+Unique voyage reference associated with a vessel.
+POD | Port of Discharge – where container is to be unloaded.
+POD
+Port of Discharge – where container is to be unloaded.
+FPOD | Final Port of Discharge – end destination in case of transshipment.
+FPOD
+Final Port of Discharge – end destination in case of transshipment.
+ODC | Over-Dimensional Cargo.
+ODC
+Over-Dimensional Cargo.
+HAZ | Hazardous Cargo.
+HAZ
+Hazardous Cargo.
+REF | Reefer / Temperature-controlled Cargo.
+REF
+Reefer / Temperature-controlled Cargo.
+Payor ID | Unique identifier for the CHA/shipping party within ODeX.
+Payor ID
+Unique identifier for the CHA/shipping party within ODeX.
+hashKey | Encrypted key for added API request security.
+hashKey
+Encrypted key for added API request security.
+Attachment Title | Type of document attached (e.g., LOC, EIR, TSR).
+Attachment Title
+Type of document attached (e.g., LOC, EIR, TSR).
+Container Status | Indicates if container is FCL (Full) or LCL (Less).
+Container Status
+Indicates if container is FCL (Full) or LCL (Less).
+Booking No. | Unique booking number issued by shipping line.
+Booking No.
+Unique booking number issued by shipping line.
+BL No. | Bill of Lading Number.
+BL No.
+Bill of Lading Number.
+IEC | Importer Exporter Code issued by DGFT, India.
+IEC
+Importer Exporter Code issued by DGFT, India.
+PCIN | Pre-Clearance Identification Number; SEZ / MANUAL allowed values.
+PCIN
+Pre-Clearance Identification Number; SEZ / MANUAL allowed values.
+LEO | Let Export Order – issued by Customs.
+LEO
+Let Export Order – issued by Customs.
+11. FAQ's
+Q1. Who can use the Shipping Bill Integration API?
+A. The API is designed for Payors (Exporters/CHA) and integration partners who want to automate Shipping Bill submissions through the ODeX platform.
+Q2. What type of APIs are provided under this integration?
+A. The integration offers:
+Master APIs – for validating vessel, port, and terminal data.
+Transaction API – for submitting Shipping Bill data.
+Response/Status APIs – for checking submission status and receiving error/success messages.
+Amendment API – for modifying already submitted Shipping Bills (subject to status).
+Q3. What authentication mechanism is used?
+A. Authentication is managed via API secret Key/Token (shared securely by ODeX). All requests must be sent over HTTPS.
+Q4. What environments are available for testing and live use?
+A. ODeX provides two environments:
+UAT – for integration testing. Base URL: https://staging.odexglobal.com/RS/iEGMService/
+Production – for real-time operational use. Base URL: https://www.odexglobal.com/RS/iEGMService/
+Q5. What file formats are supported for attachments?
+A. Currently, only PDF files are allowed as attachments. The file should be converted to a byte array (Base64 encoded) with a maximum size limit of 5 MB per file and total size not exceeding 4 MB.
+Q6. How can I check the status of a submitted Shipping Bill?
+A. You can use the Get Shipping Bill Status API by providing the Booking No, Shipping Line BNF Code, Payor Code and Gateway Location to retrieve the latest status.
+Q7. What happens if a Shipping Bill is rejected?
+A. The rejection reason will be provided in the remarks / business_validations field of the API response. The Payor can then correct the errors and resubmit the Shipping Bill.
+Q8. Can I amend a Shipping Bill after submission?
+A. Yes. Amendments are allowed if the Shipping Bill is in Verified or Confirmed state. For confirmed requests, an Amendment Request workflow is initiated that requires liner approval.
+Q9. What are the common reasons for validation errors?
+A. Common errors include missing mandatory fields (e.g., Booking No, Vessel Name, FPOD), invalid codes (Shipping Line, Location, Cargo Type), incorrect data formats (dates, container numbers), and mismatches with ODeX Master Data.
+Q10. What is the maximum number of containers allowed in a single Shipping Bill request?
+A. Multiple containers can be submitted in a single request. Each container's details (Container No, Shipping Bill No, etc.) must be repeated under the egmRequestcntnrVoList array of the request.
+Q11. What is odexRefNo and why is it important?
+A. The odexRefNo is a unique reference number generated by ODeX for every request. It must be retained and used for future queries, status checks, and amendments related to that request.

@@ -1,0 +1,456 @@
+{
+	"info": {
+		"_postman_id": "e8a27d14-5f4b-4b2a-a9d7-8e6d1c7f4291",
+		"name": "ODeX e-SB (Shipping Bill) API Collection",
+		"description": "Complete Postman collection for ODeX Shipping Bill (e-SB / iEGM) integration APIs, including both Backend Local Server routes and Direct ODeX Staging Gateway endpoints.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5000",
+			"type": "string"
+		},
+		{
+			"key": "odexBaseUrl",
+			"value": "https://staging.odexglobal.com",
+			"type": "string"
+		},
+		{
+			"key": "pyrCode",
+			"value": "ODeX/IN/SHP/2511/00001",
+			"type": "string"
+		},
+		{
+			"key": "hashKey",
+			"value": "5TXMQ8ZQXKPT",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Local Backend APIs (/api/esb)",
+			"item": [
+				{
+					"name": "Get HashKey",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/esb/hashkey",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"esb",
+								"hashkey"
+							]
+						},
+						"description": "Returns the ODeX API HashKey for authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Vessel Master",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"pyrCode\": \"{{pyrCode}}\",\n  \"fromTs\": \"2025-01-01 00:00:00\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/esb/vessel-master",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"esb",
+								"vessel-master"
+							]
+						},
+						"description": "Fetches vessel master data defined by shipping lines in ODeX."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Attachment Master",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"pyrCode\": \"{{pyrCode}}\",\n  \"bnfId\": \"MSCU\",\n  \"locId\": \"INNSA1\",\n  \"cntStatus\": \"FCL\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/esb/attachment-master",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"esb",
+								"attachment-master"
+							]
+						},
+						"description": "Fetches required attachment list for a shipping line & port."
+					},
+					"response": []
+				},
+				{
+					"name": "Save e-SB Draft (Skip ODeX)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"skipOdex\": true,\n  \"egmRequestVo\": {\n    \"locCode\": \"INMUN1\",\n    \"icdLocCode\": \"INMUN1\",\n    \"gatewayLocCode\": \"INNSA1\",\n    \"bookOfcLoc\": \"INNSA1\",\n    \"portCode\": \"INMUN1\",\n    \"bnfCode\": \"MSCU\",\n    \"pyrCode\": \"{{pyrCode}}\",\n    \"bookNo\": \"INAMD2640008\",\n    \"blNo\": \"AMDEXPSEA001052627\",\n    \"isHBLInvolved\": \"N\",\n    \"vesselNm\": \"DUMMY VSL MUNDRA\",\n    \"viaNo\": \"001\",\n    \"cntStatus\": \"FCL\",\n    \"natureOfCargo\": \"C\",\n    \"portOfSBFiled\": \"INMUN1\",\n    \"pod\": \"JPNGO\",\n    \"declarationFlg\": true,\n    \"bookLine\": \"MSCU\",\n    \"egmRequestcntnrVoList\": [\n      {\n        \"cntNo\": \"IAAU2765396\",\n        \"shipBillNo\": \"2492385\",\n        \"shipBillDt\": \"18-04-2026\",\n        \"leoDt\": \"18-04-2026\",\n        \"pcinNo\": \"SEZ\",\n        \"pol\": \"INMUN1\",\n        \"pod\": \"JPNGO\",\n        \"fpod\": \"JPNGO\",\n        \"portOfDischarge\": \"JPNGO\",\n        \"grossWt\": 25540,\n        \"cargoWt\": 25400,\n        \"noOfPkg\": 110,\n        \"typOfPackages\": \"BDL\",\n        \"cargoTp\": \"GEN\",\n        \"shipBillTp\": \"DFS\",\n        \"exporterNm\": \"SAKAR INDUSTRIES PRIVATE LIMITED\",\n        \"iec\": \"0802000703\",\n        \"consigneeNm\": \"TOYOTA TSUSHO MATERIAL INCORPORATED\",\n        \"markNum\": \"N/M\",\n        \"cargoDesc\": \"GENERAL CARGO\",\n        \"hsnCode\": \"45478541\",\n        \"socFlag\": \"N\",\n        \"cntnrAgentCode\": \"AABCH7319B\",\n        \"ischeck\": true\n      }\n    ],\n    \"egmReqAttVoList\": [\n      {\n        \"attTitle\": \"LOC\",\n        \"attDesc\": \"Shipping Bill Copy\",\n        \"attNm\": \"Shipping_Bill.pdf\",\n        \"attData\": \"JVBERi0xLjEKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAyMDAgMjAwXSA+PgplbmRvYmoKeHJlZgowIDQKMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAxMCAwMDAwMCBuIAowMDAwMDAwNjIgMDAwMDAgbiAKMDAwMDAwMTE3IDAwMDAwIG4gCnRyYWlsZXIKPDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+PgpzdGFydHhyZWYKMTc4CiUlRU9G\"\n      }\n    ]\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/esb/submit",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"esb",
+								"submit"
+							]
+						},
+						"description": "Saves e-SB request locally as draft without submitting to live ODeX API."
+					},
+					"response": []
+				},
+				{
+					"name": "Submit e-SB to Live ODeX",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"skipOdex\": false,\n  \"egmRequestVo\": {\n    \"hashKey\": \"{{hashKey}}\",\n    \"locCode\": \"INMUN1\",\n    \"icdLocCode\": \"INMUN1\",\n    \"gatewayLocCode\": \"INNSA1\",\n    \"bookOfcLoc\": \"INNSA1\",\n    \"portCode\": \"INMUN1\",\n    \"bnfCode\": \"MSCU\",\n    \"pyrCode\": \"{{pyrCode}}\",\n    \"bookNo\": \"INAMD2640008\",\n    \"blNo\": \"AMDEXPSEA001052627\",\n    \"isHBLInvolved\": \"N\",\n    \"vesselNm\": \"DUMMY VSL MUNDRA\",\n    \"viaNo\": \"001\",\n    \"cntStatus\": \"FCL\",\n    \"natureOfCargo\": \"C\",\n    \"portOfSBFiled\": \"INMUN1\",\n    \"pod\": \"JPNGO\",\n    \"declarationFlg\": true,\n    \"bookLine\": \"MSCU\",\n    \"egmRequestcntnrVoList\": [\n      {\n        \"cntNo\": \"IAAU2765396\",\n        \"shipBillNo\": \"2492385\",\n        \"shipBillDt\": \"18-04-2026\",\n        \"leoDt\": \"18-04-2026\",\n        \"pcinNo\": \"SEZ\",\n        \"pol\": \"INMUN1\",\n        \"pod\": \"JPNGO\",\n        \"fpod\": \"JPNGO\",\n        \"portOfDischarge\": \"JPNGO\",\n        \"grossWt\": 25540,\n        \"cargoWt\": 25400,\n        \"noOfPkg\": 110,\n        \"typOfPackages\": \"BDL\",\n        \"cargoTp\": \"GEN\",\n        \"shipBillTp\": \"DFS\",\n        \"exporterNm\": \"SAKAR INDUSTRIES PRIVATE LIMITED\",\n        \"iec\": \"0802000703\",\n        \"consigneeNm\": \"TOYOTA TSUSHO MATERIAL INCORPORATED\",\n        \"markNum\": \"N/M\",\n        \"cargoDesc\": \"GENERAL CARGO\",\n        \"hsnCode\": \"45478541\",\n        \"socFlag\": \"N\",\n        \"cntnrAgentCode\": \"AABCH7319B\",\n        \"ischeck\": true\n      }\n    ],\n    \"egmReqAttVoList\": [\n      {\n        \"attTitle\": \"LOC\",\n        \"attDesc\": \"Shipping Bill Copy\",\n        \"attNm\": \"Shipping_Bill.pdf\",\n        \"attData\": \"JVBERi0xLjEKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAyMDAgMjAwXSA+PgplbmRvYmoKeHJlZgowIDQKMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAxMCAwMDAwMCBuIAowMDAwMDAwNjIgMDAwMDAgbiAKMDAwMDAwMTE3IDAwMDAwIG4gCnRyYWlsZXIKPDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+PgpzdGFydHhyZWYKMTc4CiUlRU9G\"\n      }\n    ]\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/esb/submit",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"esb",
+								"submit"
+							]
+						},
+						"description": "Submits e-SB request to backend, which strips internal flags and calls ODeX live API."
+					},
+					"response": []
+				},
+				{
+					"name": "Check e-SB Status",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"bookNo\": \"INAMD2640008\",\n  \"bnfCode\": \"MSCU\",\n  \"pyrCode\": \"{{pyrCode}}\",\n  \"gatewayLocCode\": \"INNSA1\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/esb/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"esb",
+								"status"
+							]
+						},
+						"description": "Checks status of submitted Shipping Bill from ODeX."
+					},
+					"response": []
+				},
+				{
+					"name": "Amend e-SB Request",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"odexRefNo\": \"ODEX123456789\",\n  \"bookNo\": \"INAMD2640008\",\n  \"bnfCode\": \"MSCU\",\n  \"pyrCode\": \"{{pyrCode}}\",\n  \"remarks\": \"Updating Container Details\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/esb/amend",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"esb",
+								"amend"
+							]
+						},
+						"description": "Submits amendment request for an existing e-SB reference."
+					},
+					"response": []
+				},
+				{
+					"name": "Search Previous Submission",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"bnfCode\": \"MSCU\",\n  \"bookNo\": \"INAMD2640008\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/esb/search-previous",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"esb",
+								"search-previous"
+							]
+						},
+						"description": "Fetches previous request details by booking number."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All e-SB Requests (Paginated)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/esb/requests?page=1&limit=10&status=&bookNo=&containerNo=",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"esb",
+								"requests"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "status",
+									"value": ""
+								},
+								{
+									"key": "bookNo",
+									"value": ""
+								},
+								{
+									"key": "containerNo",
+									"value": ""
+								}
+							]
+						},
+						"description": "Retrieves list of saved/submitted e-SB requests."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single e-SB Request by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/esb/requests/66b0f1a23c4d5e6f7a8b9c0d",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"esb",
+								"requests",
+								"66b0f1a23c4d5e6f7a8b9c0d"
+							]
+						},
+						"description": "Fetches a single e-SB record by MongoDB ID."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Direct ODeX Staging Gateway APIs",
+			"item": [
+				{
+					"name": "Direct ODeX - Submit EGM",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"egmRequestVo\": {\n    \"hashKey\": \"{{hashKey}}\",\n    \"locCode\": \"INMUN1\",\n    \"icdLocCode\": \"INMUN1\",\n    \"gatewayLocCode\": \"INNSA1\",\n    \"bookOfcLoc\": \"INNSA1\",\n    \"portCode\": \"INMUN1\",\n    \"bnfCode\": \"MSCU\",\n    \"pyrCode\": \"{{pyrCode}}\",\n    \"bookNo\": \"INAMD2640008\",\n    \"blNo\": \"AMDEXPSEA001052627\",\n    \"isHBLInvolved\": \"N\",\n    \"vesselNm\": \"DUMMY VSL MUNDRA\",\n    \"viaNo\": \"001\",\n    \"cntStatus\": \"FCL\",\n    \"natureOfCargo\": \"C\",\n    \"portOfSBFiled\": \"INMUN1\",\n    \"pod\": \"JPNGO\",\n    \"declarationFlg\": true,\n    \"bookLine\": \"MSCU\",\n    \"egmRequestcntnrVoList\": [\n      {\n        \"cntNo\": \"IAAU2765396\",\n        \"shipBillNo\": \"2492385\",\n        \"shipBillDt\": \"18-04-2026\",\n        \"leoDt\": \"18-04-2026\",\n        \"pcinNo\": \"SEZ\",\n        \"pol\": \"INMUN1\",\n        \"pod\": \"JPNGO\",\n        \"fpod\": \"JPNGO\",\n        \"portOfDischarge\": \"JPNGO\",\n        \"grossWt\": 25540,\n        \"cargoWt\": 25400,\n        \"noOfPkg\": 110,\n        \"typOfPackages\": \"BDL\",\n        \"cargoTp\": \"GEN\",\n        \"shipBillTp\": \"DFS\",\n        \"exporterNm\": \"SAKAR INDUSTRIES PRIVATE LIMITED\",\n        \"iec\": \"0802000703\",\n        \"consigneeNm\": \"TOYOTA TSUSHO MATERIAL INCORPORATED\",\n        \"markNum\": \"N/M\",\n        \"cargoDesc\": \"GENERAL CARGO\",\n        \"hsnCode\": \"45478541\",\n        \"socFlag\": \"N\",\n        \"cntnrAgentCode\": \"AABCH7319B\",\n        \"ischeck\": true\n      }\n    ],\n    \"egmReqAttVoList\": [\n      {\n        \"attTitle\": \"LOC\",\n        \"attDesc\": \"Shipping Bill Copy\",\n        \"attNm\": \"Shipping_Bill.pdf\",\n        \"attData\": \"JVBERi0xLjEKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAyMDAgMjAwXSA+PgplbmRvYmoKeHJlZgowIDQKMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAxMCAwMDAwMCBuIAowMDAwMDAwNjIgMDAwMDAgbiAKMDAwMDAwMTE3IDAwMDAwIG4gCnRyYWlsZXIKPDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+PgpzdGFydHhyZWYKMTc4CiUlRU9G\"\n      }\n    ]\n  }\n}"
+						},
+						"url": {
+							"raw": "{{odexBaseUrl}}/RS/iEGMService/saveEGMRequestApi",
+							"host": [
+								"{{odexBaseUrl}}"
+							],
+							"path": [
+								"RS",
+								"iEGMService",
+								"saveEGMRequestApi"
+							]
+						},
+						"description": "Direct POST to ODeX Staging API without intermediate backend."
+					},
+					"response": []
+				},
+				{
+					"name": "Direct ODeX - Get Vessel Master",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"pyrCode\": \"{{pyrCode}}\",\n  \"fromTs\": \"2025-01-01 00:00:00\",\n  \"hashKey\": \"{{hashKey}}\"\n}"
+						},
+						"url": {
+							"raw": "{{odexBaseUrl}}/RS/iEGMService/json/getSbVesselMst",
+							"host": [
+								"{{odexBaseUrl}}"
+							],
+							"path": [
+								"RS",
+								"iEGMService",
+								"json",
+								"getSbVesselMst"
+							]
+						},
+						"description": "Direct call to ODeX Staging Vessel Master endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Direct ODeX - Get Attachment Master",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"pyrCode\": \"{{pyrCode}}\",\n  \"bnfId\": \"MSCU\",\n  \"locId\": \"INNSA1\",\n  \"cntStatus\": \"FCL\",\n  \"hashKey\": \"{{hashKey}}\"\n}"
+						},
+						"url": {
+							"raw": "{{odexBaseUrl}}/RS/iEGMService/json/getSbAttDtls",
+							"host": [
+								"{{odexBaseUrl}}"
+							],
+							"path": [
+								"RS",
+								"iEGMService",
+								"json",
+								"getSbAttDtls"
+							]
+						},
+						"description": "Direct call to ODeX Staging Attachment Master endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Direct ODeX - Get EGM Request Details",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"bookNo\": \"INAMD2640008\",\n  \"bnfCode\": \"MSCU\",\n  \"pyrCode\": \"{{pyrCode}}\",\n  \"gatewayLocCode\": \"INNSA1\"\n}"
+						},
+						"url": {
+							"raw": "{{odexBaseUrl}}/RS/iEGMService/json/getEGMRequestDetails",
+							"host": [
+								"{{odexBaseUrl}}"
+							],
+							"path": [
+								"RS",
+								"iEGMService",
+								"json",
+								"getEGMRequestDetails"
+							]
+						},
+						"description": "Direct call to ODeX Staging Status Tracking endpoint."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

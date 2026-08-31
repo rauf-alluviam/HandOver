@@ -293,7 +293,22 @@ const ContainerRow = ({
                     </Grid>
                     <Grid item xs={6}>
                       <Typography variant="caption" color="text.secondary">SB Date <span style={{ color: '#d32f2f' }}>*</span></Typography>
-                      <TextField fullWidth size="small" variant="standard" type="date" value={sb.shipBillDt || ""} onChange={(e) => handleSBChange("shipBillDt", e.target.value)} InputLabelProps={{ shrink: true }} error={!!validationErrors[`container_${index}_shipBillDt`]} />
+                      <TextField
+                        fullWidth
+                        size="small"
+                        variant="standard"
+                        type="date"
+                        value={sb.shipBillDt || ""}
+                        onChange={(e) => handleSBChange("shipBillDt", e.target.value)}
+                        onDoubleClick={(e) => {
+                          const inputEl = e.target.tagName === 'INPUT' ? e.target : e.currentTarget.querySelector('input');
+                          if (inputEl && typeof inputEl.showPicker === 'function') {
+                            try { inputEl.showPicker(); } catch (err) {}
+                          }
+                        }}
+                        InputLabelProps={{ shrink: true }}
+                        error={!!validationErrors[`container_${index}_shipBillDt`]}
+                      />
                     </Grid>
 
                     <Grid item xs={6}>
@@ -302,7 +317,23 @@ const ContainerRow = ({
                     </Grid>
                     <Grid item xs={6}>
                       <Typography variant="caption" color="text.secondary">LEO Date {sb.leoNo && <span style={{ color: '#d32f2f' }}>*</span>}</Typography>
-                      <TextField fullWidth size="small" variant="standard" type="date" value={sb.leoDt || ""} onChange={(e) => handleSBChange("leoDt", e.target.value)} InputLabelProps={{ shrink: true }} error={!!validationErrors[`container_${index}_leoDt`]} disabled={!sb.leoNo} />
+                      <TextField
+                        fullWidth
+                        size="small"
+                        variant="standard"
+                        type="date"
+                        value={sb.leoDt || ""}
+                        onChange={(e) => handleSBChange("leoDt", e.target.value)}
+                        onDoubleClick={(e) => {
+                          const inputEl = e.target.tagName === 'INPUT' ? e.target : e.currentTarget.querySelector('input');
+                          if (inputEl && typeof inputEl.showPicker === 'function') {
+                            try { inputEl.showPicker(); } catch (err) {}
+                          }
+                        }}
+                        InputLabelProps={{ shrink: true }}
+                        error={!!validationErrors[`container_${index}_leoDt`]}
+                        disabled={!sb.leoNo}
+                      />
                     </Grid>
 
                     <Grid item xs={6}>

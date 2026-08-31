@@ -1,9 +1,18 @@
-// server/config.js
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 dotenv.config();
+if (!process.env.PROD_MONGODB_URI && !process.env.DEV_MONGODB_URI) {
+    dotenv.config({ path: path.resolve(__dirname, '.env') });
+}
 
 const isProduction = process.env.NODE_ENV === 'production';
 const isPilot = process.env.NODE_ENV === 'pilot';
+
 
 export const config = {
     isProduction,

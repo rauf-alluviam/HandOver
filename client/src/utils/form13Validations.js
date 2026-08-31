@@ -485,9 +485,9 @@ export const ORIGIN_RULES = {
   B: {
     // BUFFER
     name: "Buffer",
-    requires: [],
+    requires: ["cfsCode"],
     optional: [],
-    specialNotes: "",
+    specialNotes: "CFS Code is mandatory for Buffer origin",
   },
 
   C: {
@@ -552,6 +552,14 @@ export const ORIGIN_RULES = {
     requires: ["cfsCode"],
     optional: [],
     specialNotes: "CFS Code is required",
+  },
+
+  CFS_RAIL: {
+    // CFS Rail
+    name: "CFS Rail",
+    requires: ["cfsCode"],
+    optional: [],
+    specialNotes: "CFS Code is mandatory for CFS Rail origin",
   },
 
   E_TANK: {
@@ -661,6 +669,27 @@ export const isFieldRequired = (fieldName, formData, containerIndex = null) => {
 
   // 5. Special manual checks
   switch (fieldName) {
+    case 'cfsCode': {
+      // Form Type = CART_IN -> Not applicable / Not required
+      if (formData.formType === "CART_IN") {
+        return false;
+      }
+      // Origin = F, W, R, E_TANK -> Not required / Not applicable
+      if (["F", "W", "R", "E_TANK"].includes(formData.origin)) {
+        return false;
+      }
+      // Mandatory conditions:
+      // Origin = C, CFS_RAIL, B, F_CFS or Terminal = MICT
+      if (
+        ["C", "CFS_RAIL", "B", "F_CFS"].includes(formData.origin) ||
+        formData.terminalCode === "MICT"
+      ) {
+        return true;
+      }
+      // Any other applicable combination -> Optional
+      return false;
+    }
+
     case 'driverNm':
       // Driver name is mandatory ONLY if terminal is MICT, and NOT required if origin is Dock Stuffed (C)
       if (formData.origin === "C") return false;
@@ -1453,7 +1482,7 @@ export const getFieldDescription = (fieldName) => {
     viaNo: "Unique voyage reference associated with the vessel",
     terminalCode: "Terminal at the port (e.g., NSICT, CCTL)",
     fpod: "Final Port of Discharge - end destination in case of transshipment",
-    cfsCode: 'Required only when Origin is "Dock Destuff"',
+    cfsCode: 'Mandatory for Origin C, CFS_RAIL, B, F_CFS, or Terminal MICT. Not applicable for Cart In, or Origin F, W, R, E_TANK.',
     issueTo: "Options: Shipper or CHA Name",
     cntnrStatus: "Indicates if container is Full or Empty",
     vgmViaODeX: "If Yes, ODeX will fetch VGM details internally",
@@ -1510,9 +1539,9 @@ export const isFieldVisible = (fieldName, formData) => {
     return true;
   }
 
-  // CFS Code - Visible for Buffer and Dock Stuff/CFS origins
+  // CFS Code - Visible for header section
   if (fieldName === "cfsCode") {
-    return ["B", "C", "F_CFS"].includes(origin);
+    return true;
   }
 
   // Shipping Instruction No - Conditional based on Shipping Line / Location rules

@@ -4,6 +4,7 @@ import { Box, Tab, Tabs } from '@mui/material';
 import VGMForm from './VGMForm';
 import VGMStatus from './VGMStatus';
 import Form13 from './Form13/Form13';
+import ESB from './ESB/ESB';
 
 const TabPanel = ({ children, value, index, ...other }) => {
   return (
@@ -33,6 +34,7 @@ const VGMTabs = () => {
           <Tab label="VGM Submission" />
           <Tab label="VGM Status" />
           <Tab label="Form 13" />
+          <Tab label="e-SB (Shipping Bill)" />
         </Tabs>
       </Box>
 
@@ -46,6 +48,10 @@ const VGMTabs = () => {
 
       <TabPanel value={tabValue} index={2}>
         <Form13 />
+      </TabPanel>
+
+      <TabPanel value={tabValue} index={3}>
+        <ESB />
       </TabPanel>
     </Box>
   );

@@ -1,4 +1,5 @@
 // src/data/masterData.js
+import { getCFSCodesForLocation } from "./cfsMasterData";
 
 export const masterData = {
   // Container Sizes and ISO Codes from the document
@@ -353,19 +354,7 @@ export const getTerminalCodes = (portId) => {
 
 // Helper function to get CFS codes by port
 export const getCFSCodes = (portId) => {
-  // Check direct match
-  let codes = masterData.cfsCodes[portId] || [];
-
-  // Also check cross-prefix (e.g. INBOM1 vs INBOM4, INCCU1 vs INCCU4, INMAA1 vs INMAA4)
-  // This ensures a selection like "Chennai (INMAA1)" can show codes starting with INMAA4
-  const prefix = portId.substring(0, 5); // e.g. "INMAA"
-  Object.keys(masterData.cfsCodes).forEach(key => {
-    if (key.startsWith(prefix) && key !== portId) {
-      codes = [...codes, ...masterData.cfsCodes[key]];
-    }
-  });
-
-  return [...new Set(codes)].sort();
+  return getCFSCodesForLocation(portId);
 };
 
 // Helper function to get ISO codes by container size

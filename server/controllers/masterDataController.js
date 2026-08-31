@@ -9,24 +9,121 @@ import Shipper from "../models/Shipper.js";
 
 
 
+import ShippingLineModel from "../models/ShippingLineModel.js";
+import CfsCode from "../models/CfsCode.js";
+import Haulier from "../models/Haulier.js";
+
+// Helper to seed ShippingLine collection if empty or missing labels
+const ensureShippingLinesSeeded = async () => {
+    try {
+        const validCount = await ShippingLineModel.countDocuments({ label: { $exists: true, $ne: "" } });
+        if (validCount === 0 && Array.isArray(SHIPPING_LINES) && SHIPPING_LINES.length > 0) {
+            console.log(`Re-seeding ${SHIPPING_LINES.length} Shipping Lines into MongoDB...`);
+            await ShippingLineModel.deleteMany({});
+            const uniqueDocs = [];
+            const seen = new Set();
+            for (const sl of SHIPPING_LINES) {
+                const val = (sl.value || sl.code || "").trim();
+                const lbl = (sl.label || sl.name || val).trim();
+                if (val && !seen.has(val)) {
+                    seen.add(val);
+                    uniqueDocs.push({
+                        label: lbl,
+                        value: val,
+                        lable: lbl
+                    });
+                }
+            }
+            await ShippingLineModel.insertMany(uniqueDocs, { ordered: false });
+            console.log("✅ Shipping Lines seeded into MongoDB successfully.");
+        }
+    } catch (err) {
+        console.warn("Shipping Lines auto-seed notice:", err.message);
+    }
+};
+
+// Helper to seed CFS Codes collection if empty
+const ensureCFSCodesSeeded = async () => {
+    try {
+        const count = await CfsCode.countDocuments();
+        if (count === 0 && Array.isArray(CFS_CODES) && CFS_CODES.length > 0) {
+            console.log(`Seeding ${CFS_CODES.length} CFS Codes into MongoDB...`);
+            const docs = [];
+            const seen = new Set();
+            for (const item of CFS_CODES) {
+                const val = (item.value || item.cfsCode || "").trim().toUpperCase();
+                if (val && !seen.has(val)) {
+                    seen.add(val);
+                    docs.push({
+                        label: item.label ? item.label.trim() : val,
+                        value: val,
+                        cfsCode: val,
+                        locId: item.locId || val.slice(0, 6),
+                        cfsName: item.cfsName || item.label || val
+                    });
+                }
+            }
+            await CfsCode.insertMany(docs, { ordered: false });
+            console.log("✅ CFS Codes seeded into MongoDB successfully.");
+        }
+    } catch (err) {
+        console.warn("CFS Codes auto-seed notice:", err.message);
+    }
+};
+
+// Helper to seed Hauliers collection if empty
+const ensureHauliersSeeded = async () => {
+    try {
+        const count = await Haulier.countDocuments();
+        if (count === 0 && Array.isArray(HAULIERS) && HAULIERS.length > 0) {
+            console.log(`Seeding ${HAULIERS.length} Hauliers into MongoDB...`);
+            const docs = [];
+            const seen = new Set();
+            for (const h of HAULIERS) {
+                const val = (h.value || h.code || "").trim();
+                if (val && !seen.has(val)) {
+                    seen.add(val);
+                    docs.push({
+                        label: h.label || val,
+                        value: val,
+                        code: val
+                    });
+                }
+            }
+            await Haulier.insertMany(docs, { ordered: false });
+            console.log("✅ Hauliers seeded into MongoDB successfully.");
+        }
+    } catch (err) {
+        console.warn("Hauliers auto-seed notice:", err.message);
+    }
+};
+
 export const getShippingLines = async (req, res) => {
     try {
+        await ensureShippingLinesSeeded();
         const { search } = req.query;
-        let results = SHIPPING_LINES;
+        let query = {};
 
         if (search) {
-            const query = search.toLowerCase();
-            results = SHIPPING_LINES.filter(line =>
-                line.label.toLowerCase().includes(query) ||
-                line.value.toLowerCase().includes(query)
-            );
+            const regex = new RegExp(search.trim(), "i");
+            query = {
+                $or: [{ label: regex }, { value: regex }]
+            };
         }
 
-        results.sort((a, b) => a.label.localeCompare(b.label));
+        const results = await ShippingLineModel.find(query).sort({ label: 1 }).lean();
 
         res.json({
             success: true,
-            data: results,
+            data: results.map(r => {
+                const lbl = r.label || r.lable || r.name || r.value;
+                return {
+                    label: lbl,
+                    value: r.value,
+                    code: r.value,
+                    name: lbl
+                };
+            }),
         });
     } catch (error) {
         console.error("Get Shipping Lines Error:", error);
@@ -39,22 +136,22 @@ export const getShippingLines = async (req, res) => {
 
 export const getHauliers = async (req, res) => {
     try {
+        await ensureHauliersSeeded();
         const { search } = req.query;
-        let results = HAULIERS;
+        let query = {};
 
         if (search) {
-            const query = search.toLowerCase();
-            results = HAULIERS.filter(h =>
-                h.label.toLowerCase().includes(query) ||
-                h.value.toLowerCase().includes(query)
-            );
+            const regex = new RegExp(search.trim(), "i");
+            query = {
+                $or: [{ label: regex }, { value: regex }]
+            };
         }
 
-        results.sort((a, b) => a.label.localeCompare(b.label));
+        const results = await Haulier.find(query).sort({ label: 1 }).lean();
 
         res.json({
             success: true,
-            data: results,
+            data: results.map(r => ({ label: r.label, value: r.value })),
         });
     } catch (error) {
         console.error("Get Hauliers Error:", error);
@@ -67,22 +164,27 @@ export const getHauliers = async (req, res) => {
 
 export const getCFSCodes = async (req, res) => {
     try {
-        const { search } = req.query;
-        let results = CFS_CODES;
+        await ensureCFSCodesSeeded();
+        const { search, locId } = req.query;
+        let query = {};
 
-        if (search) {
-            const query = search.toLowerCase();
-            results = CFS_CODES.filter(c =>
-                c.label.toLowerCase().includes(query) ||
-                c.value.toLowerCase().includes(query)
-            );
+        if (locId) {
+            const loc = locId.trim().toUpperCase();
+            query.value = new RegExp("^" + loc, "i");
         }
 
-        results.sort((a, b) => a.label.localeCompare(b.label));
+        if (search) {
+            const regex = new RegExp(search.trim(), "i");
+            query.$and = [
+                { $or: [{ label: regex }, { value: regex }] }
+            ];
+        }
+
+        const results = await CfsCode.find(query).sort({ label: 1 }).lean();
 
         res.json({
             success: true,
-            data: results,
+            data: results.map(r => ({ label: r.label, value: r.value })),
         });
     } catch (error) {
         console.error("Get CFS Codes Error:", error);
@@ -286,12 +388,12 @@ export const loadShipperMaster = () => {
 
 export const getShippers = async (req, res) => {
     try {
-        const { search, portCd, location, PORT_CD } = req.query;
+        const { search, portCd, location, PORT_CD, terminalCode, terminal, TERMINAL } = req.query;
         const targetPort = (portCd || location || PORT_CD || "").trim();
-        let query = {};
+        const targetTerminal = (terminalCode || terminal || TERMINAL || "").trim();
         let limit = 50;
 
-        const conditions = [];
+        const conditions = [{ STATUS: { $ne: "INACTIVE" } }];
 
         if (search && search.trim() !== "") {
             const searchRegex = new RegExp(search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
@@ -310,43 +412,75 @@ export const getShippers = async (req, res) => {
             conditions.push({
                 $or: [
                     { PORT_CD: portRegex },
-                    { portCd: portRegex }
+                    { portCd: portRegex },
+                    { PORT_CODE: portRegex }
                 ]
             });
         }
 
-        if (conditions.length === 1) {
-            query = conditions[0];
-        } else if (conditions.length > 1) {
-            query = { $and: conditions };
+        if (targetTerminal) {
+            const termRegex = new RegExp(`^${targetTerminal.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
+            conditions.push({
+                $or: [
+                    { TERMINAL: termRegex },
+                    { terminal: termRegex }
+                ]
+            });
         }
+
+        const query = conditions.length === 1 ? conditions[0] : { $and: conditions };
 
         // Fetch from MongoDB
         let dbResults = await Shipper.find(query).limit(limit).lean();
 
-        // Fallback: If location filter was provided but returned 0 results, retry without location filter
+        // Fallback 1: If terminal filter was provided but returned 0 results, retry without terminal filter
+        if ((!dbResults || dbResults.length === 0) && targetTerminal) {
+            const portConditions = conditions.filter(c => !c.$or || !c.$or.some(o => o.TERMINAL || o.terminal));
+            const fallbackQuery = portConditions.length === 1 ? portConditions[0] : { $and: portConditions };
+            dbResults = await Shipper.find(fallbackQuery).limit(limit).lean();
+        }
+
+        // Fallback 2: If location filter was provided but returned 0 results, retry with search only
         if ((!dbResults || dbResults.length === 0) && targetPort) {
-            let fallbackQuery = {};
+            let fallbackQuery = { STATUS: { $ne: "INACTIVE" } };
             if (search && search.trim() !== "") {
                 const searchRegex = new RegExp(search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
-                fallbackQuery = {
-                    $or: [
-                        { SHIPPER_NM: searchRegex },
-                        { shipperNm: searchRegex },
-                        { SHIPPER_CD: searchRegex },
-                        { shipperCd: searchRegex }
-                    ]
-                };
+                fallbackQuery.$or = [
+                    { SHIPPER_NM: searchRegex },
+                    { shipperNm: searchRegex },
+                    { SHIPPER_CD: searchRegex },
+                    { shipperCd: searchRegex }
+                ];
             }
             dbResults = await Shipper.find(fallbackQuery).limit(limit).lean();
         }
 
         if (dbResults && dbResults.length > 0) {
-            const normalized = dbResults.map(s => ({
-                shipperCd: s.SHIPPER_CD || s.shipperCd || "",
-                shipperNm: s.SHIPPER_NM || s.shipperNm || "",
-                portCd: s.PORT_CD || s.portCd || ""
-            }));
+            let normalized = dbResults.map(s => {
+                const masterCd = s.SHIPPER_CD || s.shipperCd || "";
+                const sTerm = (s.TERMINAL || s.terminal || "").trim();
+                let codeToUse = masterCd;
+                if (targetTerminal && (!sTerm || sTerm.toUpperCase() !== targetTerminal.toUpperCase())) {
+                    codeToUse = "";
+                }
+                return {
+                    shipperCd: codeToUse,
+                    shipperNm: s.SHIPPER_NM || s.shipperNm || "",
+                    portCd: s.PORT_CD || s.portCd || "",
+                    terminal: sTerm
+                };
+            });
+
+            const hasOther = normalized.some(s => (s.shipperCd || "").toUpperCase() === "OTHR" || (s.shipperNm || "").toUpperCase() === "OTHER SHIPPER");
+            if (!hasOther) {
+                normalized.push({
+                    shipperCd: "OTHR",
+                    shipperNm: "OTHER SHIPPER",
+                    portCd: targetPort || "",
+                    terminal: targetTerminal || ""
+                });
+            }
+
             return res.json({
                 success: true,
                 data: normalized,
@@ -365,6 +499,11 @@ export const getShippers = async (req, res) => {
             );
         }
 
+        const hasOther = results.some(s => (s.shipperCd || "").toUpperCase() === "OTHR" || (s.shipperNm || "").toUpperCase() === "OTHER SHIPPER");
+        if (!hasOther) {
+            results = [...results, { shipperCd: "OTHR", shipperNm: "OTHER SHIPPER" }];
+        }
+
         res.json({
             success: true,
             data: results.slice(0, 50),
@@ -378,118 +517,124 @@ export const getShippers = async (req, res) => {
     }
 };
 
-export const validateShipperDetails = async (shipperNm, shipperCd, portCd = "") => {
+export const validateShipperDetails = async (shipperNm, shipperCd, portCd = "", terminalCode = "") => {
     const normNm = (shipperNm || "").trim();
     const normCd = (shipperCd || "").trim();
     const normPort = (portCd || "").trim();
+    const normTerminal = (terminalCode || "").trim();
 
     if (!normNm) {
-        return { isValid: false, message: "Shipper Name is mandatory and should always be provided." };
+        return {
+            isValid: false,
+            errorCode: 1024,
+            message: "Shipper Name is mandatory and should always be provided."
+        };
+    }
+
+    // Always accept OTHR code for shippers not in master
+    if (normCd.toUpperCase() === "OTHR") {
+        return { isValid: true, matchedCd: "OTHR" };
     }
 
     const nmRegex = new RegExp(`^${normNm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
+    const cdRegex = normCd ? new RegExp(`^${normCd.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") : null;
 
     // Check if MongoDB collection has data
     const dbCount = await Shipper.countDocuments().catch(() => 0);
 
     if (dbCount > 0) {
-        const portCondition = normPort ? { $or: [{ PORT_CD: new RegExp(`^${normPort.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") }, { portCd: new RegExp(`^${normPort.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") }] } : null;
+        const baseConditions = [
+            { STATUS: { $ne: "INACTIVE" } },
+            { $or: [{ SHIPPER_NM: nmRegex }, { shipperNm: nmRegex }] }
+        ];
 
-        // 1. If shipperCd is provided and not empty/OTHR, match by code first
-        if (normCd && normCd.toUpperCase() !== "OTHR") {
-            const cdRegex = new RegExp(`^${normCd.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
-            const codeCondition = { $or: [{ SHIPPER_CD: cdRegex }, { shipperCd: cdRegex }] };
-            const fullQuery = portCondition ? { $and: [portCondition, codeCondition] } : codeCondition;
+        if (cdRegex) {
+            baseConditions.push({
+                $or: [{ SHIPPER_CD: cdRegex }, { shipperCd: cdRegex }]
+            });
+        }
 
-            let matchByCd = await Shipper.findOne(fullQuery).lean();
-            if (!matchByCd && normPort) {
-                matchByCd = await Shipper.findOne(codeCondition).lean();
-            }
+        if (normPort) {
+            const portRegex = new RegExp(`^${normPort.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
+            baseConditions.push({
+                $or: [{ PORT_CD: portRegex }, { portCd: portRegex }, { PORT_CODE: portRegex }]
+            });
+        }
 
-            if (matchByCd) {
-                const masterNm = (matchByCd.SHIPPER_NM || matchByCd.shipperNm || "").trim();
-                if (masterNm.toUpperCase() === normNm.toUpperCase()) {
-                    return { isValid: true };
-                } else {
-                    return {
-                        isValid: false,
-                        errorCode: 1024,
-                        message: "Shipper Name or Shipper Code is invalid. Shipper details should match with the master data value."
-                    };
-                }
+        // 1. Try matching with terminal if terminalCode is provided
+        if (normTerminal) {
+            const termRegex = new RegExp(`^${normTerminal.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
+            const termConditions = [
+                ...baseConditions,
+                { $or: [{ TERMINAL: termRegex }, { terminal: termRegex }] }
+            ];
+            let matchWithTerminal = await Shipper.findOne({ $and: termConditions }).lean();
+            if (matchWithTerminal) {
+                return { isValid: true, matchedCd: matchWithTerminal.SHIPPER_CD || matchWithTerminal.shipperCd || "" };
             }
         }
 
-        // 2. Match by Shipper Name in MongoDB
-        const nameCondition = { $or: [{ SHIPPER_NM: nmRegex }, { shipperNm: nmRegex }] };
-        const fullNameQuery = portCondition ? { $and: [portCondition, nameCondition] } : nameCondition;
-
-        let matchByNm = await Shipper.findOne(fullNameQuery).lean();
-        if (!matchByNm && normPort) {
-            matchByNm = await Shipper.findOne(nameCondition).lean();
-        }
-
-        if (matchByNm) {
-            const masterCd = (matchByNm.SHIPPER_CD || matchByNm.shipperCd || "").trim();
-            if (normCd && normCd.toUpperCase() !== "OTHR" && masterCd.toUpperCase() !== normCd.toUpperCase()) {
-                return {
-                    isValid: false,
-                    errorCode: 1024,
-                    message: "Shipper Name or Shipper Code is invalid. Shipper details should match with the master data value."
-                };
+        // 2. Try matching with port + shipper pair (terminal not specified or not matching in master)
+        let matchWithPort = await Shipper.findOne({ $and: baseConditions }).lean();
+        if (matchWithPort) {
+            // Location and shipper name match in master!
+            // If terminal was provided but terminal is not present/matched in master for this shipper:
+            // Pass shipper Name and code as empty string.
+            const masterTerm = (matchWithPort.TERMINAL || matchWithPort.terminal || "").trim();
+            if (!masterTerm || (normTerminal && masterTerm.toUpperCase() !== normTerminal.toUpperCase())) {
+                return { isValid: true, matchedCd: "" };
             }
-            return { isValid: true, matchedCd: masterCd };
+            return { isValid: true, matchedCd: matchWithPort.SHIPPER_CD || matchWithPort.shipperCd || "" };
         }
 
-        return {
-            isValid: false,
-            errorCode: 1024,
-            message: "Shipper Name or Shipper Code is invalid. Shipper details should match with the master data value."
-        };
+        // 3. Fallback: Check without port condition
+        if (normPort) {
+            const noPortConditions = [
+                { STATUS: { $ne: "INACTIVE" } },
+                { $or: [{ SHIPPER_NM: nmRegex }, { shipperNm: nmRegex }] }
+            ];
+            if (cdRegex) {
+                noPortConditions.push({
+                    $or: [{ SHIPPER_CD: cdRegex }, { shipperCd: cdRegex }]
+                });
+            }
+            let matchNoPort = await Shipper.findOne({ $and: noPortConditions }).lean();
+            if (matchNoPort) {
+                return { isValid: true, matchedCd: "" };
+            }
+        }
+
+        // 4. Shipper not in master at all -> fallback to OTHR
+        return { isValid: true, matchedCd: "OTHR" };
     }
 
     // CSV Fallback if MongoDB collection is not seeded yet
     const shippers = loadShipperMaster();
     if (!shippers || shippers.length === 0) {
-        return { isValid: true };
+        return { isValid: true, matchedCd: "OTHR" };
     }
 
     const normNmUpper = normNm.toUpperCase();
     const normCdUpper = normCd.toUpperCase();
 
-    if (normCdUpper && normCdUpper !== "OTHR") {
-        const matchByCd = shippers.find(s => s.shipperCd.trim().toUpperCase() === normCdUpper);
-        if (matchByCd) {
-            if (matchByCd.shipperNm.trim().toUpperCase() === normNmUpper) {
-                return { isValid: true };
-            } else {
-                return {
-                    isValid: false,
-                    errorCode: 1024,
-                    message: "Shipper Name or Shipper Code is invalid. Shipper details should match with the master data value."
-                };
-            }
+    const csvMatch = shippers.find(s => {
+        const cdMatch = !normCdUpper || s.shipperCd.trim().toUpperCase() === normCdUpper;
+        const nmMatch = s.shipperNm.trim().toUpperCase() === normNmUpper;
+        return cdMatch && nmMatch;
+    });
+
+    if (csvMatch) {
+        const csvTerm = (csvMatch.terminal || csvMatch.TERMINAL || "").trim();
+        if (normTerminal && (!csvTerm || csvTerm.toUpperCase() !== normTerminal.toUpperCase())) {
+            return { isValid: true, matchedCd: "" };
         }
+        return { isValid: true, matchedCd: csvMatch.shipperCd || "" };
     }
 
-    const matchByNm = shippers.find(s => s.shipperNm.trim().toUpperCase() === normNmUpper);
-    if (matchByNm) {
-        if (normCdUpper && normCdUpper !== "OTHR" && matchByNm.shipperCd.trim().toUpperCase() !== normCdUpper) {
-            return {
-                isValid: false,
-                errorCode: 1024,
-                message: "Shipper Name or Shipper Code is invalid. Shipper details should match with the master data value."
-            };
-        }
-        return { isValid: true, matchedCd: matchByNm.shipperCd };
-    }
-
-    return {
-        isValid: false,
-        errorCode: 1024,
-        message: "Shipper Name or Shipper Code is invalid. Shipper details should match with the master data value."
-    };
+    // If no match in CSV, fallback to OTHR
+    return { isValid: true, matchedCd: "OTHR" };
 };
+
 
 
 

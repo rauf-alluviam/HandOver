@@ -60,6 +60,12 @@ const Form13ShippingBillSection = ({
               label="Shipping Bill Date *"
               value={shippingBill.shipBillDt || ''}
               onChange={(e) => onFormDataChange('shippingBills', 'shipBillDt', e.target.value, containerIndex)}
+              onDoubleClick={(e) => {
+                const inputEl = e.target.tagName === 'INPUT' ? e.target : e.currentTarget.querySelector('input');
+                if (inputEl && typeof inputEl.showPicker === 'function') {
+                  try { inputEl.showPicker(); } catch (err) {}
+                }
+              }}
               InputLabelProps={{ shrink: true }}
               required
               error={!!validationErrors[`container_${containerIndex}_shipBillDt`]}
@@ -87,6 +93,12 @@ const Form13ShippingBillSection = ({
                 label="LEO Date *"
                 value={shippingBill.leoDt || ''}
                 onChange={(e) => onFormDataChange('shippingBills', 'leoDt', e.target.value, containerIndex)}
+                onDoubleClick={(e) => {
+                  const inputEl = e.target.tagName === 'INPUT' ? e.target : e.currentTarget.querySelector('input');
+                  if (inputEl && typeof inputEl.showPicker === 'function') {
+                    try { inputEl.showPicker(); } catch (err) {}
+                  }
+                }}
                 InputLabelProps={{ shrink: true }}
                 required
                 error={!!validationErrors[`container_${containerIndex}_leoDt`]}

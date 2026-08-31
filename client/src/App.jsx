@@ -16,8 +16,11 @@ import VGMForm from "./components/VGMForm";
 import VGMStatus from "./components/VGMStatus";
 import { CircularProgress, Box } from "@mui/material";
 import Form13 from "./components/Form13/Form13";
-import "./App.css";
 import TrackF13 from "./components/Form13/TrackF13";
+import ESB from "./components/ESB/ESB";
+import TrackESB from "./components/ESB/TrackESB";
+import "./App.css";
+
 const theme = createTheme({
   palette: {
     primary: {
@@ -116,6 +119,24 @@ function App() {
                   <TrackF13 />
                 </ProtectedRoute>
               } />
+              <Route
+                path="/esb/*"
+                element={
+                  <ProtectedRoute>
+                    <ESB />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/track-esb"
+                element={
+                  <ProtectedRoute>
+                    <TrackESB />
+                  </ProtectedRoute>
+                }
+              />
+              {/* Legacy redirect for /esab */}
+              <Route path="/esab/*" element={<Navigate to="/esb" replace />} />
               {/* Default route - go directly to VGM status */}
               <Route path="/" element={<Navigate to="/dashboard" />} />
 

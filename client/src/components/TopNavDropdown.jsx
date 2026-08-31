@@ -27,6 +27,8 @@ const TopNavDropdown = ({ sx = {} }) => {
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
   const [selectedLocId, setSelectedLocId] = useState("INMUN1");
 
+  const [targetModule, setTargetModule] = useState("/form13");
+
   const handleLocationDialogClose = () => {
     setLocationDialogOpen(false);
   };
@@ -34,11 +36,11 @@ const TopNavDropdown = ({ sx = {} }) => {
   const handleLocationConfirm = () => {
     setLocationDialogOpen(false);
     const stateObj = { presetLocId: selectedLocId || "INMUN1" };
-    if (location.pathname === "/form13") {
+    if (location.pathname === targetModule) {
       stateObj.reset = Date.now();
-      navigate("/form13", { state: stateObj, replace: true });
+      navigate(targetModule, { state: stateObj, replace: true });
     } else {
-      navigate("/form13", { state: stateObj });
+      navigate(targetModule, { state: stateObj });
     }
   };
 
@@ -46,6 +48,8 @@ const TopNavDropdown = ({ sx = {} }) => {
     if (pathname === "/" || pathname.startsWith("/dashboard")) return "Dashboard";
     if (pathname.startsWith("/form13")) return "Form 13";
     if (pathname.startsWith("/track-f13")) return "Track F13 request";
+    if (pathname.startsWith("/esb")) return "e-SB (Shipping Bill)";
+    if (pathname.startsWith("/track-esb")) return "Track e-SB request";
     if (pathname.startsWith("/vgm-status")) return "VGM Status";
     if (pathname.startsWith("/vgm")) return "VGM Submission";
     return "Dashboard";
@@ -71,6 +75,13 @@ const TopNavDropdown = ({ sx = {} }) => {
 
   const handleForm13Click = () => {
     handleClose();
+    setTargetModule("/form13");
+    setLocationDialogOpen(true);
+  };
+
+  const handleESBClick = () => {
+    handleClose();
+    setTargetModule("/esb");
     setLocationDialogOpen(true);
   };
 
@@ -119,6 +130,8 @@ const TopNavDropdown = ({ sx = {} }) => {
         <MenuItem onClick={() => handleNav("/vgm-status")}>VGM Status</MenuItem>
         <MenuItem onClick={handleForm13Click}>Form 13</MenuItem>
         <MenuItem onClick={() => handleNav("/track-f13")}>Track F13 request</MenuItem>
+        <MenuItem onClick={handleESBClick}>e-SB (Shipping Bill)</MenuItem>
+        <MenuItem onClick={() => handleNav("/track-esb")}>Track e-SB request</MenuItem>
       </Menu>
 
       {/* Location Selection Dialog */}

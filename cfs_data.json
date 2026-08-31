@@ -1,0 +1,2507 @@
+[
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1AGL1",
+    "CFS_NM": "ALLCARGO LOGISTICS LTD - ANNEX CFS"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1CWC5",
+    "CFS_NM": "CONEX TERMINAL PVT LTD"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1CWC2",
+    "CFS_NM": "CWC\u00c2\u00a0Dronagiri\u00c2\u00a0Node"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1CWC1",
+    "CFS_NM": "CWC\u00c2\u00a0Kalamboli"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1CWC3",
+    "CFS_NM": "Polaris Logistics Park Pvt. Ltd"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1PSC1",
+    "CFS_NM": "Punjab Conware"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INCCU1BLC1",
+    "CFS_NM": "BALMER LAWRIE and CO.LTD (KOLKATA)"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "ININD6",
+    "CFS_NM": "ICD TIHI"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INMDD6",
+    "CFS_NM": "ICD MANDIDEEP"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1KTL1",
+    "CFS_NM": "KARANJA TERMINAL & LOGISTICS PVT. LTD."
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1NSI1",
+    "CFS_NM": "NSICT TERMINAL OPERATOR"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1NSG1",
+    "CFS_NM": "NHAVA SHEVA INDIA GATEWAY TERMINAL P LTD"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1GTI1",
+    "CFS_NM": "GATEWAY TERMINALS INDIA PVT LTD"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1ICT1",
+    "CFS_NM": "INTERNATIONAL CARGO TERMINAL PRIVATE LIMITED (GLOBICON CFS)"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1SLS1",
+    "CFS_NM": "SARVESHWAR LOGISTICS SERVICES PVT LTD"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INTLG6",
+    "CFS_NM": "ICD TALEGAON"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNGP6",
+    "CFS_NM": "IDC NAGPUR"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INDIG6",
+    "CFS_NM": "ICD DIGHI(DYNAMIC LOGISTICS PVT. LTD.)"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INBOK6",
+    "CFS_NM": "ICD BORKHEDI ( DISTRIBUTION LOGISTICS INFRASTRUCTURE,  INTEGRATED LOGISTICS PARK)"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1JNP1",
+    "CFS_NM": "JNPT"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1SBW1",
+    "CFS_NM": "SBW Logistics"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1TCL1",
+    "CFS_NM": "Hind Terminals Pvt. Ltd."
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1CWC4",
+    "CFS_NM": "MSA GLOBAL LOGISTICS PVT LTD (CWC IMPEX PARK CFS)"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1MSA1",
+    "CFS_NM": "Transworld Terminals CFS"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1JNPT01",
+    "CFS_NM": "JNPT"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1OGC1",
+    "CFS_NM": "OCEANGATE CONTAINER TERMINALS PVT LTD"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1JWL1",
+    "CFS_NM": "JWR Logistics"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1ELP1",
+    "CFS_NM": "EFC LOGISTICS INDIA PVT. LTD."
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1SML1",
+    "CFS_NM": "Speedy Multimode Ltd CFS"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INPNV6",
+    "CFS_NM": "Arshiya FTZ"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INMUL1",
+    "CFS_NM": "Mulund ICD"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1NCL2",
+    "CFS_NM": "NAVKAR CORPORATION LTD. I (MANIBHADRA)"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1NCL1",
+    "CFS_NM": "NAVKAR CORPORATION LTD. II (PREETI LOGISTICS LTD.)"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1VTC1",
+    "CFS_NM": "Vaishno Logistics Yard CFS"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1JLP1",
+    "CFS_NM": "JWC Logistics"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1ALS1",
+    "CFS_NM": "Apollo Logisolutions Limited"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1ILP1",
+    "CFS_NM": "Indev Infra Private Limited"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1NCL3",
+    "CFS_NM": "Navkar Corporation Ltd"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1AML1",
+    "CFS_NM": "Ameya Logistics Pvt Ltd"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1MRK1",
+    "CFS_NM": "APMT Main CFS (OLD MAERSK)"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1MRK2",
+    "CFS_NM": "APMT Annex CFS (NEW MAERSK)"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1CON1",
+    "CFS_NM": "Container Corporation Of India Ltd / APMT DRT CFS"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1ASL1",
+    "CFS_NM": "Ashte CFS"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1BLC1",
+    "CFS_NM": "Balmer Lawrie (Nhava Sheva)"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1GDL1",
+    "CFS_NM": "Gateway Distriparks Ltd"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1ULA1",
+    "CFS_NM": "United Liner Agencies (ULA CFS)"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1SMS1",
+    "CFS_NM": "Seabird"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1MSW1",
+    "CFS_NM": "MSWC"
+  },
+  {
+    "LOC_NM": "Nhava Sheva",
+    "CFS_CODE": "INNSA1COW1",
+    "CFS_NM": "Continental Warehousing Corporation (Nhava Seva) Ltd."
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1ACS1",
+    "CFS_NM": "ASHUTOSH CONTAINER SERVICE PVT LTD"
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1AGL1",
+    "CFS_NM": "Allcargo Terminals Limited"
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1HCL1",
+    "CFS_NM": "HONEYCOMB LOGISTICS PVT LTD"
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1MCF1",
+    "CFS_NM": "MUNDRA CONTAINER FRIGHT STATION PVT LTD"
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1MCT1",
+    "CFS_NM": "MUNDRA INTERNATIONAL CONTAINER TERMINAL PVT LTD"
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1MSE1",
+    "CFS_NM": "MUNDRA PORT AND SPECIAL ECONOMIC ZONE LTD."
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1DAEY1",
+    "CFS_NM": "ADANI EXIM YARD"
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1FCL1",
+    "CFS_NM": "TG CFS"
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUNADA01",
+    "CFS_NM": "MUNDRA CFS"
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INIXY1AVJ1",
+    "CFS_NM": "Arvind V. Joshi & Co."
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1MSG1",
+    "CFS_NM": "MSA GLOBAL LOGISTICS PVT LTD CFS"
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1ACF1",
+    "CFS_NM": "ALL CARGO CFS"
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1ADA01",
+    "CFS_NM": "MUNDRA"
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1CON1",
+    "CFS_NM": "CONTAINER CORPORATION OF INDIA LIMITED - MUNDRA"
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1MSE2",
+    "CFS_NM": "EXIM YARD"
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1LCP2",
+    "CFS_NM": "LANDMARK CFS PVT. LTD UNIT-II"
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INIXY1LPF1",
+    "CFS_NM": "LILADHAR PASOO FORWARDERS PRIVATE LIMITED"
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1",
+    "CFS_NM": "APSEZ EXIM YARD"
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1TCF",
+    "CFS_NM": "Transworld"
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1MSA2",
+    "CFS_NM": "TRANSWORLD TERMINALS PRIVATE LIMITED (UNIT-2)"
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1MSA1",
+    "CFS_NM": "TRANSWORLD CFS MUNDRA"
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1HTP1",
+    "CFS_NM": "HIND TERMINALS PVT LTD MUNDRA 2"
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1MCC1",
+    "CFS_NM": "MICT - CFS"
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1SMS1",
+    "CFS_NM": "SEABIRD MARINE SERVICES PVT LTD."
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1SCP1",
+    "CFS_NM": "SAURASHTRA FREIGHT PVT. LTD."
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1HTP2",
+    "CFS_NM": "HIND TERMINALS PRIVATE LTD"
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1LCP1",
+    "CFS_NM": "LAND MARK CFS PVT. LTD."
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1EMP1",
+    "CFS_NM": "EMPEZER LOGISTICS PVT. LTD."
+  },
+  {
+    "LOC_NM": "Mundra",
+    "CFS_CODE": "INMUN1CWC1",
+    "CFS_NM": "Central Warehousing Corp - Speedy Multimodes"
+  },
+  {
+    "LOC_NM": "Mangalore",
+    "CFS_CODE": "INNML1NMP1",
+    "CFS_NM": "New Mangalore Port Trust"
+  },
+  {
+    "LOC_NM": "Tuticorin",
+    "CFS_CODE": "INTUT1ASS1",
+    "CFS_NM": "AS shipping CFS"
+  },
+  {
+    "LOC_NM": "Tuticorin",
+    "CFS_CODE": "INTUT1CON1",
+    "CFS_NM": "CONCOR CFS"
+  },
+  {
+    "LOC_NM": "Tuticorin",
+    "CFS_CODE": "INTUT1CWC1",
+    "CFS_NM": "Central Warehousing Corpn.CFS"
+  },
+  {
+    "LOC_NM": "Tuticorin",
+    "CFS_CODE": "INTUT1DCP1",
+    "CFS_NM": "Diamond CFS Park"
+  },
+  {
+    "LOC_NM": "Tuticorin",
+    "CFS_CODE": "INTUT1HAR1",
+    "CFS_NM": "Hari CFS"
+  },
+  {
+    "LOC_NM": "Tuticorin",
+    "CFS_CODE": "INTUT1KNP1",
+    "CFS_NM": "KSPS Natarajan CFS park"
+  },
+  {
+    "LOC_NM": "Tuticorin",
+    "CFS_CODE": "INTUT1SAL1",
+    "CFS_NM": "SANS CFS LIMITED"
+  },
+  {
+    "LOC_NM": "Tuticorin",
+    "CFS_CODE": "INNSA1COW1",
+    "CFS_NM": "Continental Warehousing Corporation (Nhava Seva) Ltd."
+  },
+  {
+    "LOC_NM": "Tuticorin",
+    "CFS_CODE": "INTUT6",
+    "CFS_NM": "ST.JOHN ICD"
+  },
+  {
+    "LOC_NM": "Tuticorin",
+    "CFS_CODE": "INTUT1SMR1",
+    "CFS_NM": "SICAL CFS"
+  },
+  {
+    "LOC_NM": "Tuticorin",
+    "CFS_CODE": "INTUT1COW1",
+    "CFS_NM": "DP WORLD MULTIMODAL LOGISTICS PRIVATE LIMITED"
+  },
+  {
+    "LOC_NM": "Tuticorin",
+    "CFS_CODE": "INTUT1TEN6",
+    "CFS_NM": "GANGAIKONDAN - ICD"
+  },
+  {
+    "LOC_NM": "Tuticorin",
+    "CFS_CODE": "INTUT1ALT1",
+    "CFS_NM": "DAHNAY TUTICORIN TERMINAL PRIVATE LIMITED"
+  },
+  {
+    "LOC_NM": "Tuticorin",
+    "CFS_CODE": "INTUT1ILP1",
+    "CFS_NM": "KERRY INDEV LOGISTICS PVT. LTD."
+  },
+  {
+    "LOC_NM": "Tuticorin",
+    "CFS_CODE": "INTUT1ECY1",
+    "CFS_NM": "ARIES CONTAINER TERMINAL PVT LTD EMPTY CONTAINER"
+  },
+  {
+    "LOC_NM": "Tuticorin",
+    "CFS_CODE": "INTUT1RAC1",
+    "CFS_NM": "Raja Agencies CFS"
+  },
+  {
+    "LOC_NM": "Tuticorin",
+    "CFS_CODE": "INTUT1SEC1",
+    "CFS_NM": "SEC Container Freight Station"
+  },
+  {
+    "LOC_NM": "Tuticorin",
+    "CFS_CODE": "INTUT1TPT1",
+    "CFS_NM": "Tuticorin Port Trust"
+  },
+  {
+    "LOC_NM": "Tuticorin",
+    "CFS_CODE": "INTUT1VIL1",
+    "CFS_NM": "Vilson container freight station"
+  },
+  {
+    "LOC_NM": "Tuticorin",
+    "CFS_CODE": "INTUT1PTP1",
+    "CFS_NM": "PROMPT TERMINALS PRIVATE LIMITED"
+  },
+  {
+    "LOC_NM": "Tuticorin",
+    "CFS_CODE": "INTUT1CLP1",
+    "CFS_NM": "CHOLA LOGISTIKS PVT.LTD"
+  },
+  {
+    "LOC_NM": "Kolkata",
+    "CFS_CODE": "INCCU1ALL1",
+    "CFS_NM": "A.L. LOGISTICS PVT. LTD"
+  },
+  {
+    "LOC_NM": "Kolkata",
+    "CFS_CODE": "INCCU1BLC1",
+    "CFS_NM": "BALMER LAWRIE and CO.LTD (KOLKATA)"
+  },
+  {
+    "LOC_NM": "Kolkata",
+    "CFS_CODE": "INCCU1CPL1",
+    "CFS_NM": "Century Plyboards I LTD Sonai-CFS"
+  },
+  {
+    "LOC_NM": "Kolkata",
+    "CFS_CODE": "INCCU1CWC1",
+    "CFS_NM": "CENTRAL WAREHOUSING CORPORATION"
+  },
+  {
+    "LOC_NM": "Kolkata",
+    "CFS_CODE": "INCCU1HDC1",
+    "CFS_NM": "HALDIA DOCK COMPLEX , KOLKATA PORT TRUST"
+  },
+  {
+    "LOC_NM": "Kolkata",
+    "CFS_CODE": "INCCU1KKP1",
+    "CFS_NM": "KOLKATA PORT TRUST"
+  },
+  {
+    "LOC_NM": "Kolkata",
+    "CFS_CODE": "INCCU1CON1",
+    "CFS_NM": "CONCOR CFS"
+  },
+  {
+    "LOC_NM": "Kolkata",
+    "CFS_CODE": "INHAL1AIL1",
+    "CFS_NM": "APEEJAY INFRA LOGISTICS PVT LTD"
+  },
+  {
+    "LOC_NM": "Kolkata",
+    "CFS_CODE": "INHAL1RPL1",
+    "CFS_NM": "RALSON PETROCHEMICALS LIMITED"
+  },
+  {
+    "LOC_NM": "Kolkata",
+    "CFS_CODE": "NPBRG",
+    "CFS_NM": "PRISTINE VALLEY DRYPORT PVT. LTD."
+  },
+  {
+    "LOC_NM": "Kolkata",
+    "CFS_CODE": "INCCU1CIL2",
+    "CFS_NM": "CENTURY INFRA LIMITED - JJP CFS"
+  },
+  {
+    "LOC_NM": "Kolkata",
+    "CFS_CODE": "INCCU1CIL1",
+    "CFS_NM": "CENTURY INFRA LIMITED - SONAI CFS"
+  },
+  {
+    "LOC_NM": "Kolkata",
+    "CFS_CODE": "INCCU1CPL2",
+    "CFS_NM": "Century Plyboards I LTD JJP-CFS"
+  },
+  {
+    "LOC_NM": "Kolkata",
+    "CFS_CODE": "INCCU1PLP1",
+    "CFS_NM": "PHONEX LOGISTICS PVT LTD (CFS)"
+  },
+  {
+    "LOC_NM": "Kolkata",
+    "CFS_CODE": "INCCU1AGL1",
+    "CFS_NM": "ALLCARGO LOGISTICS LIMITED"
+  },
+  {
+    "LOC_NM": "Kolkata",
+    "CFS_CODE": "INCCU1CON2",
+    "CFS_NM": "CONTAINER CORPORATION OF INDIA LTD."
+  },
+  {
+    "LOC_NM": "Kolkata",
+    "CFS_CODE": "INCCU1MSA1",
+    "CFS_NM": "TRANSWORLD TERMINALS PVT LTD"
+  },
+  {
+    "LOC_NM": "Kolkata",
+    "CFS_CODE": "INCCU1LCL1",
+    "CFS_NM": "LCL LOGISTIX  INDIA  PVT LTD"
+  },
+  {
+    "LOC_NM": "Pipavav",
+    "CFS_CODE": "INPAV1APM1",
+    "CFS_NM": "APM TERMINALS PIPAVAV"
+  },
+  {
+    "LOC_NM": "Pipavav",
+    "CFS_CODE": "INPAV1CTL1",
+    "CFS_NM": "CONTRANS CFS"
+  },
+  {
+    "LOC_NM": "Pipavav",
+    "CFS_CODE": "INPAV1LCL1",
+    "CFS_NM": "CC Logix Parks India Private Limited"
+  },
+  {
+    "LOC_NM": "Hazira",
+    "CFS_CODE": "INHZA1SMS1",
+    "CFS_NM": "SEABIRD CFS"
+  },
+  {
+    "LOC_NM": "Hazira",
+    "CFS_CODE": "INHZA1HTP1",
+    "CFS_NM": "Hind Terminal CFS"
+  },
+  {
+    "LOC_NM": "Hazira",
+    "CFS_CODE": "INHZA1ADH1",
+    "CFS_NM": "ADANI CFS HAZIRA"
+  },
+  {
+    "LOC_NM": "Hazira",
+    "CFS_CODE": "INHZA1KIL1",
+    "CFS_NM": "DP World Rail Logistics Private Limited"
+  },
+  {
+    "LOC_NM": "Hazira",
+    "CFS_CODE": "INHZA1HCF1",
+    "CFS_NM": "HAZIRA CONTAINER FREIGHT STATION PVT. LTD"
+  },
+  {
+    "LOC_NM": "Hazira",
+    "CFS_CODE": "INHZA1SPP1",
+    "CFS_NM": "SARMAN PORTS PRIVATE LIMITED"
+  },
+  {
+    "LOC_NM": "Marmagoa",
+    "CFS_CODE": "INMRM1MPT1",
+    "CFS_NM": "Mormugao Port Trust"
+  },
+  {
+    "LOC_NM": "Cochin",
+    "CFS_CODE": "INCOK1AST1",
+    "CFS_NM": "ASIAN TERMINALS"
+  },
+  {
+    "LOC_NM": "Cochin",
+    "CFS_CODE": "INCOK1CPC1",
+    "CFS_NM": "COCHIN PORT TRUST"
+  },
+  {
+    "LOC_NM": "Cochin",
+    "CFS_CODE": "INCOK1FAL1",
+    "CFS_NM": "FALCON CFS"
+  },
+  {
+    "LOC_NM": "Cochin",
+    "CFS_CODE": "INCOK1IGT1",
+    "CFS_NM": "INDIA GATEWAY TERMINAL (P) LTD"
+  },
+  {
+    "LOC_NM": "Cochin",
+    "CFS_CODE": "INCOK1PET1",
+    "CFS_NM": "CFS PETTA"
+  },
+  {
+    "LOC_NM": "Cochin",
+    "CFS_CODE": "INCOK1CIF1",
+    "CFS_NM": "KSIE CFS"
+  },
+  {
+    "LOC_NM": "Cochin",
+    "CFS_CODE": "INCOK1MLP1",
+    "CFS_NM": "MLPCFS"
+  },
+  {
+    "LOC_NM": "Cochin",
+    "CFS_CODE": "INCOK1CON1",
+    "CFS_NM": "CONCOR-COCHIN"
+  },
+  {
+    "LOC_NM": "Cochin",
+    "CFS_CODE": "INCOK1GDK1",
+    "CFS_NM": "Gateway Distriparks Kerala Limited"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1AGL1",
+    "CFS_NM": "ALLCARGO GLOBAL LOGISTICS LIMITED"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1ASS1",
+    "CFS_NM": "A.S. SHIPPING AGENCIES PVT LTD"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1BLC1",
+    "CFS_NM": "BALMER LAWRIE"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1BNL1",
+    "CFS_NM": "BINNY LTD CFS"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1CCT1",
+    "CFS_NM": "Reefer Yard - Chennai CCTL"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INSEZ",
+    "CFS_NM": "Reefer Yard - Chennai CITPL"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INKAK1KSP1",
+    "CFS_NM": "Kakinada Sea Ports Ltd.,"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INKAT1AWC1",
+    "CFS_NM": "APOLLO WORLD CONNECT CFS"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INKAT1LSL1",
+    "CFS_NM": "Reefer Yard - Kattupalli"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1CHN01",
+    "CFS_NM": "CHENNAI"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1SCL1",
+    "CFS_NM": "SUPPLY CHAIN LOGISTICS PVT LTD"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INKAT1VRL1",
+    "CFS_NM": "VISHRUTHA CFS"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1NDR1",
+    "CFS_NM": "NDR CFS -CONTINENTAL 3\u00c2\u00a0\u00c2\u00a0"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INTEN6",
+    "CFS_NM": "SIPCOT SEZ"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1TRL1",
+    "CFS_NM": "THIRU RANI LOGISTICS PVT LTD"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1CON1",
+    "CFS_NM": "CONTAINER CORPN OF INDIA LTD"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1SHC1",
+    "CFS_NM": "SATTVA HITECH AND CONWARE PVT LTD"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INKAT1LNT1",
+    "CFS_NM": "L & T CFS"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1STP1",
+    "CFS_NM": "STP SERVICES PVT LTD"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1OYC1",
+    "CFS_NM": "O YARD & PERSONAL EFFECTS"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1DDD1",
+    "CFS_NM": "REEFER YARD"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1COW2",
+    "CFS_NM": "CONTINENTAL WAREHOUSING CORPORATION (NHAVA SHEVA) LIMITED"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1SPL1",
+    "CFS_NM": "HIND TERMINALS PRIVATE LTD"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1SUL1",
+    "CFS_NM": "SANCO II SUDHARSAN LOGISTICS PVT LTD"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1TCF1",
+    "CFS_NM": "TRIWAY CONTAINER FREIGHT STATION"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1VIK1",
+    "CFS_NM": "VIKING WAREHOUSING"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1VLT1",
+    "CFS_NM": "KENCES CONTAINER TERMINAL LIMITED"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA4AAI1",
+    "CFS_NM": "AIRPORTS AUTHORITY OF INDIA"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1CXC1",
+    "CFS_NM": "CALYX CFS"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1CCL1",
+    "CFS_NM": "CONTAINER CORPORATION OF INDIA LTD."
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1KSS1",
+    "CFS_NM": "KAILASH SHIPPING SERVICES P LTD"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1MRK1",
+    "CFS_NM": "APM TERMINALS INLAND SERVICES"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1SMR1",
+    "CFS_NM": "SICAL DISTRIPARKS LTD"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1SGL1",
+    "CFS_NM": "SUN GLOBAL LOGISTICS LTD"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1SLP1",
+    "CFS_NM": "SATTVA CFS AND LOGISTICS PVT LTD"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1STL1",
+    "CFS_NM": "SANCO TRANS LTD"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1DRL1",
+    "CFS_NM": "D.R. LOGISTICS PVT. LTD."
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1ECC1",
+    "CFS_NM": "ENNORE CARGO CONTAINER TERMINAL"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1GDL1",
+    "CFS_NM": "GATEWAY DISTRIPARKS LTD"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1GES1",
+    "CFS_NM": "GERMAN EXPRESS SHPNG AGENC I P"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1GLO1",
+    "CFS_NM": "GLOVIS INDIA PVT LTD"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1ICB1",
+    "CFS_NM": "INDIAN CORPORATE BUSINESS CENTRE (ICBC)"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1COW1",
+    "CFS_NM": "CONTINENTAL 1"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1CTO1",
+    "CFS_NM": "CHANDRA CFS & TERM OPERATORS"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1CWC1",
+    "CFS_NM": "CWC MADHAVARAM"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1CWC2",
+    "CFS_NM": "CWC, ROYAPURAM"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1CWC3",
+    "CFS_NM": "CWC, VIRUGAMBAKKAM"
+  },
+  {
+    "LOC_NM": "Chennai",
+    "CFS_CODE": "INMAA1CWC4",
+    "CFS_NM": "CWC, CHROMEPET"
+  },
+  {
+    "LOC_NM": "Vishakapatnam",
+    "CFS_CODE": "INVTZ1CON1",
+    "CFS_NM": "Container Corp. of India Ltd"
+  },
+  {
+    "LOC_NM": "Vishakapatnam",
+    "CFS_CODE": "INVTZ1SSS1",
+    "CFS_NM": "Sravan Shipping Services P Ltd"
+  },
+  {
+    "LOC_NM": "Vishakapatnam",
+    "CFS_CODE": "INVTZ1CWC1",
+    "CFS_NM": "Central Warehousing Corp."
+  },
+  {
+    "LOC_NM": "Vishakapatnam",
+    "CFS_CODE": "INVTZ1VCT1",
+    "CFS_NM": "Visakha Container Terml P Ltd"
+  },
+  {
+    "LOC_NM": "Vishakapatnam",
+    "CFS_CODE": "INVTZ1GEI1",
+    "CFS_NM": "Gateway East India Pvt Ltd"
+  },
+  {
+    "LOC_NM": "Vishakapatnam",
+    "CFS_CODE": "INVTZ1VPL1",
+    "CFS_NM": "VPL Integral"
+  },
+  {
+    "LOC_NM": "Vishakapatnam",
+    "CFS_CODE": "INVTZ1VLP1",
+    "CFS_NM": "VISAKHAPATNAM PORT LOGISTICS PARK LTD"
+  },
+  {
+    "LOC_NM": "Vishakapatnam",
+    "CFS_CODE": "INVTZ1CON2",
+    "CFS_NM": "CONCOR MMLP CFS"
+  },
+  {
+    "LOC_NM": "Vishakapatnam",
+    "CFS_CODE": "INVTZ1SMR1",
+    "CFS_NM": "SMART SICAL CFS"
+  },
+  {
+    "LOC_NM": "Vishakapatnam",
+    "CFS_CODE": "INVTZ1SSS2",
+    "CFS_NM": "SRAVAN CFS 2"
+  },
+  {
+    "LOC_NM": "Vishakapatnam",
+    "CFS_CODE": "INVTZ1VCL1",
+    "CFS_NM": "SATTVA CFS (VISAKHA CFS)"
+  },
+  {
+    "LOC_NM": "Vishakapatnam",
+    "CFS_CODE": "INVTZ1VCT2",
+    "CFS_NM": "VISAKHA CONTAINER TERMINAL CFS"
+  },
+  {
+    "LOC_NM": "Vishakapatnam",
+    "CFS_CODE": "NPBRG",
+    "CFS_NM": "PRISTINE VALLEY DRYPORT PVT. LTD."
+  },
+  {
+    "LOC_NM": "Haldia",
+    "CFS_CODE": "INHAL1RPL1",
+    "CFS_NM": "RALSON PETROCHEMICALS LIMITED"
+  },
+  {
+    "LOC_NM": "Haldia",
+    "CFS_CODE": "INCCU1LCL1",
+    "CFS_NM": "LCL LOGISTIX  INDIA  PVT LTD"
+  },
+  {
+    "LOC_NM": "Haldia",
+    "CFS_CODE": "INCCU1ALL1",
+    "CFS_NM": "A.L. LOGISTICS PVT. LTD"
+  },
+  {
+    "LOC_NM": "Haldia",
+    "CFS_CODE": "INHAL1AIL1",
+    "CFS_NM": "APEEJAY INFRA LOGISTICS PVT LTD"
+  },
+  {
+    "LOC_NM": "Haldia",
+    "CFS_CODE": "NPBRJ1",
+    "CFS_NM": "HIMALAYAN TERMINALS PVT LTD DRY DEPO ICD"
+  },
+  {
+    "LOC_NM": "Haldia",
+    "CFS_CODE": "NPBRG",
+    "CFS_NM": "PRISTINE VALLEY DRYPORT PVT. LTD."
+  },
+  {
+    "LOC_NM": "Haldia",
+    "CFS_CODE": "INCCU1KKP1",
+    "CFS_NM": "KOLKATA PORT TRUST"
+  },
+  {
+    "LOC_NM": "Haldia",
+    "CFS_CODE": "INCCU1HDC1",
+    "CFS_NM": "HALDIA DOCK COMPLEX , KOLKATA PORT TRUST"
+  },
+  {
+    "LOC_NM": "Haldia",
+    "CFS_CODE": "INCCU1CWC1",
+    "CFS_NM": "CENTRAL WAREHOUSING CORPORATION"
+  },
+  {
+    "LOC_NM": "Haldia",
+    "CFS_CODE": "INCCU1CPL1",
+    "CFS_NM": "Century Plyboards I LTD Sonai-CFS"
+  },
+  {
+    "LOC_NM": "Haldia",
+    "CFS_CODE": "INCCU1BLC1",
+    "CFS_NM": "BALMER LAWRIE and CO.LTD (KOLKATA)"
+  },
+  {
+    "LOC_NM": "Haldia",
+    "CFS_CODE": "INCCU1CON1",
+    "CFS_NM": "CONCOR CFS"
+  },
+  {
+    "LOC_NM": "Haldia",
+    "CFS_CODE": "INCCU1MSA1",
+    "CFS_NM": "TRANSWORLD TERMINALS PVT LTD"
+  },
+  {
+    "LOC_NM": "Haldia",
+    "CFS_CODE": "INCCU1CON2",
+    "CFS_NM": "CONTAINER CORPORATION OF INDIA LTD."
+  },
+  {
+    "LOC_NM": "Haldia",
+    "CFS_CODE": "INCCU1AGL1",
+    "CFS_NM": "ALLCARGO LOGISTICS LIMITED"
+  },
+  {
+    "LOC_NM": "Haldia",
+    "CFS_CODE": "INCCU1PLP1",
+    "CFS_NM": "PHONEX LOGISTICS PVT LTD (CFS)"
+  },
+  {
+    "LOC_NM": "Haldia",
+    "CFS_CODE": "INCCU1CPL2",
+    "CFS_NM": "Century Plyboards I LTD JJP-CFS"
+  },
+  {
+    "LOC_NM": "Krishnapatnam",
+    "CFS_CODE": "INKRI1KBA1",
+    "CFS_NM": "SEA BIRD CFS"
+  },
+  {
+    "LOC_NM": "Krishnapatnam",
+    "CFS_CODE": "INKRI1GDL1",
+    "CFS_NM": "GATEWAY"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INKAT1AWC1",
+    "CFS_NM": "APOLLO WORLD CONNECT CFS"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INKAT1LNT1",
+    "CFS_NM": "L & T CFS"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INKAT1LSL1",
+    "CFS_NM": "Reefer Yard - Kattupalli"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1AGL1",
+    "CFS_NM": "ALLCARGO GLOBAL LOGISTICS LIMITED"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1ASS1",
+    "CFS_NM": "A.S. SHIPPING AGENCIES PVT LTD"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1BLC1",
+    "CFS_NM": "BALMER LAWRIE"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1ICB1",
+    "CFS_NM": "INDIAN CORPORATE BUSINESS CENTRE (ICBC)"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1SCL1",
+    "CFS_NM": "SUPPLY CHAIN LOGISTICS PVT LTD"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1OYC1",
+    "CFS_NM": "O YARD & PERSONAL EFFECTS"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1DDD1",
+    "CFS_NM": "REEFER YARD"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1COW2",
+    "CFS_NM": "CONTINENTAL WAREHOUSING CORPORATION (NHAVA SHEVA) LIMITED"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1SPL1",
+    "CFS_NM": "HIND TERMINALS PRIVATE LTD"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1NDR1",
+    "CFS_NM": "NDR CFS -CONTINENTAL 3\u00c2\u00a0\u00c2\u00a0"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1CON1",
+    "CFS_NM": "CONTAINER CORPN OF INDIA LTD"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1VIK1",
+    "CFS_NM": "VIKING WAREHOUSING"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1VLT1",
+    "CFS_NM": "KENCES CONTAINER TERMINAL LIMITED"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA4AAI1",
+    "CFS_NM": "AIRPORTS AUTHORITY OF INDIA"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1CXC1",
+    "CFS_NM": "CALYX CFS"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1CCL1",
+    "CFS_NM": "CONTAINER CORPORATION OF INDIA LTD."
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1STP1",
+    "CFS_NM": "STP SERVICES PVT LTD"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1SGL1",
+    "CFS_NM": "SUN GLOBAL LOGISTICS LTD"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1SHC1",
+    "CFS_NM": "SATTVA HITECH AND CONWARE PVT LTD"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1SLP1",
+    "CFS_NM": "SATTVA CFS AND LOGISTICS PVT LTD"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1STL1",
+    "CFS_NM": "SANCO TRANS LTD"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1TCF1",
+    "CFS_NM": "TRIWAY CONTAINER FREIGHT STATION"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1TRL1",
+    "CFS_NM": "THIRU RANI LOGISTICS PVT LTD"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1GES1",
+    "CFS_NM": "GERMAN EXPRESS SHPNG AGENC I P"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1GLO1",
+    "CFS_NM": "GLOVIS INDIA PVT LTD"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1ICB1",
+    "CFS_NM": "INDIAN CORPORATE BUSINESS CENTRE (ICBC)"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1KSS1",
+    "CFS_NM": "KAILASH SHIPPING SERVICES P LTD"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1MRK1",
+    "CFS_NM": "APM TERMINALS INLAND SERVICES"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1SMR1",
+    "CFS_NM": "SICAL DISTRIPARKS LTD"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1CWC2",
+    "CFS_NM": "CWC, ROYAPURAM"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1CWC3",
+    "CFS_NM": "CWC, VIRUGAMBAKKAM"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1CWC4",
+    "CFS_NM": "CWC, CHROMEPET"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1DRL1",
+    "CFS_NM": "D.R. LOGISTICS PVT. LTD."
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1ECC1",
+    "CFS_NM": "ENNORE CARGO CONTAINER TERMINAL"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1GDL1",
+    "CFS_NM": "GATEWAY DISTRIPARKS LTD"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1BNL1",
+    "CFS_NM": "BINNY LTD CFS"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1CCT1",
+    "CFS_NM": "Reefer Yard - Chennai CCTL"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INSEZ",
+    "CFS_NM": "Reefer Yard - Chennai CITPL"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1COW1",
+    "CFS_NM": "CONTINENTAL 1"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1CTO1",
+    "CFS_NM": "CHANDRA CFS & TERM OPERATORS"
+  },
+  {
+    "LOC_NM": "Kattupalli",
+    "CFS_CODE": "INMAA1CWC1",
+    "CFS_NM": "CWC MADHAVARAM"
+  },
+  {
+    "LOC_NM": "Kandla",
+    "CFS_CODE": "INIXY1ABG1",
+    "CFS_NM": "ABG Kandla Container Terminal "
+  },
+  {
+    "LOC_NM": "Kandla",
+    "CFS_CODE": "INIXY1ACP1",
+    "CFS_NM": "Aditya CFS Pvt. Ltd."
+  },
+  {
+    "LOC_NM": "Kandla",
+    "CFS_CODE": "INIXY1AVJ1",
+    "CFS_NM": "Arvind V. Joshi & Co."
+  },
+  {
+    "LOC_NM": "Kandla",
+    "CFS_CODE": "INIXY1CON1",
+    "CFS_NM": "Container Corprn of India Ltd"
+  },
+  {
+    "LOC_NM": "Kandla",
+    "CFS_CODE": "INIXY1CWC1",
+    "CFS_NM": "Central Warehousing Corporation-I"
+  },
+  {
+    "LOC_NM": "Kandla",
+    "CFS_CODE": "INIXY1CWC2",
+    "CFS_NM": "Central Warehousing Corporation-II"
+  },
+  {
+    "LOC_NM": "Kandla",
+    "CFS_CODE": "INIXY1FFS1",
+    "CFS_NM": "SAURASHTRA FREIGHT PVT. LTD"
+  },
+  {
+    "LOC_NM": "Kandla",
+    "CFS_CODE": "INIXY1LPF1",
+    "CFS_NM": "LILADHAR PASOO FORWARDERS PRIVATE LIMITED"
+  },
+  {
+    "LOC_NM": "Kandla",
+    "CFS_CODE": "INIXY1CWC3",
+    "CFS_NM": "Central Warehousing Corporation-Gandhidham"
+  },
+  {
+    "LOC_NM": "Kandla",
+    "CFS_CODE": "INIXY1KPT1",
+    "CFS_NM": "Kandla Port Trust"
+  },
+  {
+    "LOC_NM": "Kakinada",
+    "CFS_CODE": "INKAK1KSP1",
+    "CFS_NM": "Kakinada Sea Ports Ltd.,"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INBLR4AIS1",
+    "CFS_NM": "Air India Sats"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INAMD4GSE1",
+    "CFS_NM": "GSEC Limited"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INAMG6CON1",
+    "CFS_NM": "CONTAINER CORPORATION OF INDIA LTD,"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INATQ4AAI1",
+    "CFS_NM": "AIRPORTS AUTHORITY OF INDIA"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INBOM4AAI1",
+    "CFS_NM": "AIRPORTS AUTHORITY OF INDIA"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INBOM4MIA1",
+    "CFS_NM": "MUMBAI INTL AIRPORT PVT LTD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INSTT6",
+    "CFS_NM": "ICD DADRI - STTPL (CFS)"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INDER6",
+    "CFS_NM": "NOIDA-DADRI (ICD)"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INFBD6",
+    "CFS_NM": "ICD FARIDABAD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INGHR6",
+    "CFS_NM": "GARHI HARSARU - GURGAON ICD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INLON6",
+    "CFS_NM": "ICD LONI"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMPR6",
+    "CFS_NM": "MALANPUR ICD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMBD6",
+    "CFS_NM": "ICD PAKWARA (MORADABAD)"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INDWN6",
+    "CFS_NM": "SAMALKHA ICD PANIPAT"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INHPI6",
+    "CFS_NM": "SANDKHERA ICD /KASHIPUR"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INCML6",
+    "CFS_NM": "ICD KHATUWAS"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INHDD6",
+    "CFS_NM": "SIDCUL ICD/PANTNAGAR"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INAPL6",
+    "CFS_NM": "ICD DADRI-ACPL CFS"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INCPL6",
+    "CFS_NM": "ICD DADRI-CGML"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INBVC6",
+    "CFS_NM": "CONCOR-ICD/BALLABHGARH"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INPKR6",
+    "CFS_NM": "KRIL ICD/PALI"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INPPG6",
+    "CFS_NM": "ICD PATPARGANJ"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INPTL6",
+    "CFS_NM": "PATLI ICD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INREA6",
+    "CFS_NM": "ICD REWARI"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INTKD6",
+    "CFS_NM": "ICD TUGHLAKABAD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INVTZ1VPL1",
+    "CFS_NM": "VPL Integral"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INPWL6",
+    "CFS_NM": "ICD PALWAL"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INBAW6",
+    "CFS_NM": "BAWAL ICD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INBDM6",
+    "CFS_NM": "PANCHI GUJARAN SONEPAT ICD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INBFR6",
+    "CFS_NM": "ICD PIYALA"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INBLJ6",
+    "CFS_NM": "ICD AGRA"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMUN1CWC1",
+    "CFS_NM": "Central Warehousing Corp - Speedy Multimodes"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMUN1",
+    "CFS_NM": "APSEZ EXIM YARD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1COW2",
+    "CFS_NM": "CONTINENTAL WAREHOUSING CORPORATION (NHAVA SHEVA) LIMITED"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1SPL1",
+    "CFS_NM": "HIND TERMINALS PRIVATE LTD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1SUL1",
+    "CFS_NM": "SANCO II SUDHARSAN LOGISTICS PVT LTD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1NDR1",
+    "CFS_NM": "NDR CFS -CONTINENTAL 3\u00c2\u00a0\u00c2\u00a0"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1OYC1",
+    "CFS_NM": "O YARD & PERSONAL EFFECTS"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1DDD1",
+    "CFS_NM": "REEFER YARD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAANUB1",
+    "CFS_NM": "NUMBAL CFS"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMUN1HTP2",
+    "CFS_NM": "HIND TERMINALS PRIVATE LTD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMUN1LCP1",
+    "CFS_NM": "LAND MARK CFS PVT. LTD."
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMUN1EMP1",
+    "CFS_NM": "EMPEZER LOGISTICS PVT. LTD."
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAANDR1",
+    "CFS_NM": "NDR Infrastructure Pvt Ltd"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1CXC1",
+    "CFS_NM": "CALYX CFS"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMUN1SCP1",
+    "CFS_NM": "SAURASHTRA FREIGHT PVT. LTD."
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INKAT1LNT1",
+    "CFS_NM": "L & T CFS"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1CCL1",
+    "CFS_NM": "CONTAINER CORPORATION OF INDIA LTD."
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1STP1",
+    "CFS_NM": "STP SERVICES PVT LTD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INCPL6CMA1",
+    "CFS_NM": "CMA CGM Logistics Park dadri"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INBOM4AIN1",
+    "CFS_NM": "AIR INDIA (NACIL-A)"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INBOM1MUM1",
+    "CFS_NM": "Mumbai Port Trust"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INPAV1APM1",
+    "CFS_NM": "APM TERMINALS PIPAVAV"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INNPT1TMB1",
+    "CFS_NM": "TAMILNADU MARITIMEBORAD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMUL1",
+    "CFS_NM": "Mulund ICD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INVTZ1CON1",
+    "CFS_NM": "Container Corp. of India Ltd"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INVTZ1SSS1",
+    "CFS_NM": "Sravan Shipping Services P Ltd"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INVTZ1CWC1",
+    "CFS_NM": "Central Warehousing Corp."
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INVTZ1VCT1",
+    "CFS_NM": "Visakha Container Terml P Ltd"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INVTZ1GEI1",
+    "CFS_NM": "Gateway East India Pvt Ltd"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INFBD6ACT1",
+    "CFS_NM": "ACTL-ICD Faridabad"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INTUT1RAC1",
+    "CFS_NM": "Raja Agencies CFS"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INTUT1SEC1",
+    "CFS_NM": "SEC Container Freight Station"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INTUT1TPT1",
+    "CFS_NM": "Tuticorin Port Trust"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INTUT1VIL1",
+    "CFS_NM": "Vilson container freight station"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INLON1CWC1",
+    "CFS_NM": "CENTRAL WAREHOUSING CORP."
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INGGV1GPL1",
+    "CFS_NM": "Gangavaram Port Ltd."
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INTUT1ASS1",
+    "CFS_NM": "AS shipping CFS"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INTUT1CON1",
+    "CFS_NM": "CONCOR CFS"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INTUT1CWC1",
+    "CFS_NM": "Central Warehousing Corpn.CFS"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INTUT1DCP1",
+    "CFS_NM": "Diamond CFS Park"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INTUT1HAR1",
+    "CFS_NM": "Hari CFS"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INTUT1KNP1",
+    "CFS_NM": "KSPS Natarajan CFS park"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMUN1HCL1",
+    "CFS_NM": "HONEYCOMB LOGISTICS PVT LTD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMUN1MCF1",
+    "CFS_NM": "MUNDRA CONTAINER FRIGHT STATION PVT LTD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMUN1MCT1",
+    "CFS_NM": "MUNDRA INTERNATIONAL CONTAINER TERMINAL PVT LTD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMUN1MSE1",
+    "CFS_NM": "MUNDRA PORT AND SPECIAL ECONOMIC ZONE LTD."
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMUN1SMS1",
+    "CFS_NM": "SEABIRD MARINE SERVICES PVT LTD."
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INNML1NMP1",
+    "CFS_NM": "New Mangalore Port Trust"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1VLT1",
+    "CFS_NM": "KENCES CONTAINER TERMINAL LIMITED"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA4AAI1",
+    "CFS_NM": "AIRPORTS AUTHORITY OF INDIA"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMDG6CWC1",
+    "CFS_NM": "Central Warehousing Corpn"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMRM1MPT1",
+    "CFS_NM": "Mormugao Port Trust"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMUN1ACS1",
+    "CFS_NM": "ASHUTOSH CONTAINER SERVICE PVT LTD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMUN1AGL1",
+    "CFS_NM": "Allcargo Terminals Limited"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1SMR1",
+    "CFS_NM": "SICAL DISTRIPARKS LTD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1SGL1",
+    "CFS_NM": "SUN GLOBAL LOGISTICS LTD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1SLP1",
+    "CFS_NM": "SATTVA CFS AND LOGISTICS PVT LTD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1STL1",
+    "CFS_NM": "SANCO TRANS LTD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1TCF1",
+    "CFS_NM": "TRIWAY CONTAINER FREIGHT STATION"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1VIK1",
+    "CFS_NM": "VIKING WAREHOUSING"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1GDL1",
+    "CFS_NM": "GATEWAY DISTRIPARKS LTD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1GES1",
+    "CFS_NM": "GERMAN EXPRESS SHPNG AGENC I P"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1GLO1",
+    "CFS_NM": "GLOVIS INDIA PVT LTD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1ICB1",
+    "CFS_NM": "INDIAN CORPORATE BUSINESS CENTRE (ICBC)"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1KSS1",
+    "CFS_NM": "KAILASH SHIPPING SERVICES P LTD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1MRK1",
+    "CFS_NM": "APM TERMINALS INLAND SERVICES"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1CWC1",
+    "CFS_NM": "CWC MADHAVARAM"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1CWC2",
+    "CFS_NM": "CWC, ROYAPURAM"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1CWC3",
+    "CFS_NM": "CWC, VIRUGAMBAKKAM"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1CWC4",
+    "CFS_NM": "CWC, CHROMEPET"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1DRL1",
+    "CFS_NM": "D.R. LOGISTICS PVT. LTD."
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1ECC1",
+    "CFS_NM": "ENNORE CARGO CONTAINER TERMINAL"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1BLC1",
+    "CFS_NM": "BALMER LAWRIE"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1BNL1",
+    "CFS_NM": "BINNY LTD CFS"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1CCT1",
+    "CFS_NM": "Reefer Yard - Chennai CCTL"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INSEZ",
+    "CFS_NM": "Reefer Yard - Chennai CITPL"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1COW1",
+    "CFS_NM": "CONTINENTAL 1"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1CTO1",
+    "CFS_NM": "CHANDRA CFS & TERM OPERATORS"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INLDH6KCM1",
+    "CFS_NM": "krishna cargo movers pvt ltd"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INLDH6OWP1",
+    "CFS_NM": "Overseas warehousing pvt ltd"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INLDH6PSW1",
+    "CFS_NM": "punjab state warehousing co-op"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INLON6CWC1",
+    "CFS_NM": "CENTRAL WAREHOUSING CORP."
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1AGL1",
+    "CFS_NM": "ALLCARGO GLOBAL LOGISTICS LIMITED"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INMAA1ASS1",
+    "CFS_NM": "A.S. SHIPPING AGENCIES PVT LTD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INIXY1CWC2",
+    "CFS_NM": "Central Warehousing Corporation-II"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INIXY1CWC3",
+    "CFS_NM": "Central Warehousing Corporation-Gandhidham"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INIXY1KPT1",
+    "CFS_NM": "Kandla Port Trust"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INKAK1KSP1",
+    "CFS_NM": "Kakinada Sea Ports Ltd.,"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INLDH6CON1",
+    "CFS_NM": "container corp of india ltd"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INLDH6GRF1",
+    "CFS_NM": "gateway rail freight ltd"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INGOI4CWC1",
+    "CFS_NM": "Central Warehousing Corpn"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INIXY1ABG1",
+    "CFS_NM": "ABG Kandla Container Terminal "
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INIXY1ACP1",
+    "CFS_NM": "Aditya CFS Pvt. Ltd."
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INIXY1AVJ1",
+    "CFS_NM": "Arvind V. Joshi & Co."
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INIXY1CON1",
+    "CFS_NM": "Container Corprn of India Ltd"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INIXY1CWC1",
+    "CFS_NM": "Central Warehousing Corporation-I"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INCOK1PET1",
+    "CFS_NM": "CFS PETTA"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INCOK4CAC1",
+    "CFS_NM": "COCHIN AIR CARGO COMPLEX"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INCOK4CIA1",
+    "CFS_NM": "COCHIN INTERNATIONAL AIRPORT LIMITED (CIAL)"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INDEL4DIA1",
+    "CFS_NM": "DIAL"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INDR4GSE1",
+    "CFS_NM": "GSEC Limited"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INGHR6GDL1",
+    "CFS_NM": "Gateway Distriparks Limited"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INCCU4AAI1",
+    "CFS_NM": "AIRPORTS AUTHORITY OF INDIA"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INCJB4AAI1",
+    "CFS_NM": "AIRPORTS AUTHORITY OF INDIA"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INCOK1AST1",
+    "CFS_NM": "ASIAN TERMINALS"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INCOK1CPC1",
+    "CFS_NM": "COCHIN PORT TRUST"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INCOK1FAL1",
+    "CFS_NM": "FALCON CFS"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INCOK1IGT1",
+    "CFS_NM": "INDIA GATEWAY TERMINAL (P) LTD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INCCU1ALL1",
+    "CFS_NM": "A.L. LOGISTICS PVT. LTD"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INCCU1BLC1",
+    "CFS_NM": "BALMER LAWRIE and CO.LTD (KOLKATA)"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INCCU1CPL1",
+    "CFS_NM": "Century Plyboards I LTD Sonai-CFS"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INCCU1CWC1",
+    "CFS_NM": "CENTRAL WAREHOUSING CORPORATION"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INCCU1HDC1",
+    "CFS_NM": "HALDIA DOCK COMPLEX , KOLKATA PORT TRUST"
+  },
+  {
+    "LOC_NM": "NCR",
+    "CFS_CODE": "INCCU1KKP1",
+    "CFS_NM": "KOLKATA PORT TRUST"
+  },
+  {
+    "LOC_NM": "ICD Amingaon(Gauhati)",
+    "CFS_CODE": "INAMG6CON1",
+    "CFS_NM": "CONTAINER CORPORATION OF INDIA LTD,"
+  },
+  {
+    "LOC_NM": "Delhi Air Cargo",
+    "CFS_CODE": "INDEL4DIA1",
+    "CFS_NM": "DIAL"
+  },
+  {
+    "LOC_NM": "Goa Sea",
+    "CFS_CODE": "INMRM1MPT1",
+    "CFS_NM": "Mormugao Port Trust"
+  },
+  {
+    "LOC_NM": "ICD Margao",
+    "CFS_CODE": "INMDG6CWC1",
+    "CFS_NM": "Central Warehousing Corpn"
+  },
+  {
+    "LOC_NM": "Dabolim",
+    "CFS_CODE": "INGOI4CWC1",
+    "CFS_NM": "Central Warehousing Corpn"
+  },
+  {
+    "LOC_NM": "ICD Baroda",
+    "CFS_CODE": "TSTCFS",
+    "CFS_NM": "EA CFS"
+  },
+  {
+    "LOC_NM": "Ahmedabad",
+    "CFS_CODE": "INAMD4GSE1",
+    "CFS_NM": "GSEC Limited"
+  },
+  {
+    "LOC_NM": "Garhi Harsaru - Gurgaon ICD",
+    "CFS_CODE": "INGHR6GDL1",
+    "CFS_NM": "Gateway Distriparks Limited"
+  },
+  {
+    "LOC_NM": "ICD Faridabad",
+    "CFS_CODE": "INFBD6ACT1",
+    "CFS_NM": "ACTL-ICD Faridabad"
+  },
+  {
+    "LOC_NM": "Banglore Air Cargo",
+    "CFS_CODE": "INBLR4AIS1",
+    "CFS_NM": "Air India Sats"
+  },
+  {
+    "LOC_NM": "Cochin Air",
+    "CFS_CODE": "INCOK4CAC1",
+    "CFS_NM": "COCHIN AIR CARGO COMPLEX"
+  },
+  {
+    "LOC_NM": "Cochin Air",
+    "CFS_CODE": "INCOK4CIA1",
+    "CFS_NM": "COCHIN INTERNATIONAL AIRPORT LIMITED (CIAL)"
+  },
+  {
+    "LOC_NM": "Bombay Air Cargo",
+    "CFS_CODE": "INBOM4AAI1",
+    "CFS_NM": "AIRPORTS AUTHORITY OF INDIA"
+  },
+  {
+    "LOC_NM": "Bombay Air Cargo",
+    "CFS_CODE": "INBOM4MIA1",
+    "CFS_NM": "MUMBAI INTL AIRPORT PVT LTD"
+  },
+  {
+    "LOC_NM": "Bombay Air Cargo",
+    "CFS_CODE": "INBOM4AIN1",
+    "CFS_NM": "AIR INDIA (NACIL-A)"
+  },
+  {
+    "LOC_NM": "Mumbai",
+    "CFS_CODE": "INBOM1MUM1",
+    "CFS_NM": "Mumbai Port Trust"
+  },
+  {
+    "LOC_NM": "Gangavaram Port",
+    "CFS_CODE": "INGGV1GPL1",
+    "CFS_NM": "Gangavaram Port Ltd."
+  },
+  {
+    "LOC_NM": "Gangavaram Port",
+    "CFS_CODE": "INVTZ1SSS2",
+    "CFS_NM": "SRAVAN CFS 2"
+  },
+  {
+    "LOC_NM": "Gangavaram Port",
+    "CFS_CODE": "INVTZ1SMR1",
+    "CFS_NM": "SMART SICAL CFS"
+  },
+  {
+    "LOC_NM": "Gangavaram Port",
+    "CFS_CODE": "INVTZ1VPL1",
+    "CFS_NM": "VPL Integral"
+  },
+  {
+    "LOC_NM": "Gangavaram Port",
+    "CFS_CODE": "INVTZ1GEI1",
+    "CFS_NM": "Gateway East India Pvt Ltd"
+  },
+  {
+    "LOC_NM": "Gangavaram Port",
+    "CFS_CODE": "INGGV1GPL2",
+    "CFS_NM": "ADANI GANGAVARAM PORT LIMITED EXIM YARD"
+  },
+  {
+    "LOC_NM": "Gangavaram Port",
+    "CFS_CODE": "INVTZ1SSS1",
+    "CFS_NM": "Sravan Shipping Services P Ltd"
+  },
+  {
+    "LOC_NM": "Gangavaram Port",
+    "CFS_CODE": "INVTZ1VCL1",
+    "CFS_NM": "SATTVA CFS (VISAKHA CFS)"
+  },
+  {
+    "LOC_NM": "Gangavaram Port",
+    "CFS_CODE": "INVTZ1VLP1",
+    "CFS_NM": "VISAKHAPATNAM PORT LOGISTICS PARK LTD"
+  },
+  {
+    "LOC_NM": "Gangavaram Port",
+    "CFS_CODE": "INVTZ1CON2",
+    "CFS_NM": "CONCOR MMLP CFS"
+  },
+  {
+    "LOC_NM": "Gangavaram Port",
+    "CFS_CODE": "INVTZ1CWC1",
+    "CFS_NM": "Central Warehousing Corp."
+  },
+  {
+    "LOC_NM": "Gangavaram Port",
+    "CFS_CODE": "INVTZ1VCT2",
+    "CFS_NM": "VISAKHA CONTAINER TERMINAL CFS"
+  },
+  {
+    "LOC_NM": "Rajasansi(Amritsar)",
+    "CFS_CODE": "INATQ4AAI1",
+    "CFS_NM": "AIRPORTS AUTHORITY OF INDIA"
+  },
+  {
+    "LOC_NM": "ICD Dhandrikalan-Concor Ludhiana",
+    "CFS_CODE": "INLDH6CON1",
+    "CFS_NM": "container corp of india ltd"
+  },
+  {
+    "LOC_NM": "ICD Dhandrikalan-Concor Ludhiana",
+    "CFS_CODE": "INLDH6GRF1",
+    "CFS_NM": "gateway rail freight ltd"
+  },
+  {
+    "LOC_NM": "ICD Dhandrikalan-Concor Ludhiana",
+    "CFS_CODE": "INLDH6KCM1",
+    "CFS_NM": "krishna cargo movers pvt ltd"
+  },
+  {
+    "LOC_NM": "ICD Dhandrikalan-Concor Ludhiana",
+    "CFS_CODE": "INLDH6OWP1",
+    "CFS_NM": "Overseas warehousing pvt ltd"
+  },
+  {
+    "LOC_NM": "ICD Dhandrikalan-Concor Ludhiana",
+    "CFS_CODE": "INLDH6PSW1",
+    "CFS_NM": "punjab state warehousing co-op"
+  },
+  {
+    "LOC_NM": "Chennai Air Cargo",
+    "CFS_CODE": "INMAA4AAI1",
+    "CFS_NM": "AIRPORTS AUTHORITY OF INDIA"
+  },
+  {
+    "LOC_NM": "Nagapattinam",
+    "CFS_CODE": "INNPT1TMB1",
+    "CFS_NM": "TAMILNADU MARITIMEBORAD"
+  },
+  {
+    "LOC_NM": "Coimbatore",
+    "CFS_CODE": "INCJB4AAI1",
+    "CFS_NM": "AIRPORTS AUTHORITY OF INDIA"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1CON1",
+    "CFS_NM": "CONTAINER CORPN OF INDIA LTD"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INKAT1LNT1",
+    "CFS_NM": "L & T CFS"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INENR1AEC1",
+    "CFS_NM": "REEFER YARD ( ENNORE ADANI )"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1SCL1",
+    "CFS_NM": "SUPPLY CHAIN LOGISTICS PVT LTD"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1SPL1",
+    "CFS_NM": "HIND TERMINALS PRIVATE LTD"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1NDR1",
+    "CFS_NM": "NDR CFS -CONTINENTAL 3\u00c2\u00a0\u00c2\u00a0"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INTEN6",
+    "CFS_NM": "SIPCOT SEZ"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INKAT1AWC1",
+    "CFS_NM": "APOLLO WORLD CONNECT CFS"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1TRL1",
+    "CFS_NM": "THIRU RANI LOGISTICS PVT LTD"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1SHC1",
+    "CFS_NM": "SATTVA HITECH AND CONWARE PVT LTD"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1CXC1",
+    "CFS_NM": "CALYX CFS"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1CCL1",
+    "CFS_NM": "CONTAINER CORPORATION OF INDIA LTD."
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1STP1",
+    "CFS_NM": "STP SERVICES PVT LTD"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1OYC1",
+    "CFS_NM": "O YARD & PERSONAL EFFECTS"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1DDD1",
+    "CFS_NM": "REEFER YARD"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1COW2",
+    "CFS_NM": "CONTINENTAL WAREHOUSING CORPORATION (NHAVA SHEVA) LIMITED"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1SLP1",
+    "CFS_NM": "SATTVA CFS AND LOGISTICS PVT LTD"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1STL1",
+    "CFS_NM": "SANCO TRANS LTD"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1TCF1",
+    "CFS_NM": "TRIWAY CONTAINER FREIGHT STATION"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1VIK1",
+    "CFS_NM": "VIKING WAREHOUSING"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1VLT1",
+    "CFS_NM": "KENCES CONTAINER TERMINAL LIMITED"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA4AAI1",
+    "CFS_NM": "AIRPORTS AUTHORITY OF INDIA"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1GLO1",
+    "CFS_NM": "GLOVIS INDIA PVT LTD"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1ICB1",
+    "CFS_NM": "INDIAN CORPORATE BUSINESS CENTRE (ICBC)"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1KSS1",
+    "CFS_NM": "KAILASH SHIPPING SERVICES P LTD"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1MRK1",
+    "CFS_NM": "APM TERMINALS INLAND SERVICES"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1SMR1",
+    "CFS_NM": "SICAL DISTRIPARKS LTD"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1SGL1",
+    "CFS_NM": "SUN GLOBAL LOGISTICS LTD"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1CWC3",
+    "CFS_NM": "CWC, VIRUGAMBAKKAM"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1CWC4",
+    "CFS_NM": "CWC, CHROMEPET"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1DRL1",
+    "CFS_NM": "D.R. LOGISTICS PVT. LTD."
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1ECC1",
+    "CFS_NM": "ENNORE CARGO CONTAINER TERMINAL"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1GDL1",
+    "CFS_NM": "GATEWAY DISTRIPARKS LTD"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1GES1",
+    "CFS_NM": "GERMAN EXPRESS SHPNG AGENC I P"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1CCT1",
+    "CFS_NM": "Reefer Yard - Chennai CCTL"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INSEZ",
+    "CFS_NM": "Reefer Yard - Chennai CITPL"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1COW1",
+    "CFS_NM": "CONTINENTAL 1"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1CTO1",
+    "CFS_NM": "CHANDRA CFS & TERM OPERATORS"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1CWC1",
+    "CFS_NM": "CWC MADHAVARAM"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1CWC2",
+    "CFS_NM": "CWC, ROYAPURAM"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1AGL1",
+    "CFS_NM": "ALLCARGO GLOBAL LOGISTICS LIMITED"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1ASS1",
+    "CFS_NM": "A.S. SHIPPING AGENCIES PVT LTD"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1BLC1",
+    "CFS_NM": "BALMER LAWRIE"
+  },
+  {
+    "LOC_NM": "Ennore",
+    "CFS_CODE": "INMAA1BNL1",
+    "CFS_NM": "BINNY LTD CFS"
+  },
+  {
+    "LOC_NM": "ICD Loni",
+    "CFS_CODE": "INLON6CWC1",
+    "CFS_NM": "CENTRAL WAREHOUSING CORP."
+  },
+  {
+    "LOC_NM": "ICD Dadri-CGML",
+    "CFS_CODE": "INCPL6CMA1",
+    "CFS_NM": "CMA CGM Logistics Park dadri"
+  },
+  {
+    "LOC_NM": "Kolkata Air Cargo",
+    "CFS_CODE": "INCCU4AAI1",
+    "CFS_NM": "AIRPORTS AUTHORITY OF INDIA"
+  }
+]

@@ -252,15 +252,9 @@ const TrackF13 = () => {
   useEffect(() => {
     const init = async () => {
       try {
-        const cachedLines = localStorage.getItem("shippingLinesMaster");
-        if (cachedLines) {
-          setShippingLines(JSON.parse(cachedLines));
-        } else {
-          const slResponse = await masterAPI.getShippingLines();
-          const data = slResponse.data || [];
-          setShippingLines(data);
-          localStorage.setItem("shippingLinesMaster", JSON.stringify(data));
-        }
+        const slResponse = await masterAPI.getShippingLines();
+        const data = slResponse.data || [];
+        setShippingLines(data);
       } catch (err) {
         console.warn("Failed to load shipping lines master data:", err);
       }
@@ -334,6 +328,11 @@ const TrackF13 = () => {
               onChange={(e) =>
                 setFilters({ ...filters, dateFrom: e.target.value })
               }
+              onDoubleClick={(e) => {
+                if (typeof e.target.showPicker === "function") {
+                  try { e.target.showPicker(); } catch (err) {}
+                }
+              }}
             />
           </div>
           <div className="form-group">
@@ -345,6 +344,11 @@ const TrackF13 = () => {
               onChange={(e) =>
                 setFilters({ ...filters, dateTo: e.target.value })
               }
+              onDoubleClick={(e) => {
+                if (typeof e.target.showPicker === "function") {
+                  try { e.target.showPicker(); } catch (err) {}
+                }
+              }}
             />
           </div>
           <div

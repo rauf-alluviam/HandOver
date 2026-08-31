@@ -9,6 +9,7 @@ import cookieParser from "cookie-parser";
 
 import apiLogRoutes from "./routes/apiLogRoutes.js";
 import form13 from "./routes/form13.js";
+import esb from "./routes/esb.js";
 import masterData from "./routes/masterData.js";
 import handleS3Deletion from "./routes/handleS3Deletion.js";
 
@@ -40,6 +41,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use("/api", apiLogRoutes);
 app.use("/api/form13", form13);
+app.use("/api/esb", esb);
 app.use("/api/master", masterData);
 app.use(handleS3Deletion);
 // Health check

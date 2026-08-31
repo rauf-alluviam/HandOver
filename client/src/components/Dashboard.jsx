@@ -276,6 +276,13 @@ const Dashboard = () => {
             onClick={handleOpenLocationDialog}
           />
           <FeatureCard
+            icon={<Icons.Ship />}
+            title="e-SB (Shipping Bill)"
+            description="Automate Shipping Bill declarations for export containers. Real-time submission & status tracking via ODeX."
+            buttonText="Submit e-SB"
+            onClick={() => navigate("/esb")}
+          />
+          <FeatureCard
             icon={<Icons.Status />}
             title="Track Requests"
             description="Monitor real-time status of your containers. View history and download confirmation reports."
@@ -329,6 +336,18 @@ const Dashboard = () => {
                   className="action-link"
                 >
                   New Form 13 <span>&rarr;</span>
+                </button>
+                <button
+                  onClick={() => navigate("/esb")}
+                  className="action-link"
+                >
+                  New e-SB (Shipping Bill) <span>&rarr;</span>
+                </button>
+                <button
+                  onClick={() => navigate("/track-esb")}
+                  className="action-link"
+                >
+                  Track e-SB Requests <span>&rarr;</span>
                 </button>
                 <button
                   onClick={() => navigate("/vgm-status")}

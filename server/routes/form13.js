@@ -309,11 +309,32 @@ router.post("/submit", async (req, res) => {
       }
     }
 
+    // CFS Code Validation Rule
+    const isCfsNotApplicable =
+      formData.formType === "CART_IN" ||
+      ["F", "W", "R", "E_TANK"].includes(formData.origin);
+
+    const isCfsMandatory =
+      !isCfsNotApplicable &&
+      (["C", "CFS_RAIL", "B", "F_CFS"].includes(formData.origin) ||
+        formData.terminalCode === "MICT");
+
+    if (isCfsNotApplicable) {
+      formData.cfsCode = "";
+    } else if (isCfsMandatory && (!formData.cfsCode || !formData.cfsCode.trim())) {
+      const reason = formData.terminalCode === "MICT" ? "Terminal is MICT" : `Origin '${formData.origin}'`;
+      return res.status(400).json({
+        success: false,
+        error: `CFS Code is mandatory for ${reason}`,
+      });
+    }
+
     // Shipper Master Validation Error 1024
     const shipperCheck = await validateShipperDetails(
       formData.shipperNm,
       formData.shipperCd,
-      formData.locId || formData.portCd || formData.portId || ""
+      formData.locId || formData.portCd || formData.portId || "",
+      formData.terminalCode || formData.terminal || ""
     );
     if (!shipperCheck.isValid) {
       return res.status(400).json({
@@ -321,6 +342,12 @@ router.post("/submit", async (req, res) => {
         errorCode: 1024,
         error: "Shipper Name or Shipper Code is invalid. Shipper details should match with the master data value.",
       });
+    }
+
+    if (shipperCheck.matchedCd) {
+      formData.shipperCd = shipperCheck.matchedCd;
+    } else if (!formData.shipperCd || formData.shipperCd === "") {
+      formData.shipperCd = "OTHR";
     }
 
     // Always inject correct hashKey from server configuration

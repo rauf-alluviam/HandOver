@@ -90,19 +90,19 @@ const Form13 = () => {
     service: "",
     pod: "",
     fpod: "",
-    cargoTp: "",
+    cargoTp: "GEN",
     origin: "",
     shpInstructNo: "",
     bookNo: "",
-    mobileNo: "",
+    mobileNo: "9924304250",
     cfsCode: "",
-    issueTo: "",
+    issueTo: "SHIPPER",
     shipperNm: "",
     consigneeNm: "",
     consigneeAddr: "",
     cargoDesc: "",
     terminalLoginId: "ALL_CHA",
-    emailId: "",
+    emailId: "ashok@surajforwarders.com",
     bookCopyBlNo: "",
     cntnrStatus: "Full",
     formType: "F13",
@@ -280,17 +280,38 @@ const Form13 = () => {
     return unmerged;
   };
 
-  // Pre-fill pyrCode and emailId when userData becomes available
+  // Pre-fill pyrCode and emailId when userData or localStorage becomes available
   useEffect(() => {
-    if (userData) {
-      const email = userData.email || userData.emailId || (userData.username && userData.username.includes("@") ? userData.username : "");
+    const getFallbackEmail = () => {
+      try {
+        const sUser = localStorage.getItem("userData") || localStorage.getItem("exim_user");
+        const pUser = sUser ? JSON.parse(sUser) : null;
+        return pUser?.email || pUser?.emailId || (pUser?.username && pUser.username.includes("@") ? pUser.username : "") || localStorage.getItem("userEmail") || localStorage.getItem("email") || "";
+      } catch (e) {
+        return localStorage.getItem("userEmail") || localStorage.getItem("email") || "";
+      }
+    };
+    const email = userData?.email || userData?.emailId || (userData?.username && userData?.username.includes("@") ? userData.username : "") || getFallbackEmail();
+    setFormData((prev) => ({
+      ...prev,
+      pyrCode: prev.pyrCode || userData?.pyrCode || "",
+      emailId: prev.emailId || email || "",
+    }));
+  }, [userData]);
+
+  // Auto-clear cfsCode when origin or formType is Not Applicable
+  useEffect(() => {
+    const isNotApplicable =
+      formData.formType === "CART_IN" ||
+      ["F", "W", "R", "E_TANK"].includes(formData.origin);
+
+    if (isNotApplicable && formData.cfsCode) {
       setFormData((prev) => ({
         ...prev,
-        pyrCode: prev.pyrCode || userData.pyrCode || "",
-        emailId: prev.emailId || email || "",
+        cfsCode: "",
       }));
     }
-  }, [userData]);
+  }, [formData.origin, formData.formType, formData.cfsCode]);
 
   // Auto-populate CHACode, Shipping Bill chaNm, and chaPan when shipperNm is provided
   useEffect(() => {
@@ -399,56 +420,102 @@ const Form13 = () => {
           return "";
         };
 
-        // 1. Shipping Line (bookLinId)
+        // 1. Shipping Line (bnfCode / bookLinId)
         const rawShippingLine = job.shipping_line_airline || job.shippingLine || (job.operations?.[0]?.statusDetails?.[0]?.shippingLine) || "";
         let foundLineId = "";
-        if (rawShippingLine && shippingLines && shippingLines.length > 0) {
-          const lineSearch = rawShippingLine.toLowerCase().trim();
-          const match = shippingLines.find(sl => {
-            const val = (sl.value || sl.code || "").toLowerCase().trim();
-            const lab = (sl.label || sl.name || "").toLowerCase().trim();
-            return val === lineSearch || lab === lineSearch || lineSearch.includes(val) || lineSearch.includes(lab);
-          });
-          if (match) foundLineId = match.value || match.code || "";
+
+        if (rawShippingLine) {
+          let nameAfterHyphen = rawShippingLine.trim();
+          let codeBeforeHyphen = "";
+          if (rawShippingLine.includes("-")) {
+            const parts = rawShippingLine.split("-");
+            codeBeforeHyphen = parts[0].trim();
+            nameAfterHyphen = parts.slice(1).join("-").trim();
+          }
+
+          const sNameLower = nameAfterHyphen.toLowerCase();
+          const sCodeLower = codeBeforeHyphen.toLowerCase();
+
+          if (Array.isArray(shippingLines) && shippingLines.length > 0) {
+            const match = shippingLines.find(sl => {
+              const val = (sl.value || sl.code || "").toLowerCase().trim();
+              const lab = (sl.label || sl.name || "").toLowerCase().trim();
+              return (
+                lab === sNameLower ||
+                val === sNameLower ||
+                (sCodeLower && val === sCodeLower) ||
+                lab.includes(sNameLower) ||
+                sNameLower.includes(lab) ||
+                (sCodeLower && lab.includes(sCodeLower))
+              );
+            });
+            if (match) {
+              foundLineId = match.value || match.code || "";
+            }
+          }
+
+          if (!foundLineId && Array.isArray(vessels) && vessels.length > 0) {
+            const vMatch = vessels.find(v => {
+              const bCode = (v.bnfCode || "").toLowerCase().trim();
+              const bNm = (v.bnfNm || v.shippingLine || "").toLowerCase().trim();
+              return (
+                bCode === sNameLower ||
+                bNm === sNameLower ||
+                (sCodeLower && bCode === sCodeLower) ||
+                bNm.includes(sNameLower) ||
+                sNameLower.includes(bNm) ||
+                sNameLower.includes(bCode)
+              );
+            });
+            if (vMatch) {
+              foundLineId = vMatch.bnfCode || "";
+            }
+          }
+
+          if (!foundLineId) {
+            foundLineId = nameAfterHyphen;
+          }
         }
 
         // 2. Booking No (bookNo) & Shipping Instruction No (shpInstructNo = bookNo)
         const bNo = job.booking_no || job.bookingNo || "";
 
         // 3. User email & default mobile
-        const userEmail = userData?.email || userData?.emailId || (userData?.username && userData.username.includes("@") ? userData.username : "");
-        const defaultMobile = "99243 04250";
+        // 3. User email & default mobile
+        const jobEmail = getField(job, "emailId", "email", "email_id", "exporter_email", "exporterEmail", "userEmail", "contact_email", "created_by_email");
+        const userEmail = jobEmail || "ashok@surajforwarders.com";
+        const defaultMobile = "9924304250";
 
-        // 4. Shipper Name & Code (Search using first word of exporter)
-        const rawExporter = job.exporter || "";
-        let foundShipperNm = rawExporter;
-        let foundShipperCd = "";
-
-        if (rawExporter) {
-          const firstWord = rawExporter.trim().split(/\s+/)[0];
-          try {
-            const res = await masterAPI.getShippers(firstWord, job.custom_house || job.port_of_loading || "");
-            const options = res.data || [];
-            if (options && options.length > 0) {
-              const matched = options.find(opt =>
-                (opt.shipperNm || "").toLowerCase().includes(firstWord.toLowerCase())
-              ) || options[0];
-
-              if (matched) {
-                foundShipperNm = matched.shipperNm || rawExporter;
-                foundShipperCd = matched.shipperCd || "";
-              }
-            }
-          } catch (e) {
-            console.warn("Shipper master lookup failed:", e);
+        // 4. Origin Resolution (from goods_stuffed_at or stuffing_type or origin)
+        const rawStuffing = getField(job, "goods_stuffed_at", "stuffing_type", "origin", "stuffed_at", "stuff_type") || "";
+        let resolvedOrigin = "F";
+        if (rawStuffing) {
+          const uStuff = String(rawStuffing).toUpperCase().trim();
+          if (uStuff.includes("FACTORY") && uStuff.includes("CFS")) {
+            resolvedOrigin = "F_CFS";
+          } else if (uStuff.includes("FACTORY") || uStuff.includes("FCL")) {
+            resolvedOrigin = "F";
+          } else if (uStuff.includes("DOCK") || uStuff.includes("LCL")) {
+            resolvedOrigin = "C";
+          } else if (uStuff.includes("BUFFER")) {
+            resolvedOrigin = "B";
+          } else if (uStuff.includes("ROAD") || uStuff.includes("ICD")) {
+            resolvedOrigin = "R";
+          } else if (uStuff.includes("WHEEL")) {
+            resolvedOrigin = "W";
+          } else if (uStuff.includes("TANK")) {
+            resolvedOrigin = "E_TANK";
           }
         }
 
-        // 5. Consignee Name & Address
+        // 5. Shipper Name & Code (Shipper is intentionally selected manually by user)
+        const rawExporter = job.exporter || "";
+
+        // 6. Consignee Name & Address
         const consigneeNm = job.consignee_name || (job.consignees?.[0]?.consignee_name) || "";
         const consigneeAddr = job.consignee_address || (job.consignees?.[0]?.address) || job.exporter_address || "";
 
-        // 6. Containers list
+        // 7. Containers list
         const rawContainers = Array.isArray(job.containers) ? job.containers : (job.operations?.[0]?.containerdetails || job.operations?.[0]?.containerDetails || []);
 
         let formattedContainers = [];
@@ -575,13 +642,15 @@ const Form13 = () => {
           vesselNm: job.vessel_name || job.vessel || prev.vesselNm,
           bookNo: bNo || prev.bookNo,
           shpInstructNo: bNo || prev.shpInstructNo,
-          emailId: userEmail || prev.emailId,
+          cargoTp: getField(job, "cargoTp", "cargo_type") || "GEN",
+          origin: resolvedOrigin || prev.origin,
+          emailId: userEmail,
           mobileNo: defaultMobile,
-          shipperNm: foundShipperNm || prev.shipperNm,
-          shipperCd: foundShipperCd || prev.shipperCd,
+          shipperNm: prev.shipperNm || "",
+          shipperCd: prev.shipperCd || "",
           consigneeNm: consigneeNm || prev.consigneeNm,
           consigneeAddr: consigneeAddr || prev.consigneeAddr,
-          issueTo: "Shipper",
+          issueTo: "SHIPPER",
           IECode: job.ieCode || prev.IECode,
           containers: formattedContainers
         }));
@@ -656,62 +725,38 @@ const Form13 = () => {
 
       setVessels(vesselsData);
 
-      // --- Load POD Master Data from ODeX API ---
+      // --- Load POD Master Data from API ---
       try {
-        const cachedPods = localStorage.getItem("podCodesMaster");
-        if (cachedPods) {
-          setPods(JSON.parse(cachedPods));
-        } else {
-          const podResponse = await masterAPI.getPODCodes();
-          const data = podResponse.data || [];
-          setPods(data);
-          localStorage.setItem("podCodesMaster", JSON.stringify(data));
-        }
+        const podResponse = await masterAPI.getPODCodes();
+        const data = podResponse.data || [];
+        setPods(data);
       } catch (podErr) {
-        console.warn("Failed to load POD codes from ODeX API:", podErr);
+        console.warn("Failed to load POD codes from API:", podErr);
       }
 
-      // Load Shipping Lines from Master Data
+      // Load Shipping Lines from Master Data API
       try {
-        const cachedLines = localStorage.getItem("shippingLinesMaster");
-        if (cachedLines) {
-          setShippingLines(JSON.parse(cachedLines));
-        } else {
-          const slResponse = await masterAPI.getShippingLines();
-          const data = slResponse.data || [];
-          setShippingLines(data);
-          localStorage.setItem("shippingLinesMaster", JSON.stringify(data));
-        }
+        const slResponse = await masterAPI.getShippingLines();
+        const data = slResponse.data || [];
+        setShippingLines(data);
       } catch (slErr) {
         console.warn("Failed to load shipping lines mapping:", slErr);
       }
 
-      // Load Hauliers from Master Data
+      // Load Hauliers from Master Data API
       try {
-        const cachedHauliers = localStorage.getItem("hauliersMaster");
-        if (cachedHauliers) {
-          setHauliers(JSON.parse(cachedHauliers));
-        } else {
-          const hResponse = await masterAPI.getHauliers();
-          const data = hResponse.data || [];
-          setHauliers(data);
-          localStorage.setItem("hauliersMaster", JSON.stringify(data));
-        }
+        const hResponse = await masterAPI.getHauliers();
+        const data = hResponse.data || [];
+        setHauliers(data);
       } catch (hErr) {
         console.warn("Failed to load hauliers mapping:", hErr);
       }
 
-      // Load CFS Codes from Master Data
+      // Load CFS Codes from Master Data API
       try {
-        const cachedCfs = localStorage.getItem("cfsCodesMaster");
-        if (cachedCfs) {
-          setCfsCodes(JSON.parse(cachedCfs));
-        } else {
-          const cfsResponse = await masterAPI.getCFSCodes();
-          const data = cfsResponse.data || [];
-          setCfsCodes(data);
-          localStorage.setItem("cfsCodesMaster", JSON.stringify(data));
-        }
+        const cfsResponse = await masterAPI.getCFSCodes();
+        const data = cfsResponse.data || [];
+        setCfsCodes(data);
       } catch (cfsErr) {
         console.warn("Failed to load CFS codes mapping:", cfsErr);
       }
@@ -1116,17 +1161,31 @@ const Form13 = () => {
     checkPattern("mobileNo", "Mobile No", formData.mobileNo, digitsOnlyPattern, false);
 
     // CFS code validation
+    const isCfsNotReq = formData.formType === "CART_IN" || ["F", "W", "R", "E_TANK"].includes(formData.origin);
+
     if (isFieldRequired('cfsCode', formData)) {
-      checkLength("cfsCode", "CFS Code", formData.cfsCode, 20, 1, true);
-      checkPattern("cfsCode", "CFS Code", formData.cfsCode, alphanumericNoSpacePattern, false);
-    } else if (formData.cfsCode) {
+      if (!formData.cfsCode || !formData.cfsCode.trim()) {
+        const reason = formData.terminalCode === "MICT" ? "Terminal is MICT" : `Origin is ${formData.origin}`;
+        errors.cfsCode = `CFS Code is mandatory when ${reason}`;
+      } else {
+        checkLength("cfsCode", "CFS Code", formData.cfsCode, 20, 1, true);
+        checkPattern("cfsCode", "CFS Code", formData.cfsCode, alphanumericNoSpacePattern, false);
+      }
+    } else if (formData.cfsCode && !isCfsNotReq) {
       checkLength("cfsCode", "CFS Code", formData.cfsCode, 20, 0, false);
       checkPattern("cfsCode", "CFS Code", formData.cfsCode, alphanumericNoSpacePattern, true);
     }
 
-    // Dock Destuff requires CFS
-    if (formData.origin === "C" && !formData.cfsCode) {
-      errors.cfsCode = "CFS is required when Origin is Dock Destuff";
+    // CFS Location Master Data validation
+    if (formData.cfsCode && !isCfsNotReq && cfsCodes && cfsCodes.length > 0) {
+      const enteredCode = formData.cfsCode.trim().toUpperCase();
+      const isValidCfs = cfsCodes.some(c => {
+        const val = (c.value || c.cfsCode || "").trim().toUpperCase();
+        return val === enteredCode;
+      });
+      if (!isValidCfs) {
+        errors.cfsCode = "CFS Code is invalid for the selected location. Please select a valid CFS from master data.";
+      }
     }
 
     // Issue To validation
@@ -2149,7 +2208,7 @@ const Form13 = () => {
         cargoDesc: isVisible("cargoDesc") ? formData.cargoDesc : "",
         terminalLoginId: isVisible("terminalLoginId") ? formData.terminalLoginId : "",
         isEarlyGateIn: formData.isEarlyGateIn || formData.IsEarlyGateIn || "N",
-        shipperCd: formData.shipperCd || "",
+        shipperCd: formData.shipperCd || "OTHR",
         shipperCity: isVisible("ShipperCity") ? (formData.shipperCity || formData.ShipperCity || "") : "",
         ffCode: isVisible("FFCode") ? (formData.ffCode || formData.FFCode || "") : "",
         ieCode: isVisible("IECode") ? (formData.ieCode || formData.IECode || "") : "",
