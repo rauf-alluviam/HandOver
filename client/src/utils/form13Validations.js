@@ -611,6 +611,7 @@ export const ATTACHMENT_REQUIREMENTS = {
     BOOKING_CONF_COPY: "Booking confirmation copy",
     CHK_LIST: "Check List",
     CLN_CRTFCT: "Cleaning certificate",
+    CLN_CRTFTCT: "Cleaning certificate",
     CNTNR_LOAD_PLAN: "Container Load Plan",
   },
 };
@@ -840,8 +841,8 @@ export const getRequiredAttachments = (formData) => {
     addReq("FIRE_OFC_CRTFCT");
   }
 
-  // 12. HAZ_DG_DECLARATION - ListExtended, Cargo: ODC HAZ
-  if (ListExtended.includes(locId) && isOdcHazCargo) {
+  // 12. HAZ_DG_DECLARATION - ListExtended, Cargo: ODC / HAZ
+  if (ListExtended.includes(locId) && isHazOrOdc) {
     addReq("HAZ_DG_DECLARATION");
   }
 
@@ -851,7 +852,7 @@ export const getRequiredAttachments = (formData) => {
   }
 
   // 14. LASHING_CERTIFICATE - ListExtended, Cargo: ODC & HAZ
-  if (ListExtended.includes(locId) && isOdcHazCargo) {
+  if (ListExtended.includes(locId) && isHazOrOdc) {
     addReq("LASHING_CERTIFICATE");
   }
 
@@ -860,8 +861,8 @@ export const getRequiredAttachments = (formData) => {
     addReq("MMD_APPRVL");
   }
 
-  // 16. MSDS - ListExtended, Cargo: ODC HAZ
-  if (ListExtended.includes(locId) && isOdcHazCargo) {
+  // 16. MSDS - ListExtended, Cargo: ODC / HAZ
+  if (ListExtended.includes(locId) && isHazOrOdc) {
     addReq("MSDS");
   }
 
@@ -870,8 +871,8 @@ export const getRequiredAttachments = (formData) => {
     addReq("MSDS_SHEET");
   }
 
-  // 18. ODC_SURVEYOR_REPORT_PHOTOS - ListExtended, Cargo: ODC HAZ
-  if (ListExtended.includes(locId) && isOdcHazCargo) {
+  // 18. ODC_SURVEYOR_REPORT_PHOTOS - ListExtended, Cargo: ODC / HAZ
+  if (ListExtended.includes(locId) && isHazOrOdc) {
     addReq("ODC_SURVEYOR_REPORT_PHOTOS");
   }
 

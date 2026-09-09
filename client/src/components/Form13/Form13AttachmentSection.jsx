@@ -46,6 +46,7 @@ const ALL_DOC_TYPES = {
   BOOKING_CONF_COPY: "Booking confirmation copy",
   CHK_LIST: "Check List",
   CLN_CRTFCT: "Cleaning certificate",
+  CLN_CRTFTCT: "Cleaning certificate",
   CNTNR_LOAD_PLAN: "Container Load Plan",
 };
 

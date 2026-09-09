@@ -374,21 +374,11 @@ const Form13HeaderSection = ({
     const required = isFieldRequired(fieldName, formData);
 
     if (fieldName === "shipperNm") {
-      const fullShipperOptions = [
-        ...shipperOptions,
-        {
-          value: "OTHER SHIPPER",
-          code: "OTHR",
-          portCd: formData.locId || "",
-          label: "OTHER SHIPPER (OTHR)"
-        }
-      ];
-
       return (
         <Grid item xs={12} sm={6} md={md}>
           <FormLabelCustom label={label} required={required} />
           <CustomAutocomplete
-            options={fullShipperOptions}
+            options={shipperOptions}
             value={formData.shipperNm}
             onChange={(val, rawOpt) => {
               if (!val) {

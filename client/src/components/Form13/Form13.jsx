@@ -43,7 +43,8 @@ import {
   lettersOnlyPattern,
   digitsOnlyPattern,
   datePattern,
-  getFieldLabel
+  getFieldLabel,
+  getRequiredAttachments as fetchRequiredAttachments
 } from "../../utils/form13Validations";
 import "../../styles/Form13.scss";
 
@@ -1591,144 +1592,7 @@ const Form13 = () => {
 
   // Get Required Attachments based on location, cargo type, and origin as per images
   const getRequiredAttachments = () => {
-    const required = [];
-    const { locId, cargoTp, origin, cntnrStatus, containers } = formData;
-
-    const normCargoTp = (cargoTp || "").toUpperCase();
-    const normOrigin = (origin || "").toUpperCase();
-    const normCntnrStatus = (cntnrStatus || "").toUpperCase();
-
-    // Port Lists from Excel
-    // ListA: Nhava Sheva to Kandla (Major Ports)
-    const ListA = ["INNSA1", "INMUN1", "INNML1", "INTUT1", "INCCU1", "INPAV1", "INHZA1", "INMRM1", "INCOK1", "INVTZ1", "INHAL1", "INKRI1", "INIXY1"];
-    // ListChennaiGroup: Chennai, Kattupalli, Ennore
-    const ListChennaiGroup = ["INMAA1", "INKAT1", "INENN1"];
-    // ListExtended: ListA + ListChennaiGroup + Paradip + Kakinada
-    const ListExtended = [...ListA, ...ListChennaiGroup, "INPRT1", "INKAK1"];
-
-    // Helper to check cargo types
-    const isHazCargo = normCargoTp.includes("HAZ");
-    const isOdcCargo = normCargoTp.includes("ODC");
-    // ODC Hazardous specifically matches the dropdown value ODC(HAZ) or if both flags are present
-    const isOdcHazCargo = normCargoTp === "ODC(HAZ)" || normCargoTp === "ODC HAZARDOUS" || (isHazCargo && isOdcCargo);
-
-    // For docs referencing "HAZ ODC" or "HAZ & ODC", it usually means either or the combination
-    const isHazOrOdc = isHazCargo || isOdcCargo || isOdcHazCargo;
-
-    // 0. BOOKING_COPY (Mandatory For All Locations)
-    required.push({ code: "BOOKING_COPY", name: "Booking Copy", required: true });
-
-    // 1. PRE_EGM (Chennai only, Optional/N)
-    if (locId === "INMAA1") {
-      required.push({ code: "PRE_EGM", name: "Pre-EGM", required: false });
-    }
-
-    // 2. BOOK_CNFRM_CPY (Chennai Group, Cargo: HAZ, ODC, GEN, ONION, REF)
-    if (ListChennaiGroup.includes(locId) && ["HAZ", "ODC", "GEN", "ONION", "REF", "ODC(HAZ)"].some(tp => normCargoTp.includes(tp))) {
-      required.push({ code: "BOOK_CNFRM_CPY", name: "Booking Confirmation Copy", required: true });
-    }
-
-    // 3. BOOKING_CONF_COPY (Vizag, Origin: C, F, W, E_TANK)
-    if (locId === "INVTZ1" && ["C", "F", "W", "E_TANK"].includes(normOrigin)) {
-      required.push({ code: "BOOKING_CONF_COPY", name: "Booking confirmation copy", required: true });
-    }
-
-    // 4. CHK_LIST (Chennai Group, Cargo: HAZ, ODC, GEN, ONION, REF)
-    if (ListChennaiGroup.includes(locId) && ["HAZ", "ODC", "GEN", "ONION", "REF", "ODC(HAZ)"].some(tp => normCargoTp.includes(tp))) {
-      required.push({ code: "CHK_LIST", name: "Check List", required: true });
-    }
-
-    // 5. CLN_CRTFCT (ListA, Cargo: HAZ, Status: Empty)
-    if (ListA.includes(locId) && isHazCargo && normCntnrStatus === "EMPTY") {
-      required.push({ code: "CLN_CRTFCT", name: "Cleaning certificate", required: true });
-    }
-
-    // 6. CNTNR_LOAD_PLAN (ListA, Origin: Dock Stuff)
-    if (ListA.includes(locId) && normOrigin === "C") {
-      required.push({ code: "CNTNR_LOAD_PLAN", name: "Container Load Plan", required: true });
-    }
-
-    // 7. CUSTOMS_EXAM_REPORT (ListA, Origin: ON WHEEL)
-    if (ListA.includes(locId) && normOrigin === "W") {
-      required.push({ code: "CUSTOMS_EXAM_REPORT", name: "Customs Examination Report", required: true });
-    }
-
-    // 8. DG_DCLRTION (ListA + Chennai + Kattupalli, Cargo: HAZ, ODC)
-    if ((ListA.includes(locId) || locId === "INMAA1" || locId === "INKAT1") && isHazOrOdc) {
-      required.push({ code: "DG_DCLRTION", name: "DG Declaration", required: true });
-    }
-
-    // 9. DLVRY_ORDER (ListA + Chennai + Kattupalli, Origin: F, C, E_TANK)
-    if ((ListA.includes(locId) || locId === "INMAA1" || locId === "INKAT1") && ["F", "C", "E_TANK"].includes(normOrigin)) {
-      required.push({ code: "DLVRY_ORDER", name: "Delivery Order", required: true });
-    }
-
-    // 10. FIRE_OFC_CRTFCT (ListChennaiGroup, Cargo: HAZ, ODC)
-    if (ListChennaiGroup.includes(locId) && isOdcHazCargo) {
-      required.push({ code: "FIRE_OFC_CRTFCT", name: "Fire Office Certificate", required: true });
-    }
-
-    // 11. HAZ_DG_DECLARATION (ListExtended, Cargo: ODC HAZ)
-    if (ListExtended.includes(locId) && isOdcHazCargo) {
-      required.push({ code: "HAZ_DG_DECLARATION", name: "HAZ DG DECLARATION", required: true });
-    }
-
-    // 12. INVOICE (ListExtended, Origin: F, E_TANK)
-    if (ListExtended.includes(locId) && ["F", "E_TANK"].includes(normOrigin)) {
-      required.push({ code: "INVOICE", name: "Invoice", required: true });
-    }
-
-    // 13. LASHING_CERTIFICATE (ListExtended, Cargo: ODC & HAZ)
-    if (ListExtended.includes(locId) && isOdcHazCargo) {
-      required.push({ code: "LASHING_CERTIFICATE", name: "LASHING CERTIFICATE", required: true });
-    }
-
-    // 14. MMD_APPRVL (ListChennaiGroup, Cargo: HAZ, ODC)
-    if (ListChennaiGroup.includes(locId) && isOdcHazCargo) {
-      required.push({ code: "MMD_APPRVL", name: "MMD Approval", required: true });
-    }
-
-    // 15. MSDS (ListExtended, Cargo: ODC HAZ)
-    if (ListExtended.includes(locId) && isOdcHazCargo) {
-      required.push({ code: "MSDS", name: "MSDS", required: true });
-    }
-
-    // 16. MSDS_SHEET (ListChennaiGroup, Cargo: HAZ, ODC)
-    if (ListChennaiGroup.includes(locId) && isOdcHazCargo) {
-      required.push({ code: "MSDS_SHEET", name: "MSDS Sheet", required: true });
-    }
-
-    // 17. ODC_SURVEYOR_REPORT_PHOTOS (ListExtended, Cargo: ODC HAZ)
-    if (ListExtended.includes(locId) && isOdcHazCargo) {
-      required.push({ code: "ODC_SURVEYOR_REPORT_PHOTOS", name: "ODC SURVEYOR REPORT + PHOTOS", required: true });
-    }
-
-    // 18. PACK_LIST (ListA, Origin: Factory Stuff)
-    if (ListA.includes(locId) && normOrigin === "F") {
-      required.push({ code: "PACK_LIST", name: "Packing List", required: true });
-    }
-
-    // 19. SHIP_BILL (ListA, Origin: C, F, W, E_TANK)
-    if (ListA.includes(locId) && ["C", "F", "W", "E_TANK"].includes(normOrigin)) {
-      required.push({ code: "SHIP_BILL", name: "Shipping Bill", required: true });
-    }
-
-    // 20. SHIPPING_INSTRUCTION (Vizag, Origin: C, F, W, E_TANK)
-    if (locId === "INVTZ1" && ["C", "F", "W", "E_TANK"].includes(normOrigin)) {
-      required.push({ code: "SHIPPING_INSTRUCTION", name: "Shipping instruction (SI)", required: true });
-    }
-
-    // 21. SURVY_RPRT (ListChennaiGroup, Cargo: HAZ, ODC)
-    if (ListChennaiGroup.includes(locId) && isOdcHazCargo) {
-      required.push({ code: "SURVY_RPRT", name: "Survey Report", required: true });
-    }
-
-    // 22. VGM_ANXR1 (ListExtended, Origin: C, F, W, E_TANK)
-    if (ListExtended.includes(locId) && ["C", "F", "W", "E_TANK"].includes(normOrigin)) {
-      required.push({ code: "VGM_ANXR1", name: "VGM-Annexure 1", required: true });
-    }
-
-    return required;
+    return fetchRequiredAttachments(formData);
   };
 
   // Form Data Change Handler
